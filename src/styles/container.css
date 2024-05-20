@@ -1,0 +1,47 @@
+.container {
+    display: grid;
+    height: 100%;
+    min-height: 100vh;
+    padding: 0;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, 70px);
+    grid-template-areas: 'headerImg header header header header header'
+        'nav main main main main main'
+        'nav main main main main main';
+}
+
+.headerImg {
+    grid-area: headerImg;
+}
+
+.header {
+    grid-area: header;
+    background-color: ghostwhite;
+}
+
+.header .logo {
+    display: flex;
+    align-items: center;
+}
+
+.header .logo-image {
+    max-height: 100%;
+    /* La imagen ocupa todo el espacio del header */
+    margin-right: 10px;
+    /* Espacio entre la imagen y el texto del logo */
+}
+
+
+.nav span {
+    font-size: small;
+}
+
+.nav {
+    grid-area: nav;
+    background-color: cornsilk;
+}
+
+.main {
+    background-color: #D8D9DA;
+    grid-area: main;
+}
