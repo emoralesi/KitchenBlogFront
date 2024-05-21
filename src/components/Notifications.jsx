@@ -1,22 +1,14 @@
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { Badge, Grid, IconButton, List, ListItem, Popover } from '@mui/material';
+import { Badge, IconButton, List, ListItem, Popover } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useNotification } from '../Hooks/useNotification';
+import { PopUpNotification } from '../utils/PopUpNotificaiton';
 import { NotificationList } from './NotificationList';
 
 const NotificationBell = () => {
 
     const [anchorEl, setAnchorEl] = useState(null);
-    const [notifications, setNotifications] = useState([
-        { id: 1, text: 'Notificación 1' },
-        { id: 2, text: 'Notificación 2' },
-        { id: 3, text: 'Notificación 3' },
-        { id: 3, text: 'Notificación 3' },
-        { id: 3, text: 'Notificación 3' },
-        { id: 3, text: 'Notificación 3' },
-        { id: 3, text: 'Notificación 3' },
-        { id: 3, text: 'Notificación 3' },
-        { id: 3, text: 'Notificación 3' },
-    ]);
+    const { notifications, ObtenerNotificaciones } = useNotification();
     const [cantidadNotificaciones, setCantidadNotificaciones] = useState(0);
 
     useEffect(() => {
@@ -27,6 +19,8 @@ const NotificationBell = () => {
             userId = JSON.parse(localStorage.getItem('UserLogged')).usuarioId;
         }
 
+        ObtenerNotificaciones({ idUser: userId })
+
         // Establecer conexión SSE
         const eventSource = new EventSource(`http://localhost:3600/events/${userId}`);
 
@@ -36,6 +30,8 @@ const NotificationBell = () => {
             console.log(newNotification);
             //setNotifications(prevNotifications => [...prevNotifications, newNotification]);
             setCantidadNotificaciones(prevCount => prevCount + 1);
+            PopUpNotification({ params: newNotification, userId: userId })
+            ObtenerNotificaciones({ idUser: userId })
         };
 
         return () => {
@@ -58,7 +54,7 @@ const NotificationBell = () => {
     return (
         <div style={{ marginRight: '20px' }}>
             <IconButton onClick={handleClick} color="inherit">
-                <Badge badgeContent={cantidadNotificaciones} color="error">
+                <Badge badgeContent={notifications.length} color="error">
                     <NotificationsIcon />
                 </Badge>
             </IconButton>
@@ -81,7 +77,7 @@ const NotificationBell = () => {
                 <List sx={{ width: { xs: '90vw', md: '60vw', lg: '40vw' }, height: { xs: '70vh', md: '85vh', lg: '85vh' }, overflow: 'auto' }}>
                     {notifications.map(notification => (
                         <ListItem key={notification.id}>
-                            <NotificationList />
+                            <NotificationList key={notification.id + "b"} />
                         </ListItem>
                     ))}
                 </List>
