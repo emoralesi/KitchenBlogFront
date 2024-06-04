@@ -13,6 +13,9 @@ export const PopUpNotification = ({ params, userId }) => {
                 enqueueSnackbar(`${params.newComment.user} ha respondido a tu comentario ${params.ownerComment[0].content}`, { variant: 'waring' });
             }
             break;
+        case TypeNotification.CommentToPost:
+            enqueueSnackbar(`${params.newComment.user} ha comentado "${params.newComment.content}" en tu post`, { variant: 'waring' });
+            break;
         default:
             componente = null; // O algún componente por defecto o mensaje de error
     }

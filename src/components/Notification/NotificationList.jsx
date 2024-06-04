@@ -1,15 +1,15 @@
-import { TypeNotification } from "../utils/enumTypeNoti";
+import { TypeNotification } from "../../utils/enumTypeNoti";
 import { NotificationCTA } from "./NotificationCTA";
 import { NotificationCTP } from "./NotificationCTP";
 
 export const NotificationList = ({ params }) => {
     let componente;
-    switch (TypeNotification.CommentToAnswerd) {
+    switch (params.action) {
         case TypeNotification.CommentToAnswerd:
-            componente = <NotificationCTA />;
+            componente = <NotificationCTA params={params} />;
             break;
         case TypeNotification.CommentToPost:
-            componente = <NotificationCTP />;
+            componente = <NotificationCTP params={params} />;
             break;
         case TypeNotification.LikeToAnswerd || TypeNotification.LikeToComment || TypeNotification.LikeToPost:
             componente = <Componente3 />;

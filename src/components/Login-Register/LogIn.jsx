@@ -1,7 +1,7 @@
 import { Box, Button, TextField } from "@mui/material"
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LoginUsuario } from "../services/UserService";
+import { LoginUsuario } from "../../services/UserService";
 import { enqueueSnackbar } from "notistack";
 
 export default function LogIn({ handleCreateNewClick }) {

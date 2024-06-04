@@ -1,4 +1,4 @@
-import NotificationBell from "./Notifications"
+import NotificationBell from "../Notification/Notifications"
 
 export const Header = () => {
     return (

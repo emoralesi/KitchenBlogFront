@@ -1,0 +1,32 @@
+{
+    "menus": [
+        {
+            "id_menu": 1,
+            "nombre_menu": "Mi Perfil",
+            "linkTo": "/main/miPerfil",
+            "submenus": []
+        },
+        {
+            "id_menu": 2,
+            "nombre_menu": "Descubrir",
+            "submenus": [
+                {
+                    "id_sub_menu": 3,
+                    "nombre_sub_menu": "testing 1",
+                    "linkTo":"/main/testing1"
+                },
+                {
+                    "id_sub_menu": 4,
+                    "nombre_sub_menu": "testing 2",
+                    "linkTo":"/main/testing2"
+                }
+            ]
+        },
+        {
+            "id_menu": 5,
+            "nombre_menu": "Lista de compra",
+            "linkTo": "/main/listaDeCompra",
+            "submenus": []
+        }
+    ]
+}

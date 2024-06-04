@@ -1,3 +1,4 @@
+import { Unauthorized } from "../utils/401Unauthorized";
 import { getStorageUser } from "../utils/StorageUser";
 
 export async function getNotifications(idNotificated) {
@@ -22,6 +23,7 @@ export async function getNotifications(idNotificated) {
         };
 
         const response = await fetch(`http://localhost:3600/obtenerNotificaciones`, requestOptions).then((res) => {
+            Unauthorized(res.status)
             return res.json()
         }).then((res) => {
             return res
@@ -31,6 +33,7 @@ export async function getNotifications(idNotificated) {
         return response
 
     } catch (error) {
+        console.log("error", error);
         throw error
     }
 }

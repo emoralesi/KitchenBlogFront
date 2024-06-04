@@ -1,9 +1,14 @@
+import { SnackbarProvider } from 'notistack';
 import React from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import UserForm from './components/UserForm';
-import { SnackbarProvider } from 'notistack';
-import { Bienvenido } from './components/Bienvenido';
-import MainContent from './components/Main';
+import UserForm from './components/Login-Register/UserForm';
+import MainContent from './components/Menu/Main';
+import { ListaDeCompra } from './components/Menu/Seccion//ListaDeCompra';
+import { Testing1 } from './components/Menu/Seccion//Testing1';
+import { Testing2 } from './components/Menu/Seccion//Testing2';
+import { Bienvenido } from './components/Menu/Seccion/Bienvenido';
+import { MiPerfil } from './components/Menu/Seccion/MiPerfil';
+import SessionGuard from './components/SessionGuard/SessionGuard';
 
 function App() {
 
@@ -28,8 +33,12 @@ function App() {
             <UserForm formType={false} />
           )}>
           </Route >
-          <Route path="/main" element={<MainContent />}>
+          <Route path="/main" element={<SessionGuard element={<MainContent />} />}>
             <Route path="bienvenido" element={<Bienvenido />} />
+            <Route path="miPerfil" element={<MiPerfil />} />
+            <Route path="listaDeCompra" element={<ListaDeCompra />} />
+            <Route path="testing1" element={<Testing1 />} />
+            <Route path="testing2" element={<Testing2 />} />
           </Route>
           <Route
             path="*"
@@ -41,7 +50,6 @@ function App() {
               )
             }
           />
-          {/* Otras rutas de la aplicación */}
         </Routes>
       </SnackbarProvider>
     </Router>

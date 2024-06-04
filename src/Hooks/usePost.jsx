@@ -1,0 +1,38 @@
+import { useState } from "react";
+import { GetPostsByIdUser, savePost } from "../services/PostService";
+import { enqueueSnackbar } from "notistack";
+
+export const usePost = () => {
+
+    const [misPosts, setMisPosts] = useState([]);
+    const guardarPost = async ({ data }) => {
+
+        console.log("data al usePost", data);
+        try {
+            const result = await savePost({ post: data });
+            enqueueSnackbar('Post Registrado correctaente', { variant: 'success' });
+            return true;
+
+        } catch (error) {
+            enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
+            return false;
+            console.log(error);
+        } finally {
+        }
+
+    }
+
+    const getUserAndPost = async ({ userId }) => {
+        console.log("data al getUserAndPost", userId);
+        try {
+            const result = await GetPostsByIdUser({ idUser: { userId } });
+            setMisPosts(result.posts);
+        } catch (error) {
+            enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
+            console.log(error);
+        } finally {
+        }
+    }
+
+    return { guardarPost, getUserAndPost, misPosts }
+}

@@ -1,8 +1,8 @@
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { Badge, IconButton, List, ListItem, Popover } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { useNotification } from '../Hooks/useNotification';
-import { PopUpNotification } from '../utils/PopUpNotificaiton';
+import { useNotification } from '../../Hooks/useNotification';
+import { PopUpNotification } from '../../utils/PopUpNotificaiton';
 import { NotificationList } from './NotificationList';
 
 const NotificationBell = () => {
@@ -27,7 +27,7 @@ const NotificationBell = () => {
         // Manejar eventos recibidos
         eventSource.onmessage = (event) => {
             const newNotification = JSON.parse(event.data);
-            console.log(newNotification);
+            console.log("mi notificacion desde el server",newNotification);
             //setNotifications(prevNotifications => [...prevNotifications, newNotification]);
             setCantidadNotificaciones(prevCount => prevCount + 1);
             PopUpNotification({ params: newNotification, userId: userId })
@@ -75,9 +75,9 @@ const NotificationBell = () => {
                 {/* <Grid container spacing={2}> */}
                 {/* <Grid item xs={12} md={6}> */}
                 <List sx={{ width: { xs: '90vw', md: '60vw', lg: '40vw' }, height: { xs: '70vh', md: '85vh', lg: '85vh' }, overflow: 'auto' }}>
-                    {notifications.map(notification => (
-                        <ListItem key={notification.id}>
-                            <NotificationList key={notification.id + "b"} />
+                    {notifications.map((notification, index) => (
+                        <ListItem key={index}>
+                            <NotificationList params={notification} />
                         </ListItem>
                     ))}
                 </List>
