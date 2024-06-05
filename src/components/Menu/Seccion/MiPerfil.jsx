@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { PostForm } from "./PostForm";
 import { usePost } from "../../../Hooks/usePost";
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DitailsPost } from "./DitailsPost";
+import { DetailsPost } from '../Seccion/DitailsPost'
 
 export const MiPerfil = () => {
   const [data, setData] = useState([
@@ -66,7 +66,7 @@ export const MiPerfil = () => {
       }
       {
         openPost
-          ? <DitailsPost open={openPost} setOpen={setOpenPost} />
+          ? <DetailsPost open={openPost} setOpen={setOpenPost} />
           : <></>
       }
     </Box>
