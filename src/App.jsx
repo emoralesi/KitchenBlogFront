@@ -9,6 +9,7 @@ import { Testing2 } from './components/Menu/Seccion//Testing2';
 import { Bienvenido } from './components/Menu/Seccion/Bienvenido';
 import { MiPerfil } from './components/Menu/Seccion/MiPerfil';
 import SessionGuard from './components/SessionGuard/SessionGuard';
+import { FullPagePost } from './components/Menu/Seccion/FullPagePost';
 
 function App() {
 
@@ -39,6 +40,7 @@ function App() {
             <Route path="listaDeCompra" element={<ListaDeCompra />} />
             <Route path="testing1" element={<Testing1 />} />
             <Route path="testing2" element={<Testing2 />} />
+            <Route path="p/:idPost" element={<FullPagePost />} />
           </Route>
           <Route
             path="*"

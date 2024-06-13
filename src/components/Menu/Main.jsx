@@ -26,7 +26,7 @@ export default function MainContent() {
                 </Grid>
                 <Grid item xs={10}>  {/* Adjust xs to 10 for all main content */}
                     <Paper elevation={3} sx={{ height: 'calc(100vh - 70px)', backgroundColor: '#D8D9DA', overflow: 'auto' }}>
-                        <Box p={2} flexGrow={1}>
+                        <Box sx={{ height: '100%', width: '100%' }} flexGrow={1}>
                             <Outlet />
                         </Box>
                     </Paper>

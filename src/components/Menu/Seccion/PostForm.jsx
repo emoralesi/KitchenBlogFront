@@ -57,7 +57,7 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
                                 onChange={(e) => { setContent(e.target.value) }}
                             />
                             <Button variant='contained' color='success' onClick={() => {
-                                if (guardarPost({ data: { title: title, content: content, user: getStorageUser().usuarioId } })) {
+                                if (guardarPost({ data: { title: title, images: ['https://via.placeholder.com/400'], content: content, user: getStorageUser().usuarioId } })) {
                                     setOpen(false);
                                     getUserAndPost({ userId: getStorageUser().usuarioId });
                                 }

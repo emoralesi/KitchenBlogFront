@@ -21,7 +21,7 @@ export default function UserForm({ formType }) {
     return (
         <Box sx={{ width: '100%', height: '100vh', backgroundColor: '#eee', overflow: 'auto' }}>
             <Grid container spacing={0} sx={{ height: '100%', padding: '20px' }}>
-                <Grid item xs={12} md={6} sx={{
+                <Grid item xs={12} sm={12} md={6} sx={{
                     minHeight: { xs: '100%', md: '100%' },
                     transition: 'transform 0.5s',
                     transform: {
@@ -35,7 +35,7 @@ export default function UserForm({ formType }) {
                         : <Register
                             handleCreateNewClick={handleCreateNewClick} />}
                 </Grid>
-                <Grid item xs={12} md={6} sx={{
+                <Grid item xs={12} sm={12} md={6} sx={{
                     minHeight: { xs: '80%', md: '100%' },
                     transition: 'transform 0.5s',
                     transform: {

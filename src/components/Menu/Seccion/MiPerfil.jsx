@@ -1,25 +1,27 @@
-import { Box, Button, Fab, Zoom } from "@mui/material";
-import { useEffect, useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
-import { PostForm } from "./PostForm";
+import { Box, Button, Fab, Modal, Zoom } from "@mui/material";
+import { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { usePost } from "../../../Hooks/usePost";
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsPost } from '../Seccion/DitailsPost'
+import { DetailsPost } from '../Seccion/DitailsPost';
+import { PostForm } from "./PostForm";
 
 export const MiPerfil = () => {
   const [data, setData] = useState([
-    { title: "Card 1", image: "image1.jpg", content: "Content for card 1" },
-    { title: "Card 2", image: "image2.jpg", content: "Content for card 2" },
-    { title: "Card 3", image: "image3.jpg", content: "Content for card 3" },
-    { title: "Card 4", image: "image4.jpg", content: "Content for card 4" },
-    { title: "Card 5", image: "image5.jpg", content: "Content for card 5" },
-    { title: "Card 6", image: "image6.jpg", content: "Content for card 6" },
+    { title: "Card 1", image: "image1.jpg", content: "Content for card 1", _id: '123' },
+    { title: "Card 2", image: "image2.jpg", content: "Content for card 2", _id: '456' },
+    { title: "Card 3", image: "image3.jpg", content: "Content for card 3", _id: '789' },
+    { title: "Card 4", image: "image4.jpg", content: "Content for card 4", _id: '101' },
+    { title: "Card 5", image: "image5.jpg", content: "Content for card 5", _id: '121' },
+    { title: "Card 6", image: "image6.jpg", content: "Content for card 6", _id: '141' },
   ]);
 
   const [openForm, setOpenForm] = useState(false);
   const { getUserAndPost, misPosts } = usePost();
   const [openPost, setOpenPost] = useState(false)
   const [idPost, setIdPost] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getUserAndPost({ userId: getStorageUser().usuarioId })
@@ -49,12 +51,15 @@ export const MiPerfil = () => {
               }}
             >
               <img src={card?.image} alt={card.title} width="100%" />
-              <Button onClick={() => {
-                setOpenPost(true);
+              <Button onClick={(e) => {
+                e.preventDefault();
                 setIdPost(card?._id);
+                window.history.replaceState('', '', `/main/p/${card._id}`);
+                setOpenPost(true);
               }}>open me</Button>
               <h2>{card.title}</h2>
               <p>{card.content}</p>
+              <p>{card._id}</p>
             </Box>
           </Zoom>
         ))}
@@ -66,7 +71,21 @@ export const MiPerfil = () => {
       }
       {
         openPost
-          ? <DetailsPost open={openPost} setOpen={setOpenPost} />
+          ?
+          <Modal
+            open={openPost}
+            closeAfterTransition
+            BackdropProps={{
+              timeout: 500,
+            }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+
+            <DetailsPost isFull={false} idPost={idPost} setOpen={setOpenPost} />
+          </Modal>
           : <></>
       }
     </Box>
