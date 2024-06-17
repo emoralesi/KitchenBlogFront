@@ -7,7 +7,7 @@ export const useComment = () => {
         console.log("data al usePost", comentario);
         try {
             await saveComment({ comment: comentario });
-            enqueueSnackbar('Post Registrado correctaente', { variant: 'success' });
+            enqueueSnackbar('Comentario Registrado correctaente', { variant: 'success' });
             return true;
 
         } catch (error) {

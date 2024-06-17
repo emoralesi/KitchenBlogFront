@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ListChild } from "./ListChild"
 import { Icons } from "./iconsSideBar"
 import { useNavigate } from "react-router-dom";
+import { getStorageUser } from "../../utils/StorageUser"
 
 export const CustomizedListItem = ({ doc }) => {
     const [open, setOpen] = useState(true)
@@ -12,7 +13,12 @@ export const CustomizedListItem = ({ doc }) => {
     const handleClick = () => {
         setOpen(!open)
         if (doc.submenus.length == 0) {
-            navigate(doc.linkTo);
+            if (doc.linkTo == '/main/profile/') {
+                navigate(`${doc.linkTo}${getStorageUser().usuarioId}`);
+            } else {
+                navigate(doc.linkTo);
+            }
+
         }
     }
 
@@ -20,7 +26,7 @@ export const CustomizedListItem = ({ doc }) => {
         <div className='navBox'>
             <div className='listItem'>
                 <ListItem button key={doc.id_menu} onClick={handleClick}>
-                    <Container sx={{ display: { xs: 'flex', md: 'contents' }, alignItems: {xs: 'center', md: 'unset'}, justifyContent: {xs: 'center', md: 'unset'} }}>
+                    <Container sx={{ display: { xs: 'flex', md: 'contents' }, alignItems: { xs: 'center', md: 'unset' }, justifyContent: { xs: 'center', md: 'unset' } }}>
                         <Icons idMenu={doc.id_menu} />
                         <ListItemText sx={{ paddingLeft: '7px', display: { xs: 'none', md: 'unset' }, }} primary={doc.nombre_menu} />
                         {doc.submenus.length > 0 ? open ? <ExpandLess /> : <ExpandMore /> : <></>}

@@ -9,7 +9,7 @@ import { usePost } from '../../../Hooks/usePost';
 import { useComment } from '../../../Hooks/useComment';
 import { getStorageUser } from '../../../utils/StorageUser';
 
-export const DetailsPost = ({ isFull, setOpen, idPost }) => {
+export const DetailsPost = ({ isFull, setOpen, idPost, idUser }) => {
     // State variables
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -18,12 +18,13 @@ export const DetailsPost = ({ isFull, setOpen, idPost }) => {
     const [visibleAnswers, setVisibleAnswers] = useState({});
     const [images, setImages] = useState([]);
     const [commentParent, setCommentParent] = useState('');
+    const [responseContent, setResponseContent] = useState({});
     const { guardarComment } = useComment();
 
     const { detailsPost, getDetailsPost } = usePost(); // Custom hook
 
     // Close modal function
-    const handleClose = () => { setOpen(false); window.history.replaceState('', '', '/main/miPerfil'); };
+    const handleClose = () => { setOpen(false); window.history.replaceState('', '', `/main/profile/${idUser}`); };
 
     // Show more comments function
     const handleShowMoreComments = () => {
@@ -38,8 +39,35 @@ export const DetailsPost = ({ isFull, setOpen, idPost }) => {
         }));
     };
 
+    // Handle response content change
+    const handleResponseContentChange = (index, value) => {
+        setResponseContent((prev) => ({
+            ...prev,
+            [index]: value,
+        }));
+    };
+
+    // Handle send response
+    const handleSendResponse = async (index, commentId, parentComment) => {
+        console.log("mi comentario y/o respuesta", responseContent[index]);
+        await guardarComment({
+            comentario: {
+                content: responseContent[index],
+                user: getStorageUser().usuarioId,
+                parentComment: parentComment,
+                post: idPost
+            }
+        });
+        await getDetailsPost({ postId: idPost });
+        setResponseContent((prev) => ({
+            ...prev,
+            [index]: '',
+        }));
+    };
+
     // useEffect to update content when modal opens
     useEffect(() => {
+        console.log("Ditailsss idUser", idUser);
         getDetailsPost({ postId: idPost })
         setVisibleComments(3);
         setVisibleAnswers({});
@@ -142,7 +170,6 @@ export const DetailsPost = ({ isFull, setOpen, idPost }) => {
                                             </IconButton>
                                         </Typography>
                                         {/* Render answers */}
-                                        {console.log("mis respuestas", detailsPost?.comments)}
                                         {comment.responses.slice(0, visibleAnswers[index] || 3).map((answerd, i) => (
                                             <Typography key={i} variant="body2" style={{ marginLeft: '16px', position: 'relative' }}>
                                                 {answerd.content}
@@ -151,14 +178,18 @@ export const DetailsPost = ({ isFull, setOpen, idPost }) => {
                                                 </IconButton>
                                             </Typography>
                                         ))}
-                                        {/* Show more answers button */}
+                                        {
+                                            console.log("veamos si trae el id del comentario",)
+                                        }
                                         <div style={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
                                             <div>
                                                 <TextField
                                                     type='text'
                                                     sx={{ paddingRight: '10%' }}
+                                                    value={responseContent[index] || ''}
+                                                    onChange={(e) => handleResponseContentChange(index, e.target.value)}
                                                 />
-                                                <Button variant='outlined'>SEND</Button>
+                                                <Button variant='outlined' onClick={() => handleSendResponse(index, comment.id, comment._id)}>SEND</Button>
                                             </div>
                                             {comment.responses.length > (visibleAnswers[index] || 3) && (
                                                 <Button

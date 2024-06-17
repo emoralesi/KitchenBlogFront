@@ -1,27 +1,17 @@
 import AddIcon from '@mui/icons-material/Add';
 import { Box, Button, Fab, Modal, Zoom } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
 import { usePost } from "../../../Hooks/usePost";
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsPost } from '../Seccion/DitailsPost';
+import { DetailsPost } from './DitailsPost';
 import { PostForm } from "./PostForm";
 
-export const MiPerfil = () => {
-  const [data, setData] = useState([
-    { title: "Card 1", image: "image1.jpg", content: "Content for card 1", _id: '123' },
-    { title: "Card 2", image: "image2.jpg", content: "Content for card 2", _id: '456' },
-    { title: "Card 3", image: "image3.jpg", content: "Content for card 3", _id: '789' },
-    { title: "Card 4", image: "image4.jpg", content: "Content for card 4", _id: '101' },
-    { title: "Card 5", image: "image5.jpg", content: "Content for card 5", _id: '121' },
-    { title: "Card 6", image: "image6.jpg", content: "Content for card 6", _id: '141' },
-  ]);
+export const PerfilOwner = () => {
 
   const [openForm, setOpenForm] = useState(false);
   const { getUserAndPost, misPosts } = usePost();
   const [openPost, setOpenPost] = useState(false)
   const [idPost, setIdPost] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     getUserAndPost({ userId: getStorageUser().usuarioId })
@@ -34,7 +24,7 @@ export const MiPerfil = () => {
           <AddIcon />
         </Fab>
       </Box>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px' }}>
         {misPosts?.map((card, index) => (
           <Zoom key={card.title} in={true} timeout={300 + (index * 80)}>
             <Box
@@ -42,7 +32,6 @@ export const MiPerfil = () => {
               sx={{
                 p: 2,
                 border: 1,
-                margin: '5px',
                 borderRadius: 2,
                 minWidth: "220px", // Minimum width
                 maxWidth: "500px", // Maximum width
@@ -84,7 +73,7 @@ export const MiPerfil = () => {
               justifyContent: 'center',
             }}>
 
-            <DetailsPost isFull={false} idPost={idPost} setOpen={setOpenPost} />
+            <DetailsPost isFull={false} idPost={idPost} setOpen={setOpenPost} idUser={getStorageUser().usuarioId} />
           </Modal>
           : <></>
       }
