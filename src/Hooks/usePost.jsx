@@ -7,7 +7,7 @@ export const usePost = () => {
     const [misPosts, setMisPosts] = useState([]);
     const [detailsPost, setDetailsPost] = useState([]);
 
-    const guardarPost = async ({ data }) => {
+    const guardarReceta = async ({ data }) => {
 
         console.log("data al usePost", data);
         try {
@@ -49,5 +49,5 @@ export const usePost = () => {
         }
     }
 
-    return { guardarPost, getUserAndPost, misPosts, getDetailsPost, detailsPost }
+    return { guardarReceta, getUserAndPost, misPosts, getDetailsPost, detailsPost }
 }
