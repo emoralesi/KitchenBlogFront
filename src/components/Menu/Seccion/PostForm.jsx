@@ -1,7 +1,19 @@
-import { Box, Button, Modal, Slide, TextField, Typography, Select, MenuItem, FormControl, InputLabel, IconButton, Icon } from '@mui/material';
+import { Box, Button, Modal, Slide, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { usePost } from '../../../Hooks/usePost';
 import { getStorageUser } from '../../../utils/StorageUser';
+import { useCategoria } from '../../../Hooks/useCategoria';
+import { useSubCategoria } from '../../../Hooks/useSubCategoria';
+import { useIngrediente } from '../../../Hooks/useIngrediente';
+import { useDificultad } from '../../../Hooks/useDificultad';
+import { useMedida } from '../../../Hooks/useMedida';
+import { useUtencilios } from '../../../Hooks/useUtencilios';
+
+const categories = [
+    { id: 'vegan', label: 'Vegan' },
+    { id: 'gluten-free', label: 'Gluten-Free' },
+    { id: 'vegetarian', label: 'Vegetarian' },
+];
 
 export const PostForm = ({ open, setOpen, getUserAndPost }) => {
     const [title, setTitle] = useState('');
@@ -13,21 +25,73 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
     const [categoria, setCategoria] = useState('');
     const [utencilio, setUtencilio] = useState([]);
     const [subCategoria, setSubCategoria] = useState([]);
-    const [grupoIngrediente, setGrupoIngrediente] = useState([]);
-    const [pasos, setPasos] = useState([]);
+    const [grupoIngrediente, setGrupoIngrediente] = useState([{ nombreGrupo: '', items: [{ id: 1, valor: 0, idIngrediente: '', idMedida: '' }] }]);
+    const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: '', images: [] }]);
 
     const handleClose = () => setOpen(false);
     const { guardarReceta } = usePost();
 
+    const { ObtenerCategoria, categoriasAll } = useCategoria();
+    const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
+    const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+    const { ObtenerDificultad, dificultadesAll } = useDificultad();
+    const { ObtenerMedida, medidasAll } = useMedida();
+    const { ObtenerUntencilios, utenciliosAll } = useUtencilios()
+
     useEffect(() => {
+        ObtenerCategoria();
+        ObtenerSubCategorias();
+        ObtenerIngrediente();
+        ObtenerDificultad();
+        ObtenerMedida();
+        ObtenerUntencilios();
     }, []);
 
     const handleAddGrupoIngrediente = () => {
-        setGrupoIngrediente([...grupoIngrediente, { nombreGrupo: '', items: [{ valor: 0, idIngrediente: '', idMedida: '' }] }]);
+        setGrupoIngrediente([...grupoIngrediente, { nombreGrupo: '', items: [{ id: 1, valor: 0, idIngrediente: '', idMedida: '' }] }]);
+    };
+
+    const handleDeleteGrupoIngrediente = (index) => {
+        if (grupoIngrediente.length > 1) {
+            const newGroups = [...grupoIngrediente];
+            newGroups.splice(index, 1);
+            setGrupoIngrediente(newGroups);
+        }
+    };
+
+    const handleAddItem = (groupIndex) => {
+        const newGroups = [...grupoIngrediente];
+        const newItemId = newGroups[groupIndex].items.length + 1;
+        newGroups[groupIndex].items.push({ id: newItemId, valor: 0, idIngrediente: '', idMedida: '' });
+        setGrupoIngrediente(newGroups);
+    };
+
+    const handleDeleteItem = (groupIndex, itemIndex) => {
+        const newGroups = [...grupoIngrediente];
+        if (newGroups[groupIndex].items.length > 1) {
+            newGroups[groupIndex].items.splice(itemIndex, 1);
+            setGrupoIngrediente(newGroups);
+        }
     };
 
     const handleAddPaso = () => {
         setPasos([...pasos, { pasoNumero: pasos.length + 1, descripcion: '', images: [] }]);
+    };
+
+    const handleDeletePaso = (index) => {
+        if (pasos.length > 1) {
+            const newPasos = [...pasos];
+            newPasos.splice(index, 1);
+            setPasos(newPasos);
+        }
+    };
+
+    const handleToggleSubCategoria = (categoryId) => {
+        if (subCategoria.includes(categoryId)) {
+            setSubCategoria(subCategoria.filter(id => id !== categoryId));
+        } else {
+            setSubCategoria([...subCategoria, categoryId]);
+        }
     };
 
     const handleSubmit = (e) => {
@@ -45,8 +109,8 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
             subCategoria,
             pasos,
         };
-        // You can now use the data object as needed
-        guardarReceta(data);
+        console.log("mi data", data);
+        //guardarReceta(data);
         handleClose();
     };
 
@@ -130,9 +194,13 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
                                         value={dificultad}
                                         onChange={(e) => setDificultad(e.target.value)}
                                     >
-                                        <MenuItem value="easy">Easy</MenuItem>
-                                        <MenuItem value="medium">Medium</MenuItem>
-                                        <MenuItem value="hard">Hard</MenuItem>
+                                        {
+                                            dificultadesAll?.map((dificulties) => (
+                                                <MenuItem key={dificulties._id} value={dificulties._id}>
+                                                    {dificulties.nombreDificultad}
+                                                </MenuItem>
+                                            ))
+                                        }
                                     </Select>
                                 </FormControl>
                                 <FormControl fullWidth margin="normal">
@@ -141,9 +209,11 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
                                         value={categoria}
                                         onChange={(e) => setCategoria(e.target.value)}
                                     >
-                                        <MenuItem value="dessert">Dessert</MenuItem>
-                                        <MenuItem value="main">Main</MenuItem>
-                                        <MenuItem value="appetizer">Appetizer</MenuItem>
+                                        {categoriasAll.map((category) => (
+                                            <MenuItem key={category._id} value={category._id}>
+                                                {category.nombreCategoria}
+                                            </MenuItem>
+                                        ))}
                                     </Select>
                                 </FormControl>
                                 <FormControl fullWidth margin="normal">
@@ -153,45 +223,54 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
                                         value={utencilio}
                                         onChange={(e) => setUtencilio(e.target.value)}
                                     >
-                                        <MenuItem value="spoon">Spoon</MenuItem>
-                                        <MenuItem value="knife">Knife</MenuItem>
-                                        <MenuItem value="fork">Fork</MenuItem>
+                                        {
+                                            utenciliosAll?.map((utencilio) => (
+                                                <MenuItem key={utencilio._id} value={utencilio._id}>
+                                                    {utencilio.nombreUtencilio}
+                                                </MenuItem>
+                                            ))
+                                        }
                                     </Select>
                                 </FormControl>
-                                <FormControl fullWidth margin="normal">
-                                    <InputLabel>SubCategoria</InputLabel>
-                                    <Select
-                                        multiple
-                                        value={subCategoria}
-                                        onChange={(e) => setSubCategoria(e.target.value)}
-                                    >
-                                        <MenuItem value="vegan">Vegan</MenuItem>
-                                        <MenuItem value="gluten-free">Gluten-Free</MenuItem>
-                                        <MenuItem value="vegetarian">Vegetarian</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                {grupoIngrediente.map((group, index) => (
-                                    <Box key={index} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
+                                <Box sx={{ display: 'flex', gap: 1, marginBottom: 2 }}>
+                                    {subCategoriasAll.map((subCategory) => (
+                                        <Button
+                                            key={subCategory._id}
+                                            variant={subCategoria.includes(subCategory._id) ? 'contained' : 'outlined'}
+                                            onClick={() => handleToggleSubCategoria(subCategory._id)}
+                                            sx={{
+                                                transition: 'background-color 0.3s',
+                                                '&:hover': {
+                                                    backgroundColor: subCategoria.includes(subCategory._id) ? 'rgba(0, 0, 0, 0.12)' : 'rgba(0, 0, 0, 0.04)',
+                                                },
+                                            }}
+                                        >
+                                            {subCategory.nombreSubCategoria}
+                                        </Button>
+                                    ))}
+                                </Box>
+                                {grupoIngrediente.map((group, groupIndex) => (
+                                    <Box key={groupIndex} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
                                         <TextField
                                             label="Nombre Grupo"
                                             value={group.nombreGrupo}
                                             onChange={(e) => {
                                                 const newGroups = [...grupoIngrediente];
-                                                newGroups[index].nombreGrupo = e.target.value;
+                                                newGroups[groupIndex].nombreGrupo = e.target.value;
                                                 setGrupoIngrediente(newGroups);
                                             }}
                                             fullWidth
                                             margin="normal"
                                         />
                                         {group.items.map((item, itemIndex) => (
-                                            <Box key={itemIndex} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                            <Box key={item.id} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                                                 <TextField
                                                     label="Valor"
                                                     type="number"
                                                     value={item.valor}
                                                     onChange={(e) => {
                                                         const newGroups = [...grupoIngrediente];
-                                                        newGroups[index].items[itemIndex].valor = parseFloat(e.target.value);
+                                                        newGroups[groupIndex].items[itemIndex].valor = parseFloat(e.target.value);
                                                         setGrupoIngrediente(newGroups);
                                                     }}
                                                     fullWidth
@@ -203,13 +282,17 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
                                                         value={item.idIngrediente}
                                                         onChange={(e) => {
                                                             const newGroups = [...grupoIngrediente];
-                                                            newGroups[index].items[itemIndex].idIngrediente = e.target.value;
+                                                            newGroups[groupIndex].items[itemIndex].idIngrediente = e.target.value;
                                                             setGrupoIngrediente(newGroups);
                                                         }}
                                                     >
-                                                        <MenuItem value="ingredient1">Ingredient 1</MenuItem>
-                                                        <MenuItem value="ingredient2">Ingredient 2</MenuItem>
-                                                        <MenuItem value="ingredient3">Ingredient 3</MenuItem>
+                                                        {
+                                                            ingredientesAll?.map((ingrediente) => (
+                                                                <MenuItem key={ingrediente._id} value={ingrediente._id}>
+                                                                    {ingrediente.nombreIngrediente}
+                                                                </MenuItem>
+                                                            ))
+                                                        }
                                                     </Select>
                                                 </FormControl>
                                                 <FormControl fullWidth margin="normal">
@@ -218,17 +301,36 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
                                                         value={item.idMedida}
                                                         onChange={(e) => {
                                                             const newGroups = [...grupoIngrediente];
-                                                            newGroups[index].items[itemIndex].idMedida = e.target.value;
+                                                            newGroups[groupIndex].items[itemIndex].idMedida = e.target.value;
                                                             setGrupoIngrediente(newGroups);
                                                         }}
                                                     >
-                                                        <MenuItem value="measure1">Measure 1</MenuItem>
-                                                        <MenuItem value="measure2">Measure 2</MenuItem>
-                                                        <MenuItem value="measure3">Measure 3</MenuItem>
+                                                        {
+                                                            medidasAll?.map((medida) => (
+                                                                <MenuItem key={medida._id} value={medida._id}>
+                                                                    {medida.nombreMedida}
+                                                                </MenuItem>
+                                                            ))
+                                                        }
                                                     </Select>
                                                 </FormControl>
+                                                {group.items.length > 1 && (
+                                                    <Button
+                                                        onClick={() => handleDeleteItem(groupIndex, itemIndex)}
+                                                        variant="outlined"
+                                                        color="error"
+                                                    >
+                                                        Delete Item
+                                                    </Button>
+                                                )}
                                             </Box>
                                         ))}
+                                        {grupoIngrediente.length > 1 && (
+                                            <Button onClick={() => handleDeleteGrupoIngrediente(groupIndex)} variant="outlined" color="error">Delete Grupo</Button>
+                                        )}
+                                        <Button onClick={() => handleAddItem(groupIndex)} variant="contained">
+                                            Add Item
+                                        </Button>
                                     </Box>
                                 ))}
                                 <Button onClick={handleAddGrupoIngrediente} variant="contained">Add Grupo Ingrediente</Button>
@@ -259,6 +361,9 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
                                             fullWidth
                                             margin="normal"
                                         />
+                                        {pasos.length > 1 && (
+                                            <Button onClick={() => handleDeletePaso(index)} variant="outlined" color="error">Delete Paso</Button>
+                                        )}
                                     </Box>
                                 ))}
                                 <Button onClick={handleAddPaso} variant="contained">Add Paso</Button>
@@ -270,4 +375,4 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
             </Slide>
         </Modal>
     );
-};
+};    
