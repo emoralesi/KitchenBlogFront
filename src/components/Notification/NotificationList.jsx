@@ -8,10 +8,10 @@ export const NotificationList = ({ params }) => {
         case TypeNotification.CommentToAnswerd:
             componente = <NotificationCTA params={params} />;
             break;
-        case TypeNotification.CommentToPost:
+        case TypeNotification.CommentToReceta:
             componente = <NotificationCTP params={params} />;
             break;
-        case TypeNotification.LikeToAnswerd || TypeNotification.LikeToComment || TypeNotification.LikeToPost:
+        case TypeNotification.LikeToAnswerd || TypeNotification.LikeToComment || TypeNotification.LikeToReceta:
             componente = <Componente3 />;
             break;
         default:

@@ -46,7 +46,7 @@ export default function UserForm({ formType }) {
                     <Box sx={{ background: 'linear-gradient(to right, #f70776, #c3195d, #680747, #141010)', height: '100%' }}>
                         <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
                             <h4 style={{ fontFamily: '"Roboto", sans-serif', color: '#FFFFFF', fontSize: 'calc(1.275rem + .3vw)' }}>Welcome to the Kitchen Blog</h4>
-                            <p style={{ color: '#FFFFFF', textAlign: 'center', fontSize: '.875em', fontFamily: '"Roboto", sans-serif' }}>Here you will be able to share your skills in the kitchen and create multiple posts about recipes and advice!</p>
+                            <p style={{ color: '#FFFFFF', textAlign: 'center', fontSize: '.875em', fontFamily: '"Roboto", sans-serif' }}>Here you will be able to share your skills in the kitchen and create multiple recetas about recipes and advice!</p>
                         </div>
                     </Box>
                 </Grid>

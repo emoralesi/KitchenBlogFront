@@ -4,8 +4,8 @@ import { Perfil } from "./Perfil"
 import { PerfilOwner } from "./PerfilOwner"
 
 export const Perfiles = () => {
-    let { idUser } = useParams();
+    let { username } = useParams();
     return (
-        getStorageUser().usuarioId == idUser ? <PerfilOwner /> : <Perfil idUser={idUser} />
+        (getStorageUser().username).toLowerCase() == username.toLowerCase() ? <PerfilOwner /> : <Perfil userName={username} />
     )
 }

@@ -14,7 +14,7 @@ export const CustomizedListItem = ({ doc }) => {
         setOpen(!open)
         if (doc.submenus.length == 0) {
             if (doc.linkTo == '/main/profile/') {
-                navigate(`${doc.linkTo}${getStorageUser().usuarioId}`);
+                navigate(`${doc.linkTo}${getStorageUser().username}`);
             } else {
                 navigate(doc.linkTo);
             }

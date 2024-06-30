@@ -1,6 +1,6 @@
 import { Box, Button, Modal, Slide, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { usePost } from '../../../Hooks/usePost';
+import { useReceta } from '../../../Hooks/useReceta';
 import { getStorageUser } from '../../../utils/StorageUser';
 import { useCategoria } from '../../../Hooks/useCategoria';
 import { useSubCategoria } from '../../../Hooks/useSubCategoria';
@@ -9,13 +9,7 @@ import { useDificultad } from '../../../Hooks/useDificultad';
 import { useMedida } from '../../../Hooks/useMedida';
 import { useUtencilios } from '../../../Hooks/useUtencilios';
 
-const categories = [
-    { id: 'vegan', label: 'Vegan' },
-    { id: 'gluten-free', label: 'Gluten-Free' },
-    { id: 'vegetarian', label: 'Vegetarian' },
-];
-
-export const PostForm = ({ open, setOpen, getUserAndPost }) => {
+export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [hours, setHours] = useState(0);
@@ -29,7 +23,7 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
     const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: '', images: [] }]);
 
     const handleClose = () => setOpen(false);
-    const { guardarReceta } = usePost();
+    const { guardarReceta } = useReceta();
 
     const { ObtenerCategoria, categoriasAll } = useCategoria();
     const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
@@ -94,7 +88,7 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const data = {
             titulo: title,
@@ -108,9 +102,11 @@ export const PostForm = ({ open, setOpen, getUserAndPost }) => {
             utencilio,
             subCategoria,
             pasos,
+            user: getStorageUser().usuarioId
         };
         console.log("mi data", data);
-        //guardarReceta(data);
+        await guardarReceta({ data: data });
+        await getUserAndReceta({ userId: getStorageUser().usuarioId })
         handleClose();
     };
 

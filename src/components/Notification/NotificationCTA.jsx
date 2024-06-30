@@ -3,6 +3,7 @@ import MessageIcon from '@mui/icons-material/Message';
 import { getStorageUser } from "../../utils/StorageUser";
 
 export const NotificationCTA = ({ params }) => {
+    const { user_action, parentComment, receta } = params;
     return (
         <Box sx={{ width: '100%', backgroundColor: 'gray' }}>
             {
@@ -13,11 +14,10 @@ export const NotificationCTA = ({ params }) => {
                     <MessageIcon fontSize="large" />
                 </div>
                 {
-                    params.parentComment[0].user == getStorageUser().user
-                        ? <h5 style={{ width: '85%' }}>text text text text text text text</h5>
-                        : <h5 style={{ width: '85%' }}>{ ` ${params.comment[0].user} ha respondido a tu comentario en el post ${params.item.PostInfo[0].title}`}</h5>
+                    params.parentComment[0].user == getStorageUser().usuarioId
+                        ? <h5 style={{ width: '85%' }}>{`${user_action.username} ha respondido a tu comentario ${parentComment.content} de la receta : ${receta.titulo}.`}</h5>
+                        : <h5 style={{ width: '85%' }}>{` ${user_action.username} también ha respondido al comentario de ${parentComment.user.username} : ${parentComment.content} en la Receta ${receta.titulo}.`}</h5>
                 }
-
             </div>
         </Box>
     )

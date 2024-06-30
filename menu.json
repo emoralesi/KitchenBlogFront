@@ -28,5 +28,12 @@
             "linkTo": "/main/discoveryChefs",
             "submenus": []
         }
+        ,
+        {
+            "id_menu": 6,
+            "nombre_menu": "My Favourites",
+            "linkTo": "/main/myFavourites",
+            "submenus": []
+        }
     ]
 }

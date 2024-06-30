@@ -11,7 +11,7 @@ export const NotificationCTP = ({ params }) => {
                 <div style={{ width: '15%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <MessageIcon fontSize="large" />
                 </div>
-                <h5 style={{ width: '85%' }}>{`${params.user_action} ha comentado " ${params.comment[0].content}" a tu post : ${params.item.PostInfo[0].title}`}</h5>
+                <h5 style={{ width: '85%' }}>{`${params.user_action} ha comentado " ${params.comment[0].content}" a tu Receta : ${params.item.RecetaInfo[0].title}`}</h5>
 
             </div>
         </Box>

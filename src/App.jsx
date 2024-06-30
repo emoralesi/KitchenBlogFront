@@ -7,9 +7,10 @@ import { Testing1 } from './components/Menu/Seccion//Testing1';
 import { Testing2 } from './components/Menu/Seccion//Testing2';
 import { Bienvenido } from './components/Menu/Seccion/Bienvenido';
 import { DescubrirChefs } from './components/Menu/Seccion/DescubrirChefs';
-import { FullPagePost } from './components/Menu/Seccion/FullPagePost';
+import { FullPageReceta } from './components/Menu/Seccion/FullPageReceta';
 import { Perfiles } from './components/Menu/Seccion/Perfiles';
 import SessionGuard from './components/SessionGuard/SessionGuard';
+import { Favourites } from './components/Menu/Seccion/MyFavourites';
 
 function App() {
 
@@ -36,11 +37,12 @@ function App() {
           </Route >
           <Route path="/main" element={<SessionGuard element={<MainContent />} />}>
             <Route path="bienvenido" element={<Bienvenido />} />
-            <Route path="profile/:idUser" element={<Perfiles />} />
+            <Route path="myFavourites" element={<Favourites />} />
+            <Route path="profile/:username" element={<Perfiles />} />
             <Route path="discoveryChefs" element={<DescubrirChefs />} />
             <Route path="testing1" element={<Testing1 />} />
             <Route path="testing2" element={<Testing2 />} />
-            <Route path="p/:idPost" element={<FullPagePost />} />
+            <Route path="p/:idReceta" element={<FullPageReceta />} />
           </Route>
           <Route
             path="*"

@@ -1,23 +1,35 @@
 import { enqueueSnackbar } from "notistack";
-import { saveComment } from "../services/CommentService";
+import { saveComment, saveUpdateReactionComment } from "../services/CommentService";
 
 export const useComment = () => {
     const guardarComment = async ({ comentario }) => {
 
-        console.log("data al usePost", comentario);
+        console.log("data al useReceta", comentario);
         try {
-            await saveComment({ comment: comentario });
+            const result = await saveComment({ comment: comentario });
             enqueueSnackbar('Comentario Registrado correctaente', { variant: 'success' });
-            return true;
+            return result.comment.newComment._id;
 
         } catch (error) {
-            enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
+            console.log("mi error", error);
+            enqueueSnackbar('A ocurrido un error, favor intente mas tarde (guardarComment)', { variant: 'error' });
             return false;
         } finally {
         }
 
     }
+    const SaveUpdateCommentReaction = async ({ body }) => {
 
-    return { guardarComment }
+        try {
+            const result = await saveUpdateReactionComment(body);
+            console.log("esto me trago result", result);
+        } catch (error) {
+            console.log(error);
+        } finally {
+        }
+
+    }
+
+    return { guardarComment, SaveUpdateCommentReaction }
 
 }

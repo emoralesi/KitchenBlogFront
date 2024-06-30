@@ -2,48 +2,33 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Box, Button, IconButton, Modal, Zoom } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useReceta } from '../../../Hooks/useReceta';
 import { useUsuario } from "../../../Hooks/useUsuario";
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from './DitailsReceta';
+import { DetailsReceta } from "./DitailsReceta";
 
-export const Perfil = ({ userName }) => {
+export const Favourites = () => {
 
-    const [openForm, setOpenForm] = useState(false);
-    const { getUserAndReceta, misRecetas } = useReceta();
+    const { ObtenerFavourites, favourites, idFavourites, SaveUpdateMyFavourites, ObtenerIdFavourites } = useUsuario();
     const [openReceta, setOpenReceta] = useState(false)
+    const [userId, setUserId] = useState('');
     const [idReceta, setIdReceta] = useState(null);
-    const [idUser, setIdUser] = useState(null)
-    const { getIdUserByUserName, ObtenerIdFavourites, SaveUpdateMyFavourites, idFavourites, setIdFavourites } = useUsuario();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const idUsuario = await getIdUserByUserName({ username: userName });
-                setIdUser(idUsuario);
-                await getUserAndReceta({ userId: idUsuario });
-            } catch (error) {
-                console.error('Error fetching data', error);
-            }
-        };
+        ObtenerFavourites({ idUser: getStorageUser().usuarioId })
         ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
-        fetchData();
-    }, [userName]);
+    }, [])
 
     const handleBookmarkClick = async (id, action) => {
 
-        var result = [];
         await SaveUpdateMyFavourites({ body: { idUser: getStorageUser().usuarioId, idReceta: id, estado: action } })
-        action ? result = [...idFavourites, id] : result = idFavourites.filter(favourite => favourite != id)
-
-        console.log("asi me quedo el idFacourite", result);
-        setIdFavourites(result);
+        await ObtenerFavourites({ idUser: getStorageUser().usuarioId })
     };
 
     return (
-        <Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}>
-                {misRecetas?.map((card, index) => (
+        <div>
+            <h1>MY FAVOURITES</h1>
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px' }}>
+                {favourites?.favourite?.map((card, index) => (
                     <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
                         <Box
                             sx={{
@@ -56,6 +41,7 @@ export const Perfil = ({ userName }) => {
                                 maxHeight: "620px", // Maximum height
                             }}
                         >
+                            <img src={card?.image} alt={card.title} width="100%" />
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <Button onClick={(e) => {
                                     e.preventDefault();
@@ -80,8 +66,6 @@ export const Perfil = ({ userName }) => {
                                         </IconButton>
                                 }
                             </div>
-                            <img src={card?.image} alt={card.title} width="100%" />
-
                             <h2>{card.titulo}</h2>
                             <p>{card.descripcion}</p>
                             <p>{card._id}</p>
@@ -89,7 +73,7 @@ export const Perfil = ({ userName }) => {
                     </Zoom>
                 ))}
                 {
-                    misRecetas?.length == 0 ? <h4>Not Recetas Founded</h4> : <></>
+                    favourites?.favourite?.length == 0 ? <h4>Not Favourites Added</h4> : <></>
                 }
             </Box>
             {
@@ -107,11 +91,10 @@ export const Perfil = ({ userName }) => {
                             justifyContent: 'center',
                         }}>
 
-                        <DetailsReceta isFull={false} isFromProfile={true} idReceta={idReceta} setOpen={setOpenReceta} idUser={idUser} />
+                        <DetailsReceta isFull={false} isFromProfile={false} idReceta={idReceta} setOpen={setOpenReceta} idUser={userId} />
                     </Modal>
                     : <></>
             }
-        </Box>
-
-    );
+        </div >
+    )
 }

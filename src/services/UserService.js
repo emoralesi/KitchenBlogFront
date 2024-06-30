@@ -1,3 +1,4 @@
+import { Try } from "@mui/icons-material";
 import { Unauthorized } from "../utils/401Unauthorized";
 import { getStorageUser } from "../utils/StorageUser";
 
@@ -71,6 +72,36 @@ export async function RegisterUsuario(req) {
     }
 }
 
+export async function obtenerIdUserByUsername(req) {
+    try {
+        console.log(getStorageUser().token);
+        let data = {
+            username: req
+        }
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${getStorageUser().token}`,
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify(data)
+
+        };
+
+        const response = await fetch(`http://localhost:3600/obtenerIdUsuarioByUserName`, requestOptions).then((res) => {
+            Unauthorized(res.status)
+            return res.json()
+        }).then((res) => {
+            return res
+        });
+
+        return response
+    } catch (error) {
+
+    }
+}
+
 export async function getUsuariosToDescubrir(req) {
     try {
 
@@ -110,4 +141,123 @@ export async function getUsuariosToDescubrir(req) {
     }
 }
 
-export default { LoginUsuario, RegisterUsuario, getUsuariosToDescubrir }
+export async function getFavourites(req) {
+    try {
+
+        console.log("my req", req);
+
+        let data = {
+            "idUser": req
+        }
+        console.log("me cai despues del data");
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${getStorageUser().token}`,
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify(data)
+
+        };
+
+        console.log("me cai despues del requestOption");
+
+        const response = await fetch(`http://localhost:3600/obtenerFavourite`, requestOptions).then((res) => {
+            Unauthorized(res.status)
+            return res.json()
+        }).then((res) => {
+            return res
+        });
+
+        console.log("me cai despues de la llamada");
+
+        return response
+
+    } catch (error) {
+        console.log(error);
+        throw error
+    }
+}
+
+export async function getIdFavourites(req) {
+    try {
+
+        console.log("my req", req);
+
+        let data = {
+            "idUser": req
+        }
+        console.log("me cai despues del data");
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${getStorageUser().token}`,
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify(data)
+
+        };
+
+        console.log("me cai despues del requestOption");
+
+        const response = await fetch(`http://localhost:3600/obtenerIdFavourites`, requestOptions).then((res) => {
+            Unauthorized(res.status)
+            return res.json()
+        }).then((res) => {
+            return res
+        });
+
+        console.log("me cai despues de la llamada");
+
+        return response
+
+    } catch (error) {
+        console.log(error);
+        throw error
+    }
+}
+
+export async function saveUpdateFavourite(req) {
+    try {
+
+        console.log("my req", req);
+
+        let data = {
+            "idUser": req.idUser,
+            "idReceta": req.idReceta,
+            "estado": req.estado
+        }
+        console.log("me cai despues del data");
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${getStorageUser().token}`,
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify(data)
+
+        };
+
+        console.log("me cai despues del requestOption");
+
+        const response = await fetch(`http://localhost:3600/saveUpdateFavourite`, requestOptions).then((res) => {
+            Unauthorized(res.status)
+            return res.json()
+        }).then((res) => {
+            return res
+        });
+
+        console.log("me cai despues de la llamada");
+
+        return response
+
+    } catch (error) {
+        console.log(error);
+        throw error
+    }
+}
+
+export default { LoginUsuario, RegisterUsuario, getUsuariosToDescubrir, getIdFavourites, saveUpdateFavourite }
