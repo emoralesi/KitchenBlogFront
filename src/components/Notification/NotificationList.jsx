@@ -1,18 +1,24 @@
 import { TypeNotification } from "../../utils/enumTypeNoti";
 import { NotificationCTA } from "./NotificationCTA";
-import { NotificationCTP } from "./NotificationCTP";
+import { NotificationCTR } from "./NotificationCTR";
+import { NotificationLike } from "./NotificationLike";
 
 export const NotificationList = ({ params }) => {
+    console.log("traiganme mis params", params.action);
+    console.log(TypeNotification.LikeToReceta);
+    console.log(TypeNotification.LikeToReceta == params.action);
     let componente;
     switch (params.action) {
         case TypeNotification.CommentToAnswerd:
             componente = <NotificationCTA params={params} />;
             break;
         case TypeNotification.CommentToReceta:
-            componente = <NotificationCTP params={params} />;
+            componente = <NotificationCTR params={params} />;
             break;
-        case TypeNotification.LikeToAnswerd || TypeNotification.LikeToComment || TypeNotification.LikeToReceta:
-            componente = <Componente3 />;
+        case TypeNotification.LikeToReceta:
+        case TypeNotification.LikeToAnswerd:
+        case TypeNotification.LikeToComment:
+            componente = <NotificationLike params={params} />;
             break;
         default:
             componente = null; // O algún componente por defecto o mensaje de error

@@ -7,8 +7,9 @@ export const useComment = () => {
         console.log("data al useReceta", comentario);
         try {
             const result = await saveComment({ comment: comentario });
+            console.log("mi result del save commnet", result);
             enqueueSnackbar('Comentario Registrado correctaente', { variant: 'success' });
-            return result.comment.newComment._id;
+            return result.comment._id;
 
         } catch (error) {
             console.log("mi error", error);

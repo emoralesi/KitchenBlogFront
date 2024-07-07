@@ -28,7 +28,7 @@ export const Favourites = () => {
         <div>
             <h1>MY FAVOURITES</h1>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px' }}>
-                {favourites?.favourite?.map((card, index) => (
+                {favourites?.favourite?.filter(value => value._id).map((card, index) => (
                     <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
                         <Box
                             sx={{
@@ -73,7 +73,7 @@ export const Favourites = () => {
                     </Zoom>
                 ))}
                 {
-                    favourites?.favourite?.length == 0 ? <h4>Not Favourites Added</h4> : <></>
+                    favourites?.favourite?.filter(value => value._id).length == 0 ? <h4>Not Favourites Added</h4> : <></>
                 }
             </Box>
             {

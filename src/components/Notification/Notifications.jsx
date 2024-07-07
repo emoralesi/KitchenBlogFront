@@ -27,7 +27,7 @@ const NotificationBell = () => {
         // Manejar eventos recibidos
         eventSource.onmessage = (event) => {
             const newNotification = JSON.parse(event.data);
-            console.log("mi notificacion desde el server",newNotification);
+            console.log("mi notificacion desde el server", newNotification);
             //setNotifications(prevNotifications => [...prevNotifications, newNotification]);
             setCantidadNotificaciones(prevCount => prevCount + 1);
             PopUpNotification({ params: newNotification, userId: userId })
@@ -35,7 +35,6 @@ const NotificationBell = () => {
         };
 
         return () => {
-            // Cerrar conexión SSE al desmontar el componente
             eventSource.close();
         };
     }, []);
@@ -72,19 +71,14 @@ const NotificationBell = () => {
                     horizontal: 'right',
                 }}
             >
-                {/* <Grid container spacing={2}> */}
-                {/* <Grid item xs={12} md={6}> */}
                 <List sx={{ width: { xs: '90vw', md: '60vw', lg: '40vw' }, height: { xs: '70vh', md: '85vh', lg: '85vh' }, overflow: 'auto' }}>
+                    {console.log("mis notificacioness", notifications)}
                     {notifications.map((notification, index) => (
                         <ListItem key={index}>
                             <NotificationList params={notification} />
                         </ListItem>
                     ))}
                 </List>
-                {/* </Grid> */}
-                {/* Otros elementos del componente */}
-                {/* </Grid> */}
-
             </Popover>
         </div>
     );

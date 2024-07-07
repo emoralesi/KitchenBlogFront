@@ -41,7 +41,9 @@ export async function saveUpdateReactionComment(req) {
             "idComment": req.idComment,
             "idUser": req.idUser,
             "estado": req.estado,
-            "type": req.type
+            "type": req.type,
+            "idReceta": req.idReceta,
+            "parentComment": req.parentComment
         }
         console.log("me cai despues del data");
         const requestOptions = {

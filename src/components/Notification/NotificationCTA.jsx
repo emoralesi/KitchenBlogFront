@@ -3,7 +3,7 @@ import MessageIcon from '@mui/icons-material/Message';
 import { getStorageUser } from "../../utils/StorageUser";
 
 export const NotificationCTA = ({ params }) => {
-    const { user_action, parentComment, receta } = params;
+    console.log("mis params", params);
     return (
         <Box sx={{ width: '100%', backgroundColor: 'gray' }}>
             {
@@ -14,9 +14,9 @@ export const NotificationCTA = ({ params }) => {
                     <MessageIcon fontSize="large" />
                 </div>
                 {
-                    params.parentComment[0].user == getStorageUser().usuarioId
-                        ? <h5 style={{ width: '85%' }}>{`${user_action.username} ha respondido a tu comentario ${parentComment.content} de la receta : ${receta.titulo}.`}</h5>
-                        : <h5 style={{ width: '85%' }}>{` ${user_action.username} también ha respondido al comentario de ${parentComment.user.username} : ${parentComment.content} en la Receta ${receta.titulo}.`}</h5>
+                    params.parentComment.user._id == getStorageUser().usuarioId
+                        ? <h5 style={{ width: '85%' }}>{`${params.user_action[0].username} ha respondido a tu comentario ${params.parentComment.content} de la Receta: "${params.receta[0].titulo}".`}</h5>
+                        : <h5 style={{ width: '85%' }}>{` ${params.user_action[0].username} también ha respondido al comentario de ${params.parentComment.user[0].username} : "${params.parentComment.content}" en la Receta: "${params.receta[0].titulo}".`}</h5>
                 }
             </div>
         </Box>

@@ -1,22 +1,37 @@
 import { enqueueSnackbar } from "notistack";
 import { TypeNotification } from "./enumTypeNoti";
+import { getStorageUser } from "./StorageUser";
 
 export const PopUpNotification = ({ params, userId }) => {
 
     console.log("mi params", params);
-    let componente;
-    switch (params.action_noti) {
-        case TypeNotification.CommentToAnswerd:
-            if (userId !== params.ownerComment[0].user) {
-                enqueueSnackbar(`${params.newComment.user} tambien ha respondido al comentario de " ${params.ownerComment[0].user} : ${params.ownerComment[0].content} "`, { variant: 'waring' });
-            } else {
-                enqueueSnackbar(`${params.newComment.user} ha respondido a tu comentario ${params.ownerComment[0].content}`, { variant: 'waring' });
-            }
-            break;
-        case TypeNotification.CommentToReceta:
-            enqueueSnackbar(`${params.newComment.user} ha comentado "${params.newComment.content}" en tu Receta`, { variant: 'waring' });
-            break;
-        default:
-            componente = null; // O algún componente por defecto o mensaje de error
+    console.log("entré al pop up");
+    try {
+        switch (params.action_noti) {
+            case TypeNotification.CommentToAnswerd:
+                if (params.parentComment.user._id == getStorageUser().usuarioId) {
+                    enqueueSnackbar(`${params.user.username} ha respondido a tu comentario ${params.parentComment.content} de la Receta: "${params.receta.titulo}".`, { variant: 'info' });
+                } else {
+                    enqueueSnackbar(` ${params.user.username} también ha respondido al comentario de ${params.parentComment.user.username} : "${params.parentComment.content}" en la Receta: "${params.receta.titulo}".`, { variant: 'info' });
+                }
+                break;
+            case TypeNotification.CommentToReceta:
+                enqueueSnackbar(`${params.user.username} ha comentado " ${params.comment.content}" a tu Receta : ${params.receta.titulo}`, { variant: 'info' });
+                break;
+            case TypeNotification.LikeToAnswerd:
+                enqueueSnackbar(`${params.user.username} ha dado like a tu respuesta "${params.comment.content}" al comentario "${params.parentComment.content}" de la Receta : "${params.receta.titulo}"`, { variant: 'info' });
+                break;
+            case TypeNotification.LikeToComment:
+                enqueueSnackbar(`${params.user.username} ha dado like a tu comentario "${params.comment.content}" de la Receta: "${params.receta.titulo}"`, { variant: 'info' });
+                break;
+            case TypeNotification.LikeToReceta:
+                enqueueSnackbar(`${params.user.username} ha dado like a tu Receta: "${params.receta.titulo}"`, { variant: 'info' });
+                break;
+            default:
+                null;
+        }
+    } catch (error) {
+        console.log(error);
     }
+
 }
