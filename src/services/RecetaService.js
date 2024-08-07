@@ -16,7 +16,7 @@ export async function saveReceta({ receta }) {
 
         };
 
-        const response = await fetch(`http://localhost:3600/saveReceta`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/saveReceta`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -47,7 +47,7 @@ export async function saveReactionReceta({ data }) {
 
         };
 
-        const response = await fetch(`http://localhost:3600/saveUpdateRecetaReaction`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/saveUpdateRecetaReaction`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -78,7 +78,7 @@ export async function GetRecetasByIdUser({ idUser }) {
 
         };
 
-        const response = await fetch(`http://localhost:3600/obtenerUserAndReceta`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerUserAndReceta`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -109,7 +109,7 @@ export async function GetRecetasByIdReceta({ recetaId }) {
 
         };
 
-        const response = await fetch(`http://localhost:3600/obtenerRecetaById`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerRecetaById`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {

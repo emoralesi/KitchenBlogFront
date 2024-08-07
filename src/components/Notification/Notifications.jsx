@@ -22,7 +22,7 @@ const NotificationBell = () => {
         ObtenerNotificaciones({ idUser: userId })
 
         // Establecer conexión SSE
-        const eventSource = new EventSource(`http://localhost:3600/events/${userId}`);
+        const eventSource = new EventSource(`${import.meta.env.VITE_APP_API_URL}/events/${userId}`);
 
         // Manejar eventos recibidos
         eventSource.onmessage = (event) => {

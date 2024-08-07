@@ -145,14 +145,14 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                         <div style={{ overflow: 'auto', width: '100%', height: '100%' }}>
                             <form onSubmit={handleSubmit}>
                                 <TextField
-                                    label="Titulo"
+                                    label="Title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     fullWidth
                                     margin="normal"
                                 />
                                 <TextField
-                                    label="Descripcion"
+                                    label="Description"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     multiline
@@ -177,7 +177,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                     margin="normal"
                                 />
                                 <TextField
-                                    label="Cantidad Personas"
+                                    label="amount of people"
                                     type="number"
                                     value={cantidadPersonas}
                                     onChange={(e) => setCantidadPersonas(parseInt(e.target.value))}
@@ -185,7 +185,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                     margin="normal"
                                 />
                                 <FormControl fullWidth margin="normal">
-                                    <InputLabel>Dificultad</InputLabel>
+                                    <InputLabel>Difficulty</InputLabel>
                                     <Select
                                         value={dificultad}
                                         onChange={(e) => setDificultad(e.target.value)}
@@ -200,7 +200,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                     </Select>
                                 </FormControl>
                                 <FormControl fullWidth margin="normal">
-                                    <InputLabel>Categoria</InputLabel>
+                                    <InputLabel>Category</InputLabel>
                                     <Select
                                         value={categoria}
                                         onChange={(e) => setCategoria(e.target.value)}
@@ -213,7 +213,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                     </Select>
                                 </FormControl>
                                 <FormControl fullWidth margin="normal">
-                                    <InputLabel>Utencilio</InputLabel>
+                                    <InputLabel>Utensils</InputLabel>
                                     <Select
                                         multiple
                                         value={utencilio}
@@ -228,7 +228,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                         }
                                     </Select>
                                 </FormControl>
-                                <Box sx={{ display: 'flex', gap: 1, marginBottom: 2 }}>
+                                <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, overflow: 'auto' }}>
                                     {subCategoriasAll.map((subCategory) => (
                                         <Button
                                             key={subCategory._id}
@@ -239,6 +239,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                                 '&:hover': {
                                                     backgroundColor: subCategoria.includes(subCategory._id) ? 'rgba(0, 0, 0, 0.12)' : 'rgba(0, 0, 0, 0.04)',
                                                 },
+                                                minWidth: '200px'
                                             }}
                                         >
                                             {subCategory.nombreSubCategoria}
@@ -248,7 +249,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                 {grupoIngrediente.map((group, groupIndex) => (
                                     <Box key={groupIndex} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
                                         <TextField
-                                            label="Nombre Grupo"
+                                            label="Group Name"
                                             value={group.nombreGrupo}
                                             onChange={(e) => {
                                                 const newGroups = [...grupoIngrediente];
@@ -261,7 +262,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                         {group.items.map((item, itemIndex) => (
                                             <Box key={item.id} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                                                 <TextField
-                                                    label="Valor"
+                                                    label="Value"
                                                     type="number"
                                                     value={item.valor}
                                                     onChange={(e) => {
@@ -273,26 +274,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                                     margin="normal"
                                                 />
                                                 <FormControl fullWidth margin="normal">
-                                                    <InputLabel>Ingrediente</InputLabel>
-                                                    <Select
-                                                        value={item.idIngrediente}
-                                                        onChange={(e) => {
-                                                            const newGroups = [...grupoIngrediente];
-                                                            newGroups[groupIndex].items[itemIndex].idIngrediente = e.target.value;
-                                                            setGrupoIngrediente(newGroups);
-                                                        }}
-                                                    >
-                                                        {
-                                                            ingredientesAll?.map((ingrediente) => (
-                                                                <MenuItem key={ingrediente._id} value={ingrediente._id}>
-                                                                    {ingrediente.nombreIngrediente}
-                                                                </MenuItem>
-                                                            ))
-                                                        }
-                                                    </Select>
-                                                </FormControl>
-                                                <FormControl fullWidth margin="normal">
-                                                    <InputLabel>Medida</InputLabel>
+                                                    <InputLabel>Measure</InputLabel>
                                                     <Select
                                                         value={item.idMedida}
                                                         onChange={(e) => {
@@ -310,6 +292,25 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                                         }
                                                     </Select>
                                                 </FormControl>
+                                                <FormControl fullWidth margin="normal">
+                                                    <InputLabel>Ingredient</InputLabel>
+                                                    <Select
+                                                        value={item.idIngrediente}
+                                                        onChange={(e) => {
+                                                            const newGroups = [...grupoIngrediente];
+                                                            newGroups[groupIndex].items[itemIndex].idIngrediente = e.target.value;
+                                                            setGrupoIngrediente(newGroups);
+                                                        }}
+                                                    >
+                                                        {
+                                                            ingredientesAll?.map((ingrediente) => (
+                                                                <MenuItem key={ingrediente._id} value={ingrediente._id}>
+                                                                    {ingrediente.nombreIngrediente}
+                                                                </MenuItem>
+                                                            ))
+                                                        }
+                                                    </Select>
+                                                </FormControl>
                                                 {group.items.length > 1 && (
                                                     <Button
                                                         onClick={() => handleDeleteItem(groupIndex, itemIndex)}
@@ -322,18 +323,18 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                             </Box>
                                         ))}
                                         {grupoIngrediente.length > 1 && (
-                                            <Button onClick={() => handleDeleteGrupoIngrediente(groupIndex)} variant="outlined" color="error">Delete Grupo</Button>
+                                            <Button onClick={() => handleDeleteGrupoIngrediente(groupIndex)} variant="outlined" color="error">Delete Group</Button>
                                         )}
                                         <Button onClick={() => handleAddItem(groupIndex)} variant="contained">
                                             Add Item
                                         </Button>
                                     </Box>
                                 ))}
-                                <Button onClick={handleAddGrupoIngrediente} variant="contained">Add Grupo Ingrediente</Button>
+                                <Button onClick={handleAddGrupoIngrediente} variant="contained">Add Ingredient Group</Button>
                                 {pasos.map((step, index) => (
                                     <Box key={index} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
                                         <TextField
-                                            label="Paso Numero"
+                                            label="Step Nuber"
                                             type="number"
                                             value={step.pasoNumero}
                                             onChange={(e) => {
@@ -345,7 +346,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                             margin="normal"
                                         />
                                         <TextField
-                                            label="Descripcion"
+                                            label="Description"
                                             value={step.descripcion}
                                             onChange={(e) => {
                                                 const newPasos = [...pasos];
@@ -362,8 +363,8 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                         )}
                                     </Box>
                                 ))}
-                                <Button onClick={handleAddPaso} variant="contained">Add Paso</Button>
-                                <Button type="submit" variant="contained" color="primary">Guardar Receta</Button>
+                                <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
+                                <Button type="submit" variant="contained" color="success">Save Recipe</Button>
                             </form>
                         </div>
                     </div>

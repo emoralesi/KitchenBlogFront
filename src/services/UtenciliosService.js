@@ -13,7 +13,7 @@ export async function getUtencilios() {
 
         };
 
-        const response = await fetch(`http://localhost:3600/obtenerUtencilios`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerUtencilios`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {

@@ -9,7 +9,7 @@ export const NotificationCTR = ({ params }) => {
                 <div style={{ width: '15%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <MessageIcon fontSize="large" />
                 </div>
-                <h5 style={{ width: '85%' }}>{`${params.user_action[0].username} ha comentado " ${params.comment[0].content}" a tu Receta : ${params.receta[0].titulo}`}</h5>
+                <h5 style={{ width: '85%' }}>{`${params.user_action[0].username} ha comentado " ${params.comment[0].content}" a tu Receta : ${params.receta[0]?.titulo}`}</h5>
             </div>
         </Box>
     )

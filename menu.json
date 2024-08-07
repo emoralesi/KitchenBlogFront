@@ -34,6 +34,12 @@
             "nombre_menu": "My Favourites",
             "linkTo": "/main/myFavourites",
             "submenus": []
+        },
+        {
+            "id_menu": 7,
+            "nombre_menu": "Shopping List",
+            "linkTo": "/main/shoppingList",
+            "submenus": []
         }
     ]
 }

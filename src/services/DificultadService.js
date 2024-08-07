@@ -13,7 +13,7 @@ export async function getDificultad() {
 
         };
 
-        const response = await fetch(`http://localhost:3600/obtenerDificultades`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerDificultades`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {

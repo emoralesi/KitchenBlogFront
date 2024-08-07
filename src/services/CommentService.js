@@ -18,7 +18,7 @@ export async function saveComment({ comment }) {
 
         };
 
-        const response = await fetch(`http://localhost:3600/saveComentario`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/saveComentario`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -59,7 +59,7 @@ export async function saveUpdateReactionComment(req) {
 
         console.log("me cai despues del requestOption");
 
-        const response = await fetch(`http://localhost:3600/saveUpdateCommentReaction`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/saveUpdateCommentReaction`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {

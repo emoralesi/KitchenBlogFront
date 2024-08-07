@@ -21,7 +21,7 @@ export async function LoginUsuario(req) {
 
         };
 
-        const response = await fetch(`http://localhost:3600/login`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/login`, requestOptions).then((res) => {
             return res.json()
         }).then((res) => {
             return res
@@ -56,7 +56,7 @@ export async function RegisterUsuario(req) {
 
         console.log("me cai despues del requestOption");
 
-        const response = await fetch(`http://localhost:3600/registro`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/registro`, requestOptions).then((res) => {
             return res.json()
         }).then((res) => {
             return res
@@ -89,7 +89,7 @@ export async function obtenerIdUserByUsername(req) {
 
         };
 
-        const response = await fetch(`http://localhost:3600/obtenerIdUsuarioByUserName`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerIdUsuarioByUserName`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -124,7 +124,7 @@ export async function getUsuariosToDescubrir(req) {
 
         console.log("me cai despues del requestOption");
 
-        const response = await fetch(`http://localhost:3600/obtenerUsuariosDescubrir`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerUsuariosDescubrir`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -163,7 +163,7 @@ export async function getFavourites(req) {
 
         console.log("me cai despues del requestOption");
 
-        const response = await fetch(`http://localhost:3600/obtenerFavourite`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerFavourite`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -202,7 +202,7 @@ export async function getIdFavourites(req) {
 
         console.log("me cai despues del requestOption");
 
-        const response = await fetch(`http://localhost:3600/obtenerIdFavourites`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerIdFavourites`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
@@ -243,7 +243,7 @@ export async function saveUpdateFavourite(req) {
 
         console.log("me cai despues del requestOption");
 
-        const response = await fetch(`http://localhost:3600/saveUpdateFavourite`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/saveUpdateFavourite`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {

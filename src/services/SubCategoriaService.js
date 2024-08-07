@@ -13,7 +13,7 @@ export async function getSubCategorias() {
 
         };
 
-        const response = await fetch(`http://localhost:3600/obtenerSubCategorias`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerSubCategorias`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {

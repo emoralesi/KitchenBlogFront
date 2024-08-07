@@ -1,32 +1,23 @@
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import { Box, Button, IconButton, Modal, Zoom } from "@mui/material";
+import { Box, Button, Checkbox, IconButton, Modal, Zoom } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useUsuario } from "../../../Hooks/useUsuario";
-import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from "./DitailsReceta";
+import { useUsuario } from "../../Hooks/useUsuario";
+import { getStorageUser } from "../../utils/StorageUser";
+import { DetailsReceta } from "./Seccion/DitailsReceta";
 
-export const Favourites = ({ userName }) => {
+export const ShoppingList = () => {
 
-    const { ObtenerFavourites, getIdUserByUserName, favourites, idFavourites, SaveUpdateMyFavourites, ObtenerIdFavourites } = useUsuario();
+    const { ObtenerFavourites, favourites, idFavourites, SaveUpdateMyFavourites, ObtenerIdFavourites } = useUsuario();
     const [openReceta, setOpenReceta] = useState(false)
     const [userId, setUserId] = useState('');
     const [idReceta, setIdReceta] = useState(null);
-    const [idUsuario, setIdUsiario] = useState(null);
+    const [idSelected, setidSelected] = useState([]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const idUser = userName == getStorageUser().username ? getStorageUser().usuarioId : await getIdUserByUserName({ username: userName });
-                setIdUsiario(getStorageUser().usuarioId);
-                await ObtenerFavourites({ idUser: idUser })
-                await ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
-            } catch (error) {
-                console.error('Error fetching data', error);
-            }
-        };
-        fetchData();
-    }, [userName]);
+        ObtenerFavourites({ idUser: getStorageUser().usuarioId })
+        ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
+    }, [])
 
     const handleBookmarkClick = async (id, action) => {
 
@@ -36,6 +27,7 @@ export const Favourites = ({ userName }) => {
 
     return (
         <div>
+            <h1>SELECT YOUR SHOPPING LIST</h1>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px' }}>
                 {favourites?.favourite?.filter(value => value._id).map((card, index) => (
                     <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
@@ -58,22 +50,14 @@ export const Favourites = ({ userName }) => {
                                     window.history.replaceState('', '', `/main/p/${card._id}`);
                                     setOpenReceta(true);
                                 }}>open me</Button>
-                                {
-                                    idFavourites?.includes(card._id)
-                                        ? <IconButton
-                                            onClick={() => handleBookmarkClick(card._id, false)}
-                                            sx={{ transition: 'color 0.3s' }}
-                                        >
-                                            <BookmarkIcon sx={{ color: 'yellow' }} />
+                                <Checkbox defaultChecked color="success" checked={idSelected.includes(card._id)}
+                                    onChange={(e) => {
+                                        var result = [];
+                                        e.target.checked ? result = [...idSelected, card._id] : result = idSelected.filter(favourite => favourite != card._id)
 
-                                        </IconButton>
-                                        : <IconButton
-                                            onClick={() => handleBookmarkClick(card._id, true)}
-                                            sx={{ transition: 'color 0.3s' }}
-                                        >
-                                            <BookmarkBorderIcon />
-                                        </IconButton>
-                                }
+                                        console.log("asi me quedo el setidSelected", result);
+                                        setidSelected(result);
+                                    }} />
                             </div>
                             <h2>{card.titulo}</h2>
                             <p>{card.descripcion}</p>
@@ -100,10 +84,17 @@ export const Favourites = ({ userName }) => {
                             justifyContent: 'center',
                         }}>
 
-                        <DetailsReceta isFull={false} isFromProfile={false} origen={'myFavourites'} idReceta={idReceta} setOpen={setOpenReceta} idUser={userId} />
+                        <DetailsReceta isFull={false} isFromProfile={false} origen={'shippingList'} idReceta={idReceta} setOpen={setOpenReceta} idUser={userId} />
                     </Modal>
                     : <></>
             }
+            <div style={{
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px'
+            }}>
+                <Button color='success' variant='contained' >Generate list</Button>
+            </div>
         </div >
     )
 }

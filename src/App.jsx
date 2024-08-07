@@ -11,6 +11,8 @@ import { FullPageReceta } from './components/Menu/Seccion/FullPageReceta';
 import { Perfiles } from './components/Menu/Seccion/Perfiles';
 import SessionGuard from './components/SessionGuard/SessionGuard';
 import { Favourites } from './components/Menu/Seccion/MyFavourites';
+import { ShoppingList } from './components/Menu/ShoppingList';
+import { EmailContent } from './components/Menu/Seccion/EmailContent';
 
 function App() {
 
@@ -36,12 +38,16 @@ function App() {
           )}>
           </Route >
           <Route path="/main" element={<SessionGuard element={<MainContent />} />}>
-            <Route path="bienvenido" element={<Bienvenido />} />
-            <Route path="myFavourites" element={<Favourites />} />
+            <Route path="bienvenido" element={<EmailContent />} />
+            {/* <Route path="myFavourites" element={<>
+              <h1>MY FAVOURITES</h1>
+              <Favourites />
+            </>} /> */}
             <Route path="profile/:username" element={<Perfiles />} />
             <Route path="discoveryChefs" element={<DescubrirChefs />} />
             <Route path="testing1" element={<Testing1 />} />
             <Route path="testing2" element={<Testing2 />} />
+            <Route path="shoppingList" element={<ShoppingList />} />
             <Route path="p/:idReceta" element={<FullPageReceta />} />
           </Route>
           <Route
