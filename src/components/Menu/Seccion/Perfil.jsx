@@ -6,6 +6,7 @@ import { useReceta } from '../../../Hooks/useReceta';
 import { useUsuario } from "../../../Hooks/useUsuario";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from './DitailsReceta';
+import PushPinIcon from '@mui/icons-material/PushPin';
 
 export const Perfil = ({ userName }) => {
 
@@ -19,7 +20,13 @@ export const Perfil = ({ userName }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const idUsuario = await getIdUserByUserName({ username: userName });
+                const idUsuario = await getIdUserByUserName({ username: userName }).then((result) => {
+                    return result.userId
+                });
+                console.log("a ver", idUsuario);
+                console.log(getIdUserByUserName({ username: userName }));
+
+
                 setIdUser(idUsuario);
                 await getUserAndReceta({ userId: idUsuario });
             } catch (error) {
@@ -42,8 +49,13 @@ export const Perfil = ({ userName }) => {
 
     return (
         <Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}>
-                {misRecetas?.map((card, index) => (
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px' }}>
+                {misRecetas?.sort((a, b) => {
+                    if (a.pined !== b.pined) {
+                        return b.pined - a.pined;
+                    }
+                    return new Date(b.fechaReceta) - new Date(a.fechaReceta);
+                }).map((card, index) => (
                     <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
                         <Box
                             sx={{
@@ -63,6 +75,9 @@ export const Perfil = ({ userName }) => {
                                     window.history.replaceState('', '', `/main/p/${card._id}`);
                                     setOpenReceta(true);
                                 }}>open me</Button>
+                                {
+                                    card?.pined ? <PushPinIcon /> : <></>
+                                }
                                 {
                                     idFavourites?.includes(card._id)
                                         ? <IconButton

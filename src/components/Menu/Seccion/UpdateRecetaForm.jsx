@@ -9,7 +9,7 @@ import { useDificultad } from '../../../Hooks/useDificultad';
 import { useMedida } from '../../../Hooks/useMedida';
 import { useUtencilios } from '../../../Hooks/useUtencilios';
 
-export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
+export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [hours, setHours] = useState(0);
@@ -19,14 +19,11 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
     const [categoria, setCategoria] = useState('');
     const [utencilio, setUtencilio] = useState([]);
     const [subCategoria, setSubCategoria] = useState([]);
-    const [grupoIngrediente, setGrupoIngrediente] = useState([{ nombreGrupo: '', items: [{ id: 1, valor: 0, idIngrediente: '', idMedida: '' }] }]);
-    const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: '' }]);
-    const [imagesRecipe, setImagesRecipe] = useState([]);
-    const [imagesSteps, setImagesSteps] = useState([]);
-
+    const [grupoIngrediente, setGrupoIngrediente] = useState([{ nombreGrupo: '', items: [{ valor: 0, idIngrediente: '', idMedida: '' }] }]);
+    const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: '', images: [] }]);
 
     const handleClose = () => setOpen(false);
-    const { guardarReceta } = useReceta();
+    const { getDetailsReceta, detailsReceta, actualizarReceta } = useReceta();
 
     const { ObtenerCategoria, categoriasAll } = useCategoria();
     const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
@@ -35,29 +32,52 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
     const { ObtenerMedida, medidasAll } = useMedida();
     const { ObtenerUntencilios, utenciliosAll } = useUtencilios()
 
-    useEffect(() => {
-        ObtenerCategoria();
-        ObtenerSubCategorias();
-        ObtenerIngrediente();
-        ObtenerDificultad();
-        ObtenerMedida();
-        ObtenerUntencilios();
-    }, []);
-
-    const handleImageChange = (e) => {
-        const selectedFiles = Array.from(e.target.files);
-
-        // Limitar el número de imágenes seleccionadas a un máximo de 3
-        if (selectedFiles.length > 3) {
-            alert("Puedes subir un máximo de 3 imágenes");
-            return;
-        }
-
-        setImagesRecipe(selectedFiles);
+    const convertirDatos = (data) => {
+        return data.grupoIngrediente.map(grupo => ({
+            nombreGrupo: grupo.nombreGrupo,
+            _id: grupo._id,
+            items: grupo.item.map(item => ({
+                _id: item._id,
+                valor: item.valor, // Ajustar este valor según sea necesario
+                idIngrediente: item.ingrediente._id,
+                idMedida: item.medida._id
+            }))
+        }));
     };
 
+    useEffect(() => {
+        const fetchData = async () => {
+            await ObtenerCategoria();
+            await ObtenerSubCategorias();
+            await ObtenerIngrediente();
+            await ObtenerDificultad();
+            await ObtenerMedida();
+            await ObtenerUntencilios();
+
+            const data = await getDetailsReceta({ recetaId });
+            const datosConvertidos = convertirDatos(data);
+
+            console.log("Datos convertidos", datosConvertidos);
+            setGrupoIngrediente(datosConvertidos); // Usar siempre la versión convertida
+
+            setTitle(data.titulo);
+            setDescription(data.descripcion);
+            setHours(data.hours);
+            setMinutes(data.minutes);
+            setCantidadPersonas(data.cantidadPersonas);
+            setDificultad(data.dificultad);
+            setCategoria(data.categoria);
+            setUtencilio(data.utencilio);
+            setSubCategoria(data.subCategoria);
+            setPasos(data.pasos);
+        };
+
+        fetchData();
+    }, [recetaId]);
+
+
     const handleAddGrupoIngrediente = () => {
-        setGrupoIngrediente([...grupoIngrediente, { nombreGrupo: '', items: [{ id: 1, valor: 0, idIngrediente: '', idMedida: '' }] }]);
+        setGrupoIngrediente([...grupoIngrediente, { nombreGrupo: '', items: [{ valor: 0, idIngrediente: '', idMedida: '' }] }]);
     };
 
     const handleDeleteGrupoIngrediente = (index) => {
@@ -70,8 +90,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
 
     const handleAddItem = (groupIndex) => {
         const newGroups = [...grupoIngrediente];
-        const newItemId = newGroups[groupIndex].items.length + 1;
-        newGroups[groupIndex].items.push({ id: newItemId, valor: 0, idIngrediente: '', idMedida: '' });
+        newGroups[groupIndex].items.push({ valor: 0, idIngrediente: '', idMedida: '' });
         setGrupoIngrediente(newGroups);
     };
 
@@ -105,11 +124,8 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (imagesRecipe.length < 1) {
-            alert("Debes subir al menos 1 imagen");
-            return;
-        }
         const data = {
+            _id: recetaId,
             titulo: title,
             descripcion: description,
             hours,
@@ -121,25 +137,13 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
             utencilio,
             subCategoria,
             pasos,
-            user: getStorageUser().usuarioId,
-            imagesRecipe,
-            imagesSteps
+            user: getStorageUser().usuarioId
         };
         console.log("mi data", data);
-        await guardarReceta({ data: data });
+
+        await actualizarReceta({ data: data });
         await getUserAndReceta({ userId: getStorageUser().usuarioId })
         handleClose();
-        setTitle('');
-        setDescription('');
-        setHours(0);
-        setMinutes(0);
-        setCantidadPersonas(0);
-        setDificultad('');
-        setCategoria('');
-        setUtencilio([]);
-        setSubCategoria([]);
-        setGrupoIngrediente([{ nombreGrupo: '', items: [{ id: 1, valor: 0, idIngrediente: '', idMedida: '' }] }]);
-        setPasos([{ pasoNumero: 1, descripcion: '' }]);
     };
 
     return (
@@ -170,18 +174,15 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                         alignItems: 'center',
                     }}
                 >
+                    {
+                        console.log("item o items", grupoIngrediente)
+                    }
                     <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', width: '100%', height: '100%' }}>
                         <Button onClick={handleClose} size='small' sx={{ alignSelf: 'flex-end', height: '30px' }}>
                             X
                         </Button>
                         <div style={{ overflow: 'auto', width: '100%', height: '100%' }}>
                             <form onSubmit={handleSubmit}>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={handleImageChange}
-                                />
                                 <TextField
                                     label="Title"
                                     value={title}
@@ -243,7 +244,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                         value={categoria}
                                         onChange={(e) => setCategoria(e.target.value)}
                                     >
-                                        {categoriasAll.map((category) => (
+                                        {categoriasAll?.map((category) => (
                                             <MenuItem key={category._id} value={category._id}>
                                                 {category.nombreCategoria}
                                             </MenuItem>
@@ -267,7 +268,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                     </Select>
                                 </FormControl>
                                 <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, overflow: 'auto' }}>
-                                    {subCategoriasAll.map((subCategory) => (
+                                    {subCategoriasAll?.map((subCategory) => (
                                         <Button
                                             key={subCategory._id}
                                             variant={subCategoria.includes(subCategory._id) ? 'contained' : 'outlined'}
@@ -284,7 +285,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                         </Button>
                                     ))}
                                 </Box>
-                                {grupoIngrediente.map((group, groupIndex) => (
+                                {grupoIngrediente?.map((group, groupIndex) => (
                                     <Box key={groupIndex} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
                                         <TextField
                                             label="Group Name"
@@ -297,7 +298,13 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                             fullWidth
                                             margin="normal"
                                         />
-                                        {group.items.map((item, itemIndex) => (
+                                        {
+                                            console.log("me deberia llenar", group)
+                                        }
+                                        {
+                                            //me esta trayendo group.item cuando me deberia traer group.items
+                                        }
+                                        {group.items?.map((item, itemIndex) => (
                                             <Box key={item.id} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                                                 <TextField
                                                     label="Value"
@@ -369,7 +376,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                     </Box>
                                 ))}
                                 <Button onClick={handleAddGrupoIngrediente} variant="contained">Add Ingredient Group</Button>
-                                {pasos.map((step, index) => (
+                                {pasos?.map((step, index) => (
                                     <Box key={index} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
                                         <TextField
                                             label="Step Nuber"
@@ -402,7 +409,7 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
                                     </Box>
                                 ))}
                                 <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
-                                <Button type="submit" variant="contained" color="success">Save Recipe</Button>
+                                <Button type="submit" variant="contained" color="warning">Update Recipe</Button>
                             </form>
                         </div>
                     </div>

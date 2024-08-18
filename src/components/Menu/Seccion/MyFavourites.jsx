@@ -6,18 +6,21 @@ import { useUsuario } from "../../../Hooks/useUsuario";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from "./DitailsReceta";
 
-export const Favourites = ({ userName }) => {
+export const Favourites = ({ userName, setCantidadFavoritos }) => {
 
     const { ObtenerFavourites, getIdUserByUserName, favourites, idFavourites, SaveUpdateMyFavourites, ObtenerIdFavourites } = useUsuario();
     const [openReceta, setOpenReceta] = useState(false)
-    const [userId, setUserId] = useState('');
     const [idReceta, setIdReceta] = useState(null);
     const [idUsuario, setIdUsiario] = useState(null);
+    const [idUsuarioFavourite, setIdUsuarioFAvourite] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const idUser = userName == getStorageUser().username ? getStorageUser().usuarioId : await getIdUserByUserName({ username: userName });
+                const idUser = userName == getStorageUser().username ? getStorageUser().usuarioId : await getIdUserByUserName({ username: userName }).then((result) => {
+                    return result.userId
+                });
+                setIdUsuarioFAvourite(idUser);
                 setIdUsiario(getStorageUser().usuarioId);
                 await ObtenerFavourites({ idUser: idUser })
                 await ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
@@ -30,13 +33,19 @@ export const Favourites = ({ userName }) => {
 
     const handleBookmarkClick = async (id, action) => {
 
-        await SaveUpdateMyFavourites({ body: { idUser: getStorageUser().usuarioId, idReceta: id, estado: action } })
-        await ObtenerFavourites({ idUser: getStorageUser().usuarioId })
+        await SaveUpdateMyFavourites({ body: { idUser: idUsuario, idReceta: id, estado: action } })
+        await ObtenerFavourites({ idUser: idUsuarioFavourite })
+        await ObtenerIdFavourites({ idUser: idUsuario })
+
+        if (idUsuario == idUsuarioFavourite) {
+
+            action ? setCantidadFavoritos(prevCantidad => prevCantidad + 1) : setCantidadFavoritos(prevCantidad => prevCantidad - 1)
+        }
     };
 
     return (
-        <div>
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px' }}>
+        <Box>
+            {favourites ? <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: '15px' }}>
                 {favourites?.favourite?.filter(value => value._id).map((card, index) => (
                     <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
                         <Box
@@ -85,6 +94,8 @@ export const Favourites = ({ userName }) => {
                     favourites?.favourite?.filter(value => value._id).length == 0 ? <h4>Not Favourites Added</h4> : <></>
                 }
             </Box>
+                : <h1>No se ecnontraron Favoritos</h1>
+            }
             {
                 openReceta
                     ?
@@ -100,10 +111,10 @@ export const Favourites = ({ userName }) => {
                             justifyContent: 'center',
                         }}>
 
-                        <DetailsReceta isFull={false} isFromProfile={false} origen={'myFavourites'} idReceta={idReceta} setOpen={setOpenReceta} idUser={userId} />
+                        <DetailsReceta isFull={false} isFromProfile={false} origen={'myFavourites'} idReceta={idReceta} setOpen={setOpenReceta} idUser={idUsuario} />
                     </Modal>
                     : <></>
             }
-        </div >
+        </Box >
     )
 }

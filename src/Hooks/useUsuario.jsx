@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { RegisterUsuario, getFavourites, getIdFavourites, getUsuariosToDescubrir, obtenerIdUserByUsername, saveUpdateFavourite } from "../services/UserService";
+import { RegisterUsuario, getDatosRecAndFav, getFavourites, getIdFavourites, getUsuariosToDescubrir, obtenerIdUserByUsername, saveUpdateFavourite } from "../services/UserService";
 
 export const useUsuario = () => {
 
@@ -22,7 +22,7 @@ export const useUsuario = () => {
     const getIdUserByUserName = async ({ username }) => {
         try {
             const result = await obtenerIdUserByUsername(username);
-            return result.userId
+            return result
         } catch (error) {
             console.log(error);
         }
@@ -46,7 +46,7 @@ export const useUsuario = () => {
 
         try {
             const result = await saveUpdateFavourite(body);
-            console.log("esto me trago result", result);
+            return result
         } catch (error) {
             console.log(error);
         } finally {
@@ -80,6 +80,17 @@ export const useUsuario = () => {
         }
     }
 
+    const ObtenerDataFavAndRec = async ({ idUser }) => {
+        try {
+            const result = await getDatosRecAndFav(idUser);
+            return result.data[0];
+
+        } catch (error) {
+            console.log(error);
+        } finally {
+        }
+    }
+
     const ObtenerIdFavourites = async ({ idUser }) => {
         try {
             const result = await getIdFavourites(idUser);
@@ -93,5 +104,14 @@ export const useUsuario = () => {
         }
     }
 
-    return { RegistarUsuario, usuariosAll, setUsuariosAll, usuariosAllDataGrid, setUsuariosAllDataGrid, usuariosDescubrir, ObtenerUsuariosDescubrir, getIdUserByUserName, ObtenerFavourites, favourites, idFavourites, ObtenerIdFavourites, setIdFavourites, SaveUpdateMyFavourites }
+    const ObtenerDatosUsuario = async ({ idUser }) => {
+        try {
+            const result = await getDataUsuarios(idUser);
+            console.log(result);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    return { RegistarUsuario, usuariosAll, setUsuariosAll, usuariosAllDataGrid, setUsuariosAllDataGrid, usuariosDescubrir, ObtenerUsuariosDescubrir, getIdUserByUserName, ObtenerFavourites, favourites, idFavourites, ObtenerIdFavourites, setIdFavourites, SaveUpdateMyFavourites, ObtenerDataFavAndRec }
 }

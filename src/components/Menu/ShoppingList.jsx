@@ -28,7 +28,7 @@ export const ShoppingList = () => {
     return (
         <div>
             <h1>SELECT YOUR SHOPPING LIST</h1>
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px' }}>
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px', padding: '10px' }}>
                 {favourites?.favourite?.filter(value => value._id).map((card, index) => (
                     <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
                         <Box

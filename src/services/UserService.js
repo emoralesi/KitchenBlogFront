@@ -180,6 +180,45 @@ export async function getFavourites(req) {
     }
 }
 
+export async function getDatosRecAndFav(req) {
+    try {
+
+        console.log("my req", req);
+
+        let data = {
+            "idUser": req
+        }
+        console.log("me cai despues del data");
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${getStorageUser().token}`,
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify(data)
+
+        };
+
+        console.log("me cai despues del requestOption");
+
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerDataUsuario`, requestOptions).then((res) => {
+            Unauthorized(res.status)
+            return res.json()
+        }).then((res) => {
+            return res
+        });
+
+        console.log("me cai despues de la llamada");
+
+        return response
+
+    } catch (error) {
+        console.log(error);
+        throw error
+    }
+}
+
 export async function getIdFavourites(req) {
     try {
 
