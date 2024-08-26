@@ -1,6 +1,6 @@
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
-import { Avatar, Button, IconButton, Modal } from "@mui/material";
+import { Avatar, IconButton, Modal } from "@mui/material";
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -8,12 +8,11 @@ import PropTypes from 'prop-types';
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useUsuario } from "../../../Hooks/useUsuario";
+import { Unauthorized } from '../../../utils/401Unauthorized';
 import { getStorageUser } from "../../../utils/StorageUser";
 import { Favourites } from "./MyFavourites";
 import { Perfil } from "./Perfil";
 import { PerfilOwner } from "./PerfilOwner";
-import axios from 'axios';
-import { Unauthorized } from '../../../utils/401Unauthorized';
 
 export const Perfiles = () => {
     let { username } = useParams();
@@ -123,8 +122,8 @@ export const Perfiles = () => {
     }, [username])
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
-            <div style={{ height: '30%', display: 'flex', alignItems: 'center' }}>
+        <div style={{ width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
                 <div style={{ width: '50%', display: 'flex', justifyContent: 'center' }}>
                     <div style={{ position: 'relative' }} onMouseEnter={() => {
                         if (IdUser == getStorageUser().usuarioId) {
@@ -137,8 +136,8 @@ export const Perfiles = () => {
                         }} >
                         <Avatar
                             sx={{
-                                width: 150,
-                                height: 150,
+                                width: 100,
+                                height: 100,
                                 fontSize: 80,
                             }}
                             src={userImage}
@@ -178,8 +177,10 @@ export const Perfiles = () => {
                         sx={{
                             backgroundColor: 'background.paper',
                             '& .MuiTabs-flexContainer': {
-                                display: 'flex', justifyContent: 'space-evenly',
+                                display: 'flex', justifyContent: 'space-evenly'
                             },
+                            minHeight: 'unset',
+                            height: '38px'
                         }}
                     >
                         <Tab label="Post" {...a11yProps(0)} />

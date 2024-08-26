@@ -84,14 +84,19 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
     };
 
     const handleAddPaso = () => {
-        setPasos([...pasos, { pasoNumero: pasos.length + 1, descripcion: '', images: [] }]);
+        setPasos([...pasos, { pasoNumero: pasos.length + 1, descripcion: '' }]);
     };
 
     const handleDeletePaso = (index) => {
         if (pasos.length > 1) {
             const newPasos = [...pasos];
             newPasos.splice(index, 1);
-            setPasos(newPasos);
+            console.log(newPasos);
+            const newPasosSort = newPasos.map((objeto, index) => {
+                objeto.pasoNumero = index + 1;
+                return objeto;
+            });
+            setPasos(newPasosSort);
         }
     };
 

@@ -10,7 +10,7 @@ export default function MainContent() {
             <Grid container >
                 {/* Row 1: Header */}
                 <Grid item xs={2}> {/* Adjust xs to 2 for headerImg */}
-                    <Paper elevation={3} sx={{ height: '70px', backgroundColor: 'ghostwhite' }}>
+                    <Paper elevation={3} sx={{ height: '70px', backgroundColor: 'ghostwhite', borderRadius: 'unset' }}>
                         {/* Header Image or Content */}
                     </Paper>
                 </Grid>
@@ -20,12 +20,12 @@ export default function MainContent() {
 
                 {/* Row 2: Navigation and Main Content */}
                 <Grid item xs={2}>  {/* Adjust xs to 2 for nav */}
-                    <Paper elevation={3} sx={{ height: 'calc(100vh - 70px)', backgroundColor: 'cornsilk' }}>
+                    <Paper elevation={3} sx={{ height: 'calc(100vh - 70px)', backgroundColor: 'cornsilk', borderRadius: 'unset' }}>
                         <SideMenu />
                     </Paper>
                 </Grid>
                 <Grid item xs={10}>  {/* Adjust xs to 10 for all main content */}
-                    <Paper elevation={3} sx={{ height: 'calc(100vh - 70px)', backgroundColor: '#D8D9DA', overflow: 'auto' }}>
+                    <Paper elevation={3} sx={{ height: 'calc(100vh - 70px)', backgroundColor: '#D8D9DA', overflow: 'auto', borderRadius: 'unset' }}>
                         <Box sx={{ height: '100%', width: '100%' }} flexGrow={1}>
                             <Outlet />
                         </Box>

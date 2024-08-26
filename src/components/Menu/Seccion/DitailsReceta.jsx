@@ -148,9 +148,6 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
                             height: { xs: '55%', sm: '50%', md: '100%' },
                             width: '100%',
                         }}>
-                            {
-                                console.log("mi details receta", detailsReceta)
-                            }
                             <div style={{ height: '100%', width: '100%' }}>
                                 {detailsReceta?.images && detailsReceta.images.length > 0 ? (
                                     detailsReceta.images.length === 1 ? (
@@ -159,7 +156,7 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
                                     ) : (
-                                        <Carousel swipe={false} autoPlay={false}>
+                                        <Carousel autoPlay={false} sx={{ width: '100%', height: '100%' }}>
                                             {detailsReceta.images.map((image, index) => (
                                                 <img
                                                     src={image}

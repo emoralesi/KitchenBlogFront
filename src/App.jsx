@@ -12,7 +12,7 @@ import { Perfiles } from './components/Menu/Seccion/Perfiles';
 import SessionGuard from './components/SessionGuard/SessionGuard';
 import { Favourites } from './components/Menu/Seccion/MyFavourites';
 import { ShoppingList } from './components/Menu/ShoppingList';
-import { EmailContent } from './components/Menu/Seccion/EmailContent';
+import { ImageContent } from './components/Menu/Seccion/EmailContent'
 
 function App() {
 
@@ -38,7 +38,7 @@ function App() {
           )}>
           </Route >
           <Route path="/main" element={<SessionGuard element={<MainContent />} />}>
-            <Route path="bienvenido" element={<EmailContent />} />
+            <Route path="bienvenido" element={<ImageContent />} />
             {/* <Route path="myFavourites" element={<>
               <h1>MY FAVOURITES</h1>
               <Favourites />
