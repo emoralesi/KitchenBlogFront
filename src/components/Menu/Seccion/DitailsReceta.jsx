@@ -9,7 +9,7 @@ import { useReceta } from '../../../Hooks/useReceta';
 import { getStorageUser } from '../../../utils/StorageUser';
 import { TypeNotification } from '../../../utils/enumTypeNoti';
 
-export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile, origen }) => {
+export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile, origen, username }) => {
     const [visibleComments, setVisibleComments] = useState(3);
     const [visibleAnswers, setVisibleAnswers] = useState({});
     const [commentParent, setCommentParent] = useState('');
@@ -20,7 +20,7 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
     const [recetaReactions, setRecetaReactions] = useState([]);
     const { SaveUpdateCommentReaction } = useComment();
 
-    const handleClose = () => { setOpen(false); isFromProfile ? window.history.replaceState('', '', `/main/profile/${idUser}`) : window.history.replaceState('', '', `/main/${origen}`) };
+    const handleClose = () => { setOpen(false); window.history.replaceState('', '', `/main/profile/${username}`) };
 
     const handleShowMoreComments = () => {
         setVisibleComments((prev) => prev + 3);

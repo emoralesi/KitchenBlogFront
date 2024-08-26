@@ -13,17 +13,21 @@ export default function SideMenu() {
     }, [])
 
     return (
-        <div>
-            {
-                console.log("mi datamenu", dataMenu)
-            }
-            <List component='nav' aria-labelledby='nested-list-subheader'>
+        <div style={{ height: 'calc(100vh - 100px)' }}>
+            <List sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-around',
+                height: '100%',
+                alignItems: 'center',
+                padding: 0
+            }}>
                 {dataMenu.map((doc, index) => {
                     return (
                         <CustomizedListItem key={index} doc={doc} />
                     )
                 })}
             </List>
-        </div>
+        </div >
     )
 }

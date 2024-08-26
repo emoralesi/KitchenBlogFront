@@ -1,14 +1,4 @@
-.container {
-    display: grid;
-    height: 100%;
-    min-height: 100vh;
-    padding: "0";
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(2, 70px);
-    grid-template-areas: 'headerImg header header header header header'
-        'nav main main main main main'
-        'nav main main main main main';
-}
+
 
 
 .sidemenu-container {

@@ -1,26 +1,30 @@
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AddIcon from '@mui/icons-material/Add';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import CachedIcon from '@mui/icons-material/Cached';
+import CommentIcon from '@mui/icons-material/Comment';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PersonIcon from '@mui/icons-material/Person';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Fab, IconButton, ImageListItem, Modal, Zoom } from "@mui/material";
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Fab, IconButton, Modal, Typography, Zoom } from "@mui/material";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useEffect, useState } from "react";
 import { useReceta } from "../../../Hooks/useReceta";
 import { useUsuario } from '../../../Hooks/useUsuario';
+import { TypeNotification } from '../../../utils/enumTypeNoti';
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from './DitailsReceta';
 import { RecetaForm } from "./RecetaForm";
 import { UpdateRecetaForm } from './UpdateRecetaForm';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import PersonIcon from '@mui/icons-material/Person';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
+import { dateConvert } from '../../../utils/dateConvert';
 
 export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
 
@@ -33,18 +37,6 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
   const handleCloseConfirmation = () => {
     setOpenConfirmation(false);
   };
-
-  const dateConvert = (date) => {
-    const dateObject = new Date(date);
-
-    const day = String(dateObject.getDate()).padStart(2, '0');
-    const month = String(dateObject.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-    const year = dateObject.getFullYear();
-
-    const formattedDate = `${day}/${month}/${year}`;
-
-    return formattedDate
-  }
 
   const [anchorEl, setAnchorEl] = useState(null);
   const openMore = Boolean(anchorEl);
@@ -68,18 +60,34 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
 
   const [openForm, setOpenForm] = useState(false);
   const [openUpdateForm, setOpenUpdateForm] = useState(false);
-  const { getUserAndReceta, misRecetas, setMisRecetas, actualizarPined, desactivarReceta } = useReceta({ setCantidadReceta: setCantidadReceta });
-  const { ObtenerIdFavourites, idFavourites, setIdFavourites, SaveUpdateMyFavourites } = useUsuario({ setCantidadFavoritos: setCantidadFavoritos });
+  const { getUserAndReceta, misRecetas, setMisRecetas, actualizarPined, desactivarReceta, saveUpdateReactionReceta } = useReceta({ setCantidadReceta: setCantidadReceta });
+  const { ObtenerIdFavourites, idFavourites, setIdFavourites, SaveUpdateMyFavourites } = useUsuario();
   const [openReceta, setOpenReceta] = useState(false)
   const [idReceta, setIdReceta] = useState(null);
   const [UpdateId, setUpdateId] = useState(null);
   const [currentCard, setCurrentCard] = useState(null);
   const [isExpanded, setIsExpanded] = useState({});
+  const [reactionInfo, setReactionInfo] = useState(null);
+  const [favouriteInfo, setFavouriteInfo] = useState(null);
 
   const ITEM_HEIGHT = 48;
 
   useEffect(() => {
-    getUserAndReceta({ userId: getStorageUser().usuarioId })
+    getUserAndReceta({ userId: getStorageUser().usuarioId }).then((res) => {
+      setReactionInfo(res.map(recipe => {
+        return {
+          idReceta: recipe._id,
+          usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+        };
+      }))
+
+      setFavouriteInfo(res.map(recipe => {
+        return {
+          idReceta: recipe._id,
+          usuarios_id_favourite: recipe.favourite
+        }
+      }))
+    })
     ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
   }, [])
 
@@ -87,7 +95,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
 
     var result = [];
     await SaveUpdateMyFavourites({ body: { idUser: getStorageUser().usuarioId, idReceta: id, estado: action } }).then((res) => {
-      setCantidadFavoritos(res.cantidadFavourite);
+      action ? setCantidadFavoritos(prevCantidad => prevCantidad + 1) : setCantidadFavoritos(prevCantidad => prevCantidad - 1)
 
     })
     action ? result = [...idFavourites, id] : result = idFavourites.filter(favourite => favourite != id)
@@ -103,14 +111,14 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
           position: 'fixed',
           bottom: 25,
           right: 25,
-          width: '80px',
-          height: '80px'
+          width: '60px',
+          height: '60px'
         }}
         onClick={() => { setOpenForm(true) }}
       >
         <AddIcon />
       </Fab>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: '15px' }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: '15px' }}>
         {misRecetas?.sort((a, b) => {
           if (a.pined !== b.pined) {
             return b.pined - a.pined;
@@ -139,29 +147,152 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                     position: 'relative'
                   }}
                 >
-                  <img
-                    style={{
+                  <Button
+                    onClick={() => {
+                      setIdReceta(card?._id);
+                      window.history.replaceState('', '', `/main/p/${card._id}`);
+                      setOpenReceta(true);
+                    }}
+                    sx={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'cover', // Ajusta la imagen para que cubra el espacio sin deformarse
-                      borderRadius: '8px 8px 0px 0px', // Añade bordes redondeados a la imagen
+                      p: 0,
+                      position: 'relative', // Necesario para posicionar el texto en el centro
+                      overflow: 'hidden', // Asegura que el contenido extra no se salga del botón
+                      '&:hover .overlay': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Oscurece el contenido en hover
+                      },
+                      '&:hover .text': {
+                        opacity: 1, // Muestra el texto en hover
+                      },
                     }}
-                    srcSet={card ? card.images[0] : null}
-                    src={card ? card.images[0] : null}
-                    alt="Imagen"
-                    loading="lazy"
-                  />
+                  >
+                    <img
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '8px 8px 0px 0px',
+                      }}
+                      srcSet={card ? card.images[0] : null}
+                      src={card ? card.images[0] : null}
+                      alt="Imagen"
+                      loading="lazy"
+                    />
+
+                    {/* Caja para la superposición oscura */}
+                    <Box
+                      className="overlay"
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0)', // Transparente por defecto
+                        transition: 'background-color 0.3s ease', // Suaviza la transición del color de fondo
+                      }}
+                    />
+
+                    {/* Texto que aparece en el hover */}
+                    <Typography
+                      className="text"
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        color: 'white',
+                        opacity: 0, // Oculto por defecto
+                        transition: 'opacity 0.3s ease', // Suaviza la transición de la opacidad
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      See more
+                    </Typography>
+                  </Button>
                   {card?.pined ? <div style={{ position: 'absolute', right: 0, top: -10, display: 'flex', alignItems: 'center', rotate: '20px' }}>
                     <PushPinIcon sx={{ fontSize: '25px' }} />
                   </div> : <></>}
 
-                  <div style={{ position: 'absolute', right: 20, top: 0, display: 'flex', alignItems: 'center' }}>
-                    <IconButton
-                      onClick={() => handleBookmarkClick(card._id, !idFavourites.includes(card._id))}
-                      sx={{ transition: 'color 0.3s' }}
-                    >
-                      {idFavourites.includes(card._id) ? <BookmarkIcon fontSize='large' sx={{ color: 'yellow' }} /> : <BookmarkBorderIcon fontSize='large' />}
-                    </IconButton>
+                  <div style={{ position: 'absolute', right: 2, top: 25, display: 'flex', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton
+                          onClick={() => {
+                            handleBookmarkClick(card._id, !favouriteInfo.find(value => value.idReceta = card._id).usuarios_id_favourite.some((user) => user === getStorageUser().usuarioId));
+
+                            const receta = favouriteInfo.find(value => value.idReceta === card?._id);
+
+                            const userExists = receta.usuarios_id_favourite.some(value => value === getStorageUser().usuarioId);
+
+                            let updatedUsuariosIdFavourite;
+
+                            if (userExists) {
+                              updatedUsuariosIdFavourite = receta.usuarios_id_favourite.filter(value => value !== getStorageUser().usuarioId);
+                            } else {
+                              updatedUsuariosIdFavourite = [...receta.usuarios_id_favourite, getStorageUser().usuarioId];
+                            }
+
+                            const updatedFavouriteInfo = favouriteInfo.map(item =>
+                              item.idReceta === card?._id ? { ...item, usuarios_id_favourite: updatedUsuariosIdFavourite } : item
+                            );
+
+                            setFavouriteInfo(updatedFavouriteInfo);
+
+                          }
+                          }
+                          sx={{ transition: 'color 0.3s', padding: 0 }}
+                        >
+                          {idFavourites?.includes(card._id) ? <BookmarkIcon fontSize='large' sx={{ color: 'yellow' }} /> : <BookmarkBorderIcon fontSize='large' />}
+                        </IconButton>
+                        <p>{favouriteInfo?.find(value => value.idReceta = card._id).usuarios_id_favourite.length}</p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton
+                          onClick={() => {
+
+                            saveUpdateReactionReceta({ data: { idReceta: card?._id, idUser: getStorageUser().usuarioId, estado: !reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value === getStorageUser().usuarioId), type: TypeNotification.LikeToReceta } })
+                            const receta = reactionInfo.find(value => value.idReceta === card?._id);
+
+                            const userExists = receta.usuarios_id_reaction.some(value => value === getStorageUser().usuarioId);
+
+                            let updatedUsuariosIdReaction;
+
+                            if (userExists) {
+                              updatedUsuariosIdReaction = receta.usuarios_id_reaction.filter(value => value !== getStorageUser().usuarioId);
+                            } else {
+                              updatedUsuariosIdReaction = [...receta.usuarios_id_reaction, getStorageUser().usuarioId];
+                            }
+
+                            const updatedReactionInfo = reactionInfo.map(item =>
+                              item.idReceta === card?._id ? { ...item, usuarios_id_reaction: updatedUsuariosIdReaction } : item
+                            );
+
+                            setReactionInfo(updatedReactionInfo);
+                          }
+
+                          }
+                        >
+                          <FavoriteIcon
+                            sx={{
+                              color: reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
+                            }}
+                          />
+                        </IconButton>
+                        <span>{reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton onClick={() => {
+                          setIdReceta(card?._id);
+                          window.history.replaceState('', '', `/main/p/${card._id}`);
+                          setOpenReceta(true);
+                        }}>
+                          <CommentIcon sx={{ color: 'blue', width: '34px' }} />
+                        </IconButton>
+                        <p>{card?.comments.length}</p>
+                      </div>
+                    </div>
                   </div>
                   <div style={{ position: 'absolute', left: 0, top: 0, display: 'flex', alignItems: 'center' }}>
                     <IconButton
@@ -297,6 +428,8 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                     backgroundColor: 'white', // Fondo blanco
                     borderRadius: '0px 0px 8px 8px',
                     overflow: 'auto', // Centra el contenido horizontalmente
+                    scrollbarWidth:'thin',
+                    clipPath: 'border-box',
                     position: 'relative'
                   }}
                 >
@@ -353,99 +486,6 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                     </ul>
                   </div>
                 </Box>
-
-                {/* <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Button onClick={(e) => {
-                    e.preventDefault();
-                    setIdReceta(card?._id);
-                    window.history.replaceState('', '', `/main/p/${card._id}`);
-                    setOpenReceta(true);
-                  }}>open me</Button>
-                  <Button onClick={() => {
-                    setUpdateId(card._id)
-                    setOpenUpdateForm(true)
-                  }}>Update</Button>
-                  <Button onClick={handleClickOpenConfirmation}>
-                    Eliminar
-                  </Button>
-                  <Dialog
-                    open={openConfirmation}
-                    onClose={handleCloseConfirmation}
-                    aria-labelledby="alert-dialog-title"
-                    aria-describedby="alert-dialog-description"
-                    slotProps={{
-                      backdrop: {
-                        sx: {
-                          backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                        },
-                      }
-                    }}
-                  >
-                    <div style={{ padding: '16px 24px', fontFamily: 'sans-serif' }}>
-                      <h3 style={{ fontWeight: 500 }}>Are you sure you want to delete the Recipe ? </h3>
-                      <h1>{card.titulo}</h1>
-                    </div>
-                    <DialogContent>
-                      <DialogContentText id="alert-dialog-description">
-                        Click on DELETE to delete this Recipe otherwise Click on CANCEL
-                      </DialogContentText>
-                    </DialogContent>
-                    <DialogActions sx={{ gap: '25px' }}>
-                      <Button variant='outlined' onClick={handleCloseConfirmation}>CANCEL</Button>
-                      <Button sx={{ marginRight: '15px' }} variant='contained' color='error' onClick={async (e) => {
-                        await desactivarReceta({ recetaId: card._id }); await getUserAndReceta({ userId: getStorageUser().usuarioId }); handleCloseConfirmation();
-                        console.log(idFavourites);
-                        console.log(card._id);
-                        console.log(idFavourites.includes(card._id));
-                        console.log(idFavourites.filter(favourite => favourite != card._id))
-                        if (idFavourites.includes(card._id)) {
-                          setCantidadFavoritos(prevCantidad => prevCantidad - 1);
-                        }
-                      }}>
-                        DELETE
-                      </Button>
-                    </DialogActions>
-                  </Dialog>
-                  {
-                    idFavourites?.includes(card._id)
-                      ? <IconButton
-                        onClick={() => handleBookmarkClick(card._id, false)}
-                        sx={{ transition: 'color 0.3s' }}
-                      >
-                        <BookmarkIcon sx={{ color: 'yellow' }} />
-
-                      </IconButton>
-                      : <IconButton
-                        onClick={() => handleBookmarkClick(card._id, true)}
-                        sx={{ transition: 'color 0.3s' }}
-                      >
-                        <BookmarkBorderIcon />
-                      </IconButton>
-                  }
-                  <IconButton onClick={async (e) => {
-                    // Primero, actualizamos el estado local
-                    const updatedArray = misRecetas.map(
-                      item => item._id === card._id ? { ...item, pined: !card.pined } : item
-                    );
-                    setMisRecetas(updatedArray);
-
-                    // Luego, obtenemos el nuevo estado de "pined" para este elemento
-                    const updatedCard = updatedArray.find(item => item._id === card._id);
-
-                    // Llamamos a la función para actualizar la base de datos
-                    await actualizarPined(card._id, updatedCard.pined);
-                  }}>
-                    {
-                      card?.pined ? <PushPinIcon /> : <PushPinOutlinedIcon />
-                    }
-                  </IconButton>
-
-                </div>
-                <img src={card?.image} alt={card.title} width="100%" />
-
-                <h2>{card.titulo}</h2>
-                <p>{card.descripcion}</p>
-                <p>{card._id}</p> */}
               </Box>
             </Zoom>
           ))
@@ -479,7 +519,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
               justifyContent: 'center',
             }}>
 
-            <DetailsReceta isFull={false} isFromProfile={true} idReceta={idReceta} setOpen={setOpenReceta} idUser={getStorageUser().usuarioId} />
+            <DetailsReceta isFull={false} isFromProfile={true} idReceta={idReceta} setOpen={setOpenReceta} idUser={getStorageUser().usuarioId} username={getStorageUser().username} />
           </Modal>
           : <></>
       }

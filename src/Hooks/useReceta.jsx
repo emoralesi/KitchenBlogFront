@@ -75,6 +75,7 @@ export const useReceta = ({ setCantidadReceta } = {}) => {
             const result = await GetRecetasByIdUser({ idUser: { userId } });
             setMisRecetas(result.Recetas);
             if (setCantidadReceta) { setCantidadReceta(result.Recetas?.length) };
+            return result.Recetas;
         } catch (error) {
             enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
             console.log(error);

@@ -11,7 +11,7 @@ import { useUsuario } from "../../../Hooks/useUsuario";
 import { Unauthorized } from '../../../utils/401Unauthorized';
 import { getStorageUser } from "../../../utils/StorageUser";
 import { Favourites } from "./MyFavourites";
-import { Perfil } from "./Perfil";
+import { PerfilOther } from "./PerfilOther";
 import { PerfilOwner } from "./PerfilOwner";
 
 export const Perfiles = () => {
@@ -172,7 +172,7 @@ export const Perfiles = () => {
                 </div>
             </div>
             <Box sx={{ width: '100%' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Box sx={{ borderColor: 'divider' }}>
                     <Tabs value={value} onChange={handleChange} aria-label="basic tabs example"
                         sx={{
                             backgroundColor: 'background.paper',
@@ -188,7 +188,7 @@ export const Perfiles = () => {
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={value} index={0}>
-                    {(getStorageUser().username).toLowerCase() === username.toLowerCase() ? <PerfilOwner setCantidadFavoritos={setCantidadFavoritos} setCantidadReceta={setCantidadReceta} /> : <Perfil userName={username} />}
+                    {(getStorageUser().username).toLowerCase() === username.toLowerCase() ? <PerfilOwner setCantidadFavoritos={setCantidadFavoritos} setCantidadReceta={setCantidadReceta} /> : <PerfilOther userName={username} />}
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={1}>
                     <Favourites userName={username} setCantidadFavoritos={setCantidadFavoritos} />
@@ -248,16 +248,15 @@ function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
 
     return (
-        <div
+        <Box
             role="tabpanel"
             hidden={value !== index}
             id={`simple-tabpanel-${index}`}
             aria-labelledby={`simple-tab-${index}`}
-            style={{ height: '400px' }}
             {...other}
         >
             {value === index && <Box sx={{ padding: '10px', minHeight: '50vh' }}>{children}</Box>}
-        </div>
+        </Box>
     );
 }
 
