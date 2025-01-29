@@ -9,7 +9,7 @@ import { useDificultad } from '../../../Hooks/useDificultad';
 import { useMedida } from '../../../Hooks/useMedida';
 import { useUtencilios } from '../../../Hooks/useUtencilios';
 
-export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId }) => {
+export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, page, limit, setReactionInfo, setFavouriteInfo }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [hours, setHours] = useState(0);
@@ -142,7 +142,21 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId }) 
         console.log("mi data", data);
 
         await actualizarReceta({ data: data });
-        await getUserAndReceta({ userId: getStorageUser().usuarioId })
+        await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
+            setReactionInfo(res.Recetas?.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                };
+            }))
+
+            setFavouriteInfo(res.Recetas?.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_favourite: recipe.favourite
+                }
+            }))
+        })
         handleClose();
     };
 

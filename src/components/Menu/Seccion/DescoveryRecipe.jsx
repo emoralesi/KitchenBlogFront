@@ -1,30 +1,38 @@
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AddIcon from '@mui/icons-material/Add';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import ClearIcon from '@mui/icons-material/Clear';
 import CommentIcon from '@mui/icons-material/Comment';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PersonIcon from '@mui/icons-material/Person';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import { Box, Button, Fab, IconButton, Modal, Typography, Zoom } from "@mui/material";
+import SearchIcon from '@mui/icons-material/Search';
+import { Accordion, AccordionDetails, AccordionSummary, Avatar, Box, Button, Fab, FormControl, IconButton, InputLabel, MenuItem, Modal, Select, TextField, Typography, Zoom } from "@mui/material";
+import debounce from 'just-debounce-it';
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useCategoria } from '../../../Hooks/useCategoria';
+import { useIngrediente } from '../../../Hooks/useIngrediente';
+import useNearScreen from '../../../Hooks/useNearScreen';
 import { useReceta } from '../../../Hooks/useReceta';
+import { useSubCategoria } from '../../../Hooks/useSubCategoria';
 import { useUsuario } from "../../../Hooks/useUsuario";
-import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from './DitailsReceta';
 import { dateConvert } from '../../../utils/dateConvert';
 import { TypeNotification } from '../../../utils/enumTypeNoti';
-import useNearScreen from '../../../Hooks/useNearScreen';
-import debounce from 'just-debounce-it';
 import IconSvg from '../../../utils/IconSvg';
+import { getStorageUser } from "../../../utils/StorageUser";
+import { DetailsReceta } from './DitailsReceta';
 
-export const PerfilOther = ({ userName, cantidadReceta }) => {
+export const DescoveryRecipe = () => {
 
-    const [openForm, setOpenForm] = useState(false);
-    const { getUserAndReceta, misRecetas, saveUpdateReactionReceta } = useReceta();
+    const navigate = useNavigate();
+
+    const { ObtenerRecetasInfo, recetasInfo, cantidadReceta, saveUpdateReactionReceta } = useReceta();
     const [openReceta, setOpenReceta] = useState(false)
     const [idReceta, setIdReceta] = useState(null);
     const [idUser, setIdUser] = useState(null)
@@ -32,12 +40,30 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
     const [isExpanded, setIsExpanded] = useState({});
     const [reactionInfo, setReactionInfo] = useState(null);
     const [favouriteInfo, setFavouriteInfo] = useState(null);
+    const [textSearch, setTextSearch] = useState("");
+    const [errorSearch, setErrorSearch] = useState(false);
+    const [filterSearch, setFilterSearch] = useState(null);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(15);
+    const [categoria, setCategoria] = useState('');
+    const [subCategoria, setSubCategoria] = useState([]);
+    const [ingredientes, setIngredientes] = useState([]);
+
+    const { ObtenerCategoria, categoriasAll } = useCategoria();
+    const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
+    const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+
+    const handleToggleSubCategoria = (categoryId) => {
+        if (subCategoria.includes(categoryId)) {
+            setSubCategoria(subCategoria.filter(id => id !== categoryId));
+        } else {
+            setSubCategoria([...subCategoria, categoryId]);
+        }
+    };
 
     const externalRef = useRef()
     const { isNearScreen } = useNearScreen({
-        externalRef: cantidadReceta == 0 ? null : externalRef,
+        externalRef: cantidadReceta == null ? null : externalRef,
         once: false
     })
 
@@ -45,13 +71,14 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
         () => {
 
             console.log("mi cantidad receta", cantidadReceta);
-            console.log("mi recetas.length", misRecetas.length);
-            console.log(cantidadReceta < misRecetas.length);
+            console.log("mi recetasInfo.length", recetasInfo.length);
+            console.log(cantidadReceta < recetasInfo.length);
 
-            if (misRecetas.length < cantidadReceta) {
+            if (recetasInfo.length < cantidadReceta && cantidadReceta !== null) {
                 const newLimit = limit + 10;
                 setLimit(newLimit);
-                getUserAndReceta({ data: { userId: idUser, page, limit: newLimit } }).then((res) => {
+                ObtenerRecetasInfo({ data: { page, limit: newLimit, filter: { titulo: filterSearch, categoria: categoria !== "" ? categoria : null, subCategoria, ingredientes } } }).then((res) => {
+
                     setReactionInfo(res.Recetas?.map(recipe => {
                         return {
                             idReceta: recipe._id,
@@ -68,7 +95,7 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                 });
             }
         }, 250
-    ), [misRecetas])
+    ), [recetasInfo])
 
     useEffect(function () {
         if (isNearScreen) { debounceHandleNextPage() }
@@ -79,11 +106,10 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const idUsuario = await getIdUserByUserName({ username: userName }).then((result) => {
-                    return result.userId
-                });
-                setIdUser(idUsuario);
-                await getUserAndReceta({ data: { userId: idUsuario, page, limit } }).then((res) => {
+                setIdUser(getStorageUser().usuarioId);
+                await ObtenerRecetasInfo({ data: { page, limit } }).then((res) => {
+                    console.log("este es mi res", res);
+
                     setReactionInfo(res.Recetas?.map(recipe => {
                         return {
                             idReceta: recipe._id,
@@ -104,7 +130,10 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
         };
         ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
         fetchData();
-    }, [userName]);
+        ObtenerCategoria();
+        ObtenerSubCategorias();
+        ObtenerIngrediente();
+    }, []);
 
     const handleBookmarkClick = async (id, action) => {
 
@@ -123,16 +152,218 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
         }));
     };
 
+    const [showClearIcon, setShowClearIcon] = useState("none");
+
+    const handleChange = (event) => {
+        setTextSearch(event.target.value)
+        setShowClearIcon(event.target.value === "" ? "none" : "flex");
+    };
+
+    const handleClick = () => {
+        setTextSearch("")
+        setShowClearIcon("none");
+        console.log("clicked the clear icon...");
+    };
+
     return (
-        <Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <Box sx={{ height: 'auto', width: '100%', marginBottom: '20px' }}>
+                <div id="app" style={{ width: '100%', height: '100%' }}>
+                    <FormControl sx={{ margin: 0 }}>
+                        <TextField
+                            size="small"
+                            variant="outlined"
+                            error={errorSearch}
+                            helperText={errorSearch ? "Type 3 words at least" : null}
+                            placeholder='Type at least 3 words...'
+                            onChange={handleChange}
+                            onKeyDown={debounce((ev) => {
+                                console.log(`Pressed keyCode ${ev.key}`);
+                                if (ev.key === 'Enter') {
+                                    console.log("mi length", textSearch.length);
+                                    if (textSearch.length == 0) {
+                                        if (errorSearch) {
+                                            setErrorSearch(false);
+                                        }
+                                        setFilterSearch(null);
+                                        setCategoria('');
+                                        setSubCategoria([]);
+                                        setIngredientes([]);
+                                        setLimit(15)
+                                        ObtenerRecetasInfo({ data: { page, limit } }).then((res) => {
+                                            setReactionInfo(res.Recetas?.map(recipe => {
+                                                return {
+                                                    idReceta: recipe._id,
+                                                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                                                };
+                                            }));
+
+                                            setFavouriteInfo(res.Recetas?.map(recipe => {
+                                                return {
+                                                    idReceta: recipe._id,
+                                                    usuarios_id_favourite: recipe.favourite
+                                                };
+                                            }));
+                                        });
+
+                                        return;
+                                    }
+                                    if (textSearch.length > 0 && textSearch.length < 3) {
+                                        setErrorSearch(true);
+                                        return;
+                                    } else {
+                                        if (errorSearch) {
+                                            setErrorSearch(false);
+                                        }
+                                        setFilterSearch(textSearch);
+                                        console.log("mi textSearch", textSearch);
+
+                                        ObtenerRecetasInfo({ data: { page, limit, filter: { titulo: textSearch } } }).then((res) => {
+                                            console.log("este es mi res", res);
+
+                                            setReactionInfo(res.Recetas?.map(recipe => {
+                                                return {
+                                                    idReceta: recipe._id,
+                                                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                                                };
+                                            }));
+
+                                            setFavouriteInfo(res.Recetas?.map(recipe => {
+                                                return {
+                                                    idReceta: recipe._id,
+                                                    usuarios_id_favourite: recipe.favourite
+                                                };
+                                            }));
+                                        });
+                                        return;
+                                    }
+                                }
+                            }, 800)}
+
+                            value={textSearch}
+                            InputProps={{
+                                startAdornment: (
+                                    <IconButton
+                                        onClick={() => {
+                                            if (textSearch.length < 3) {
+                                                setErrorSearch(true)
+                                            } else {
+                                                (errorSearch) ? setErrorSearch(false) : null
+                                            }
+                                        }}
+                                        position="start">
+                                        <SearchIcon />
+                                    </IconButton>
+                                ),
+                                endAdornment: (
+                                    <IconButton
+                                        position="end"
+                                        style={{ display: showClearIcon }}
+                                        onClick={handleClick}
+                                    >
+                                        <ClearIcon />
+                                    </IconButton>
+                                )
+                            }}
+                        />
+                    </FormControl>
+                </div>
+                <Accordion sx={{ width: '100%' }}>
+                    <AccordionSummary
+                        expandIcon={<ArrowDropDownIcon />}
+                        aria-controls="panel1-content"
+                        id="panel1-header"
+                    >
+                        <Typography>Filter</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Button onClick={() => {
+                            console.log(categoria);
+                            console.log(subCategoria);
+                            console.log(filterSearch)
+
+                            ObtenerRecetasInfo({ data: { page, limit, filter: { titulo: filterSearch, categoria: categoria !== "" ? categoria : null, subCategoria, ingredientes } } }).then((res) => {
+
+                                setReactionInfo(res.Recetas?.map(recipe => {
+                                    return {
+                                        idReceta: recipe._id,
+                                        usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                                    };
+                                }))
+
+                                setFavouriteInfo(res.Recetas?.map(recipe => {
+                                    return {
+                                        idReceta: recipe._id,
+                                        usuarios_id_favourite: recipe.favourite
+                                    }
+                                }))
+                            });
+
+                        }} variant='contained' color='secondary'>
+                            FILTER
+                        </Button>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Category</InputLabel>
+                            <Select
+                                value={categoria}
+                                onChange={(e) => setCategoria(e.target.value)}
+                            >
+                                <MenuItem key={"emptyone"} value={""}>
+                                    <p>NOT SELECTED</p>
+                                </MenuItem>
+                                {categoriasAll.map((category) => (
+                                    <MenuItem key={category._id} value={category._id}>
+                                        {category.nombreCategoria}
+                                    </MenuItem>
+                                ))}
+
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Ingredientes</InputLabel>
+                            <Select
+                                multiple
+                                value={ingredientes}
+                                onChange={(e) => setIngredientes(e.target.value)}
+                            >
+                                {
+                                    ingredientesAll?.map((ingrediente) => (
+                                        <MenuItem key={ingrediente._id} value={ingrediente._id}>
+                                            {ingrediente.nombreIngrediente}
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
+                        <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, overflow: 'auto' }}>
+                            {subCategoriasAll.map((subCategory) => (
+                                <Button
+                                    key={subCategory._id}
+                                    variant={subCategoria.includes(subCategory._id) ? 'contained' : 'outlined'}
+                                    onClick={() => handleToggleSubCategoria(subCategory._id)}
+                                    sx={{
+                                        transition: 'background-color 0.3s',
+                                        '&:hover': {
+                                            backgroundColor: subCategoria.includes(subCategory._id) ? 'rgba(0, 0, 0, 0.12)' : 'rgba(0, 0, 0, 0.04)',
+                                        },
+                                        minWidth: '200px'
+                                    }}
+                                >
+                                    {subCategory.nombreSubCategoria}
+                                </Button>
+                            ))}
+                        </Box>
+                    </AccordionDetails>
+                </Accordion>
+            </Box>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: '15px' }}>
-                {misRecetas?.sort((a, b) => {
+                {recetasInfo?.sort((a, b) => {
                     if (a.pined !== b.pined) {
                         return b.pined - a.pined;
                     }
                     return new Date(b.fechaReceta) - new Date(a.fechaReceta);
                 }).map((card, index) => (
-                    <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
+                    <Zoom key={card._id} in={true} timeout={400}>
                         <Box
                             sx={{
                                 p: 0,
@@ -283,11 +514,11 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                                             >
                                                 <FavoriteIcon
                                                     sx={{
-                                                        color: reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
+                                                        color: reactionInfo?.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
                                                     }}
                                                 />
                                             </IconButton>
-                                            <span>{reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
+                                            <span>{reactionInfo?.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <IconButton onClick={() => {
@@ -300,6 +531,24 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                                             <p>{card?.comments.length}</p>
                                         </div>
                                     </div>
+                                </div>
+                                <div style={{ position: 'absolute', left: 5, top: 5, display: 'flex', alignItems: 'center' }}>
+                                    <Button onClick={() => {
+                                        navigate(`/main/profile/${card.user[0].username}`)
+                                    }}>
+                                        <Avatar
+                                            sx={{
+                                                width: 50,
+                                                height: 50,
+                                                marginRight: '10px',
+                                                fontSize: 40,
+                                            }}
+                                            src={card.user[0].profileImageUrl}
+                                        >
+                                            {card.user[0].username?.substring(0, 1).toUpperCase()}
+                                        </Avatar>
+                                    </Button>
+                                    <p style={{ fontWeight: 'bold' }}>{card.user[0].username}</p>
                                 </div>
                                 <div
                                     style={{
@@ -433,14 +682,14 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                     </Zoom>
                 ))}
                 {
-                    misRecetas?.length == 0 ? <h4>Not Recetas Founded</h4> : <></>
+                    recetasInfo?.length == 0 ? <h4>Not Recetas Founded</h4> : <></>
                 }
                 {
-                    console.log("valor de misRecetas", misRecetas.length)
+                    console.log("valor de recetaInfo", recetasInfo?.length)
 
                 }
                 {
-                    misRecetas.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
+                    reactionInfo?.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
                 }
             </Box>
             {
@@ -458,7 +707,7 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                             justifyContent: 'center',
                         }}>
 
-                        <DetailsReceta isFull={false} isFromProfile={true} idReceta={idReceta} setOpen={setOpenReceta} idUser={idUser} username={userName} />
+                        <DetailsReceta isFull={false} isFromProfile={false} origen={'discoveryRecipes'} idReceta={idReceta} setOpen={setOpenReceta} idUser={idUser} />
                     </Modal>
                     : <></>
             }

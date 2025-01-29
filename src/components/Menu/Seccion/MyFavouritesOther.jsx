@@ -21,7 +21,7 @@ import debounce from 'just-debounce-it';
 import IconSvg from '../../../utils/IconSvg';
 import { useNavigate } from 'react-router-dom';
 
-export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }) => {
+export const FavouritesOther = ({ userName, setCantidadFavoritos, cantidadFavoritos }) => {
 
     const navigate = useNavigate();
 
@@ -29,7 +29,8 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
     const { saveUpdateReactionReceta } = useReceta();
     const [openReceta, setOpenReceta] = useState(false)
     const [idReceta, setIdReceta] = useState(null);
-    const [idUsuario, setIdUsuario] = useState(null);
+    const [idUsuario, setIdUsiario] = useState(null);
+    const [idUsuarioFavourite, setIdUsuarioFAvourite] = useState(null);
     const [isExpanded, setIsExpanded] = useState({});
     const [reactionInfo, setReactionInfo] = useState(null);
     const [favouriteInfo, setFavouriteInfo] = useState(null);
@@ -44,14 +45,10 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
 
     const debounceHandleNextPage = useCallback(debounce(
         () => {
-
-            console.log("step 1", favourites.length);
-            console.log("step 2", cantidadFavoritos);
-
             if (favourites.length < cantidadFavoritos) {
                 const newLimit = limit + 10;
                 setLimit(newLimit);
-                ObtenerFavourites({ data: { data: { idUser: getStorageUser().usuarioId, page, limit: newLimit } } }).then((res) => {
+                ObtenerFavourites({ data: { data: { idUser: idUsuarioFavourite, page, limit: newLimit } } }).then((res) => {
                     setReactionInfo(res.Favourites?.map(recipe => {
                         return {
                             idReceta: recipe._id,
@@ -79,8 +76,12 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setIdUsuario(getStorageUser().usuarioId);
-                await ObtenerFavourites({ data: { data: { idUser: getStorageUser().usuarioId, page, limit } } }).then((res) => {
+                const idUser = await getIdUserByUserName({ username: userName }).then((result) => {
+                    return result.userId
+                });
+                setIdUsuarioFAvourite(idUser);
+                setIdUsiario(getStorageUser().usuarioId);
+                await ObtenerFavourites({ data: { data: { idUser: idUser, page, limit } } }).then((res) => {
                     setReactionInfo(res.Favourites?.map(recipe => {
                         return {
                             idReceta: recipe._id,
@@ -107,22 +108,6 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
 
         await SaveUpdateMyFavourites({ body: { idUser: idUsuario, idReceta: id, estado: action } })
         await ObtenerIdFavourites({ idUser: idUsuario })
-        await ObtenerFavourites({ data: { data: { idUser: idUsuario, page, limit } } }).then((res) => {
-            setFavouriteInfo(res.Favourites.map(recipe => {
-                return {
-                    idReceta: recipe._id,
-                    usuarios_id_favourite: recipe.favourite
-                }
-            }))
-            setReactionInfo(res.Favourites?.map(recipe => {
-                return {
-                    idReceta: recipe._id,
-                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                };
-            }))
-        })
-        action ? setCantidadFavoritos(prevCantidad => prevCantidad + 1) : setCantidadFavoritos(prevCantidad => prevCantidad - 1)
-
     };
 
     const handleClickExpand = (cardId) => {
@@ -261,9 +246,9 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
                                                     const updatedFavouriteInfo = favouriteInfo.map(item =>
                                                         item.idReceta === card?._id ? { ...item, usuarios_id_favourite: updatedUsuariosIdFavourite } : item
                                                     );
-                                                    console.log("my update favourite", updatedFavouriteInfo);
 
                                                     setFavouriteInfo(updatedFavouriteInfo);
+
                                                 }
                                                 }
                                                 sx={{ transition: 'color 0.3s', padding: 0 }}
@@ -276,17 +261,17 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
                                             <IconButton
                                                 onClick={() => {
 
-                                                    saveUpdateReactionReceta({ data: { idReceta: card?._id, idUser: idUsuario, estado: !reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value === idUsuario), type: TypeNotification.LikeToReceta } })
+                                                    saveUpdateReactionReceta({ data: { idReceta: card?._id, idUser: getStorageUser().usuarioId, estado: !reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value === getStorageUser().usuarioId), type: TypeNotification.LikeToReceta } })
                                                     const receta = reactionInfo.find(value => value.idReceta === card?._id);
 
-                                                    const userExists = receta.usuarios_id_reaction.some(value => value === idUsuario);
+                                                    const userExists = receta.usuarios_id_reaction.some(value => value === getStorageUser().usuarioId);
 
                                                     let updatedUsuariosIdReaction;
 
                                                     if (userExists) {
-                                                        updatedUsuariosIdReaction = receta.usuarios_id_reaction.filter(value => value !== idUsuario);
+                                                        updatedUsuariosIdReaction = receta.usuarios_id_reaction.filter(value => value !== getStorageUser().usuarioId);
                                                     } else {
-                                                        updatedUsuariosIdReaction = [...receta.usuarios_id_reaction, idUsuario];
+                                                        updatedUsuariosIdReaction = [...receta.usuarios_id_reaction, getStorageUser().usuarioId];
                                                     }
 
                                                     const updatedReactionInfo = reactionInfo.map(item =>
@@ -294,13 +279,11 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
                                                     );
 
                                                     setReactionInfo(updatedReactionInfo);
-                                                }
-
-                                                }
+                                                }}
                                             >
                                                 <FavoriteIcon
                                                     sx={{
-                                                        color: reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == idUsuario) ? 'red' : 'gray', transition: 'color 0.5s'
+                                                        color: reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
                                                     }}
                                                 />
                                             </IconButton>
@@ -406,10 +389,7 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
                     </Zoom>
                 ))}
                 {
-                    favourites.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
-                }
-                {
-                    favourites?.filter(value => value._id).length == 0 ? <h4>Not Favourites Added</h4> : <></>
+                    favourites?.filter(value => value._id).length == 0 ? <h4>Not Favourites Added</h4> : favourites.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
                 }
             </Box>
                 : <h1>No se ecnontraron Favoritos</h1>

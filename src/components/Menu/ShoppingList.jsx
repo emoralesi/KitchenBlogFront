@@ -8,28 +8,23 @@ import { DetailsReceta } from "./Seccion/DitailsReceta";
 
 export const ShoppingList = () => {
 
-    const { ObtenerFavourites, favourites, idFavourites, SaveUpdateMyFavourites, ObtenerIdFavourites } = useUsuario();
+    const { ObtenerFavourites, favourites } = useUsuario();
     const [openReceta, setOpenReceta] = useState(false)
     const [userId, setUserId] = useState('');
     const [idReceta, setIdReceta] = useState(null);
     const [idSelected, setidSelected] = useState([]);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(15);
 
     useEffect(() => {
-        ObtenerFavourites({ idUser: getStorageUser().usuarioId })
-        ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
+        ObtenerFavourites({ data: { data: { idUser: getStorageUser().usuarioId, page, limit } } })
     }, [])
-
-    const handleBookmarkClick = async (id, action) => {
-
-        await SaveUpdateMyFavourites({ body: { idUser: getStorageUser().usuarioId, idReceta: id, estado: action } })
-        await ObtenerFavourites({ idUser: getStorageUser().usuarioId })
-    };
 
     return (
         <div>
             <h1>SELECT YOUR SHOPPING LIST</h1>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: '15px', padding: '10px' }}>
-                {favourites?.favourite?.filter(value => value._id).map((card, index) => (
+                {favourites?.filter(value => value._id).map((card, index) => (
                     <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
                         <Box
                             sx={{

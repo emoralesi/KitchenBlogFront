@@ -1,6 +1,6 @@
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import { Box, Button, Grid, IconButton, Paper, TextField, Typography, Zoom } from '@mui/material';
+import { Box, Button, CircularProgress, Grid, IconButton, Paper, TextField, Typography, Zoom } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import Carousel from 'react-material-ui-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
@@ -8,6 +8,7 @@ import { useComment } from '../../../Hooks/useComment';
 import { useReceta } from '../../../Hooks/useReceta';
 import { getStorageUser } from '../../../utils/StorageUser';
 import { TypeNotification } from '../../../utils/enumTypeNoti';
+import { RecetaNotFound } from './RecetaNotFound';
 
 export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile, origen, username }) => {
     const [visibleComments, setVisibleComments] = useState(3);
@@ -19,8 +20,10 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
     const { detailsReceta, getDetailsReceta, saveUpdateReactionReceta } = useReceta();
     const [recetaReactions, setRecetaReactions] = useState([]);
     const { SaveUpdateCommentReaction } = useComment();
+    const [recipeExists, setRecipeExists] = useState(true);
+    const [loading, setLoading] = useState(true);
 
-    const handleClose = () => { setOpen(false); window.history.replaceState('', '', `/main/profile/${username}`) };
+    const handleClose = () => { setOpen(false); isFromProfile ? window.history.replaceState('', '', `/main/profile/${idUser}`) : window.history.replaceState('', '', `/main/${origen}`) };
 
     const handleShowMoreComments = () => {
         setVisibleComments((prev) => prev + 3);
@@ -82,29 +85,61 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
     };
 
     useEffect(() => {
-        console.log("Ditailsss idUser", idUser);
-        getDetailsReceta({ recetaId: idReceta }).then((receta) => {
-            const initialReactions = {};
-            receta?.comments.forEach((comment) => {
-                console.log(comment.reactions);
-                initialReactions[comment._id] = {
-                    estado: comment.reactions.some(value => value.user_id === getStorageUser().usuarioId),
-                    count: comment.reactions.filter(value => value._id).length,
-                };
-                comment.responses.forEach((response) => {
-                    initialReactions[response._id] = {
-                        estado: response.reactions.some(value => value.user_id === getStorageUser().usuarioId),
-                        count: response.reactions.filter(value => value._id).length,
-                    };
-                });
-            });
-            console.log("mi receta", receta);
-            setRecetaReactions(receta.reactions);
-            setReactions(initialReactions);
-        });
-        setVisibleComments(2);
-        setVisibleAnswers({});
-    }, []);
+        const fetchDetailsReceta = async () => {
+            try {
+                console.log("Ditailsss idUser", idUser);
+                const receta = await getDetailsReceta({ recetaId: idReceta });
+
+                if (!receta) {
+                    setRecipeExists(false);
+                } else {
+                    const initialReactions = {};
+                    receta.comments.forEach((comment) => {
+                        initialReactions[comment._id] = {
+                            estado: comment.reactions.some(value => value.user_id === getStorageUser().usuarioId),
+                            count: comment.reactions.filter(value => value._id).length,
+                        };
+                        comment.responses.forEach((response) => {
+                            initialReactions[response._id] = {
+                                estado: response.reactions.some(value => value.user_id === getStorageUser().usuarioId),
+                                count: response.reactions.filter(value => value._id).length,
+                            };
+                        });
+                    });
+                    setRecetaReactions(receta.reactions);
+                    setReactions(initialReactions);
+                    setRecipeExists(true);
+                }
+            } catch (error) {
+                console.error('Error fetching data', error);
+                setRecipeExists(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDetailsReceta();
+    }, [idReceta]);
+
+
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '80vh',
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (!recipeExists) {
+        return <RecetaNotFound />;
+    }
 
     return (
         isFull ? <>

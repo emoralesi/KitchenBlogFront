@@ -7,20 +7,19 @@
             "submenus": []
         },
         {
-            "id_menu": 5,
-            "nombre_menu": "Descubrir Chefs",
-            "linkTo": "/main/discoveryChefs",
-            "submenus": []
-        }
-        ,
-        {
-            "id_menu": 6,
-            "nombre_menu": "My Favourites",
-            "linkTo": "/main/myFavourites",
+            "id_menu": 2,
+            "nombre_menu": "Explorar Recetas",
+            "linkTo": "/main/discoveryRecipes",
             "submenus": []
         },
         {
-            "id_menu": 7,
+            "id_menu": 3,
+            "nombre_menu": "Descubrir Chefs",
+            "linkTo": "/main/discoveryChefs",
+            "submenus": []
+        },
+        {
+            "id_menu": 4,
             "nombre_menu": "Shopping List",
             "linkTo": "/main/shoppingList",
             "submenus": []

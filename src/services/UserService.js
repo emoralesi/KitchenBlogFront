@@ -141,14 +141,11 @@ export async function getUsuariosToDescubrir(req) {
     }
 }
 
-export async function getFavourites(req) {
+export async function getFavourites({ data }) {
     try {
 
-        console.log("my req", req);
+        console.log("my req", data);
 
-        let data = {
-            "idUser": req
-        }
         console.log("me cai despues del data");
         const requestOptions = {
             method: 'POST',

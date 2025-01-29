@@ -9,7 +9,7 @@ import { useDificultad } from '../../../Hooks/useDificultad';
 import { useMedida } from '../../../Hooks/useMedida';
 import { useUtencilios } from '../../../Hooks/useUtencilios';
 
-export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
+export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta, setReactionInfo, setFavouriteInfo, page, limit }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [hours, setHours] = useState(0);
@@ -36,6 +36,24 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
     const { ObtenerUntencilios, utenciliosAll } = useUtencilios()
 
     useEffect(() => {
+
+        const savedFormData = JSON.parse(localStorage.getItem('recetaFormData'));
+        if (savedFormData) {
+            setTitle(savedFormData.title || '');
+            setDescription(savedFormData.description || '');
+            setHours(savedFormData.hours || 0);
+            setMinutes(savedFormData.minutes || 0);
+            setCantidadPersonas(savedFormData.cantidadPersonas || 0);
+            setDificultad(savedFormData.dificultad || '');
+            setCategoria(savedFormData.categoria || '');
+            setUtencilio(savedFormData.utencilio || []);
+            setSubCategoria(savedFormData.subCategoria || []);
+            setGrupoIngrediente(savedFormData.grupoIngrediente || [{ nombreGrupo: '', items: [{ id: 1, valor: 0, idIngrediente: '', idMedida: '' }] }]);
+            setPasos(savedFormData.pasos || [{ pasoNumero: 1, descripcion: '' }]);
+            setImagesRecipe(savedFormData.imagesRecipe || []);
+            setImagesSteps(savedFormData.imagesSteps || []);
+        }
+
         ObtenerCategoria();
         ObtenerSubCategorias();
         ObtenerIngrediente();
@@ -43,6 +61,26 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
         ObtenerMedida();
         ObtenerUntencilios();
     }, []);
+
+    useEffect(() => {
+        const formData = {
+            title,
+            description,
+            hours,
+            minutes,
+            cantidadPersonas,
+            dificultad,
+            categoria,
+            grupoIngrediente,
+            utencilio,
+            subCategoria,
+            pasos,
+            imagesRecipe,
+            imagesSteps
+        };
+        localStorage.setItem('recetaFormData', JSON.stringify(formData));
+    }, [title, description, hours, minutes, cantidadPersonas, dificultad, categoria, grupoIngrediente, utencilio, subCategoria, pasos, imagesRecipe, imagesSteps]);
+
 
     const handleImageChange = (e) => {
         const selectedFiles = Array.from(e.target.files);
@@ -131,8 +169,27 @@ export const RecetaForm = ({ open, setOpen, getUserAndReceta }) => {
             imagesSteps
         };
         console.log("mi data", data);
-        await guardarReceta({ data: data });
-        await getUserAndReceta({ userId: getStorageUser().usuarioId })
+        await guardarReceta({ data: data }).then((res) => {
+            if (res.status == 'ok') {
+                localStorage.removeItem('recetaFormData');
+                setCantidadReceta(preValue => preValue + 1);
+            }
+        });
+        await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
+            setReactionInfo(res.Recetas?.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                };
+            }));
+
+            setFavouriteInfo(res.Recetas?.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_favourite: recipe.favourite
+                }
+            }));
+        })
         handleClose();
         setTitle('');
         setDescription('');

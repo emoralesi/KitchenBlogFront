@@ -13,20 +13,23 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Fab, IconButton, Modal, Typography, Zoom } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Fab, IconButton, Modal, SvgIcon, Typography, Zoom } from "@mui/material";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { useEffect, useState } from "react";
+import debounce from 'just-debounce-it';
+import { useCallback, useEffect, useRef, useState } from "react";
+import useNearScreen from '../../../Hooks/useNearScreen';
 import { useReceta } from "../../../Hooks/useReceta";
 import { useUsuario } from '../../../Hooks/useUsuario';
+import { dateConvert } from '../../../utils/dateConvert';
 import { TypeNotification } from '../../../utils/enumTypeNoti';
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from './DitailsReceta';
+import { DetailsReceta } from './DitailsReceta2';
 import { RecetaForm } from "./RecetaForm";
 import { UpdateRecetaForm } from './UpdateRecetaForm';
-import { dateConvert } from '../../../utils/dateConvert';
+import IconSvg from '../../../utils/IconSvg';
 
-export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
+export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadReceta }) => {
 
   const [openConfirmation, setOpenConfirmation] = useState(false);
 
@@ -60,7 +63,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
 
   const [openForm, setOpenForm] = useState(false);
   const [openUpdateForm, setOpenUpdateForm] = useState(false);
-  const { getUserAndReceta, misRecetas, setMisRecetas, actualizarPined, desactivarReceta, saveUpdateReactionReceta } = useReceta({ setCantidadReceta: setCantidadReceta });
+  const { getUserAndReceta, misRecetas, setMisRecetas, actualizarPined, desactivarReceta, saveUpdateReactionReceta } = useReceta();
   const { ObtenerIdFavourites, idFavourites, setIdFavourites, SaveUpdateMyFavourites } = useUsuario();
   const [openReceta, setOpenReceta] = useState(false)
   const [idReceta, setIdReceta] = useState(null);
@@ -69,19 +72,67 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
   const [isExpanded, setIsExpanded] = useState({});
   const [reactionInfo, setReactionInfo] = useState(null);
   const [favouriteInfo, setFavouriteInfo] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(15);
+  const externalRef = useRef()
+  const { isNearScreen } = useNearScreen({
+    externalRef: cantidadReceta == 0 ? null : externalRef,
+    once: false
+  })
 
   const ITEM_HEIGHT = 48;
 
+  const debounceHandleNextPage = useCallback(debounce(
+    () => {
+
+      console.log("mi cantidad receta", cantidadReceta);
+      console.log("mi recetas.length", misRecetas.length);
+      console.log(cantidadReceta < misRecetas.length);
+
+      if (misRecetas.length < cantidadReceta) {
+        console.log("pase por el debounce");
+        console.log("mi limit", limit);
+
+        const newLimit = limit + 10;
+        console.log("mi new limit", newLimit);
+
+        setLimit(newLimit);
+        getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page: 1, limit: newLimit } }).then((res) => {
+
+          setReactionInfo(res.Recetas?.map(recipe => {
+            return {
+              idReceta: recipe._id,
+              usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+            };
+          }))
+
+          setFavouriteInfo(res.Recetas?.map(recipe => {
+            return {
+              idReceta: recipe._id,
+              usuarios_id_favourite: recipe.favourite
+            }
+          }))
+        })
+      }
+    }, 250
+  ), [misRecetas])
+
+  useEffect(function () {
+    if (isNearScreen) { debounceHandleNextPage() }
+    console.log(isNearScreen);
+
+  }, [isNearScreen])
+
   useEffect(() => {
-    getUserAndReceta({ userId: getStorageUser().usuarioId }).then((res) => {
-      setReactionInfo(res.map(recipe => {
+    getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
+      setReactionInfo(res.Recetas?.map(recipe => {
         return {
           idReceta: recipe._id,
           usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
         };
       }))
 
-      setFavouriteInfo(res.map(recipe => {
+      setFavouriteInfo(res.Recetas?.map(recipe => {
         return {
           idReceta: recipe._id,
           usuarios_id_favourite: recipe.favourite
@@ -126,7 +177,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
           return new Date(b.fechaReceta) - new Date(a.fechaReceta);
         })
           .map((card, index) => (
-            <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
+            <Zoom key={card._id} in={true} timeout={300 + (index * 10)}>
               <Box
                 sx={{
                   p: 0,
@@ -220,11 +271,13 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
                           onClick={() => {
-                            handleBookmarkClick(card._id, !favouriteInfo.find(value => value.idReceta = card._id).usuarios_id_favourite.some((user) => user === getStorageUser().usuarioId));
+                            console.log("-------------------------");
 
-                            const receta = favouriteInfo.find(value => value.idReceta === card?._id);
+                            handleBookmarkClick(card._id, !favouriteInfo?.find(value => value.idReceta === card._id).usuarios_id_favourite.some((user) => user == getStorageUser().usuarioId));
 
-                            const userExists = receta.usuarios_id_favourite.some(value => value === getStorageUser().usuarioId);
+                            const receta = favouriteInfo?.find(value => value.idReceta === card._id);
+
+                            const userExists = receta.usuarios_id_favourite.some(value => value == getStorageUser().usuarioId);
 
                             let updatedUsuariosIdFavourite;
 
@@ -235,7 +288,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                             }
 
                             const updatedFavouriteInfo = favouriteInfo.map(item =>
-                              item.idReceta === card?._id ? { ...item, usuarios_id_favourite: updatedUsuariosIdFavourite } : item
+                              item.idReceta === card._id ? { ...item, usuarios_id_favourite: updatedUsuariosIdFavourite } : item
                             );
 
                             setFavouriteInfo(updatedFavouriteInfo);
@@ -246,7 +299,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                         >
                           {idFavourites?.includes(card._id) ? <BookmarkIcon fontSize='large' sx={{ color: 'yellow' }} /> : <BookmarkBorderIcon fontSize='large' />}
                         </IconButton>
-                        <p>{favouriteInfo?.find(value => value.idReceta = card._id).usuarios_id_favourite.length}</p>
+                        <p>{favouriteInfo?.find(value => value.idReceta === card._id).usuarios_id_favourite.length}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
@@ -276,11 +329,11 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                         >
                           <FavoriteIcon
                             sx={{
-                              color: reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
+                              color: reactionInfo?.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
                             }}
                           />
                         </IconButton>
-                        <span>{reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
+                        <span>{reactionInfo?.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton onClick={() => {
@@ -386,7 +439,21 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                           <DialogActions sx={{ gap: '25px' }}>
                             <Button variant='outlined' onClick={handleCloseConfirmation}>CANCEL</Button>
                             <Button sx={{ marginRight: '15px' }} variant='contained' color='error' onClick={async (e) => {
-                              await desactivarReceta({ recetaId: card._id }); await getUserAndReceta({ userId: getStorageUser().usuarioId }); handleCloseConfirmation();
+                              await desactivarReceta({ recetaId: card._id }); await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
+                                setReactionInfo(res.Recetas?.map(recipe => {
+                                  return {
+                                    idReceta: recipe._id,
+                                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                                  };
+                                }))
+
+                                setFavouriteInfo(res.Recetas?.map(recipe => {
+                                  return {
+                                    idReceta: recipe._id,
+                                    usuarios_id_favourite: recipe.favourite
+                                  }
+                                }))
+                              }); handleCloseConfirmation();
                               console.log(idFavourites);
                               console.log(card._id);
                               console.log(idFavourites.includes(card._id));
@@ -427,8 +494,8 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                     transition: 'ease-in-out 0.5s',
                     backgroundColor: 'white', // Fondo blanco
                     borderRadius: '0px 0px 8px 8px',
-                    overflow: 'auto', // Centra el contenido horizontalmente
-                    scrollbarWidth:'thin',
+                    overflow: isExpanded[card._id] ? 'auto' : 'none', // Centra el contenido horizontalmente
+                    scrollbarWidth: 'thin',
                     clipPath: 'border-box',
                     position: 'relative'
                   }}
@@ -461,12 +528,19 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        {
-                          card?.subCategoria.map((value) =>
-                            <p>{value.nombreSubCategoria}</p>
-                          )
-                        }
+                      <div style={{ display: 'flex', alignItems: 'center', width: '100%'}}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          marginBottom: '10px',
+                          flexWrap: 'wrap'
+                        }}>
+                          {
+                            card?.subCategoria.map((value) =>
+                              IconSvg(value.nombreSubCategoria)
+                            )
+                          }
+                        </div>
                       </div>
 
                       <p>{dateConvert(card?.fechaReceta)}</p>
@@ -491,17 +565,17 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
           ))
         }
         {
-          misRecetas?.length == 0 ? <h4>Not Recetas Founded</h4> : <></>
+          misRecetas?.length == 0 ? <h4>Not Recetas Founded</h4> : misRecetas.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
         }
       </Box >
       {
         openForm
-          ? <RecetaForm setCantidadReceta={setCantidadReceta} open={openForm} getUserAndReceta={getUserAndReceta} setOpen={setOpenForm} />
+          ? <RecetaForm setCantidadReceta={setCantidadReceta} open={openForm} getUserAndReceta={getUserAndReceta} setOpen={setOpenForm} setReactionInfo={setReactionInfo} setFavouriteInfo={setFavouriteInfo} page={page} limit={limit} />
           : <></>
       }
       {
         openUpdateForm
-          ? <UpdateRecetaForm setCantidadReceta={setCantidadReceta} open={openUpdateForm} getUserAndReceta={getUserAndReceta} setOpen={setOpenUpdateForm} recetaId={UpdateId} />
+          ? <UpdateRecetaForm setCantidadReceta={setCantidadReceta} open={openUpdateForm} getUserAndReceta={getUserAndReceta} setOpen={setOpenUpdateForm} recetaId={UpdateId} page={page} limit={limit} setReactionInfo={setReactionInfo} setFavouriteInfo={setFavouriteInfo} />
           : <></>
       }
       {
@@ -523,6 +597,8 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta }) => {
           </Modal>
           : <></>
       }
+
+
     </Box >
 
   );

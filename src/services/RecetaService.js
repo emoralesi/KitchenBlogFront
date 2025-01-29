@@ -134,7 +134,39 @@ export async function saveReactionReceta({ data }) {
     }
 }
 
-export async function GetRecetasByIdUser({ idUser }) {
+export async function GetRecetasByIdUser({ data }) {
+
+    try {
+        console.log("mi receta service data", data);
+
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${getStorageUser().token}`
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify(data)
+
+        };
+
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerUserAndReceta`, requestOptions).then((res) => {
+            Unauthorized(res.status)
+            return res.json()
+        }).then((res) => {
+            return res
+        });
+
+        console.log("este es mi response", response);
+        return response
+
+    } catch (error) {
+        console.log("error", error);
+        throw error
+    }
+}
+
+export async function GetRecetasInfo({ data }) {
 
     try {
 
@@ -145,11 +177,11 @@ export async function GetRecetasByIdUser({ idUser }) {
                 "Authorization": `Bearer ${getStorageUser().token}`
                 // 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify(idUser)
+            body: JSON.stringify(data)
 
         };
 
-        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerUserAndReceta`, requestOptions).then((res) => {
+        const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerRecetasinfo`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {

@@ -1,18 +1,24 @@
 import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
-import { desactivateRecepies, GetRecetasByIdReceta, GetRecetasByIdUser, saveReactionReceta, saveReceta, updatePined, updateReceta } from "../services/RecetaService";
+import { desactivateRecepies, GetRecetasByIdReceta, GetRecetasByIdUser, GetRecetasInfo, saveReactionReceta, saveReceta, updatePined, updateReceta } from "../services/RecetaService";
 
-export const useReceta = ({ setCantidadReceta } = {}) => {
+export const useReceta = () => {
 
     const [misRecetas, setMisRecetas] = useState([]);
     const [detailsReceta, setDetailsReceta] = useState([]);
+    const [recetasInfo, setRecetasInfo] = useState([]);
+    const [cantidadReceta, setCantidadReceta] = useState(null);
 
     const guardarReceta = async ({ data }) => {
 
         try {
             const result = await saveReceta({ receta: data });
-            enqueueSnackbar('Receta Registrado correctaente', { variant: 'success' });
-            return true;
+            if (result.status == 'ok') {
+                enqueueSnackbar('Receta Registrado correctaente', { variant: 'success' });
+            } else {
+                enqueueSnackbar('Hubo un error al guardar la receta', { variant: 'warning' });
+            }
+            return result;
 
         } catch (error) {
             enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
@@ -69,13 +75,28 @@ export const useReceta = ({ setCantidadReceta } = {}) => {
 
     }
 
-    const getUserAndReceta = async ({ userId }) => {
-        console.log("data al getUserAndReceta", userId);
+    const getUserAndReceta = async ({ data }) => {
+        console.log("data al getUserAndReceta", data);
         try {
-            const result = await GetRecetasByIdUser({ idUser: { userId } });
+            const result = await GetRecetasByIdUser({ data });
+            console.log("mi result", result);
+
             setMisRecetas(result.Recetas);
-            if (setCantidadReceta) { setCantidadReceta(result.Recetas?.length) };
-            return result.Recetas;
+            return result;
+        } catch (error) {
+            enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
+            console.log(error);
+        } finally {
+        }
+    }
+
+    const ObtenerRecetasInfo = async ({ data }) => {
+        try {
+            const result = await GetRecetasInfo({ data });
+            console.log("obtenerRecetasInfo", result);
+            setRecetasInfo(result.Recetas);
+            setCantidadReceta(result.totalRecetas);
+            return result;
         } catch (error) {
             enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
             console.log(error);
@@ -87,8 +108,8 @@ export const useReceta = ({ setCantidadReceta } = {}) => {
 
         try {
             const result = await GetRecetasByIdReceta({ recetaId: { recetaId } });
-            setDetailsReceta(result.Receta);
-            return result?.Receta
+            setDetailsReceta(result.Receta[0]);
+            return result?.Receta[0]
         } catch (error) {
             enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
             console.log(error);
@@ -106,5 +127,5 @@ export const useReceta = ({ setCantidadReceta } = {}) => {
         }
     }
 
-    return { guardarReceta, GetRecetasByIdReceta, GetRecetasByIdUser, getDetailsReceta, getUserAndReceta, detailsReceta, misRecetas, saveUpdateReactionReceta, setMisRecetas, actualizarReceta, actualizarPined, desactivarReceta }
+    return { guardarReceta, GetRecetasByIdReceta, GetRecetasByIdUser, getDetailsReceta, getUserAndReceta, detailsReceta, misRecetas, saveUpdateReactionReceta, setMisRecetas, actualizarReceta, actualizarPined, desactivarReceta, ObtenerRecetasInfo, recetasInfo, cantidadReceta }
 }

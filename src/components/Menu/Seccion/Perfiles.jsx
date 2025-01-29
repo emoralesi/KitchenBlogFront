@@ -1,6 +1,6 @@
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
-import { Avatar, IconButton, Modal } from "@mui/material";
+import { Avatar, IconButton, Modal, CircularProgress } from "@mui/material";
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -13,6 +13,8 @@ import { getStorageUser } from "../../../utils/StorageUser";
 import { Favourites } from "./MyFavourites";
 import { PerfilOther } from "./PerfilOther";
 import { PerfilOwner } from "./PerfilOwner";
+import { FavouritesOther } from './MyFavouritesOther';
+import { UserNotFound } from './UserNotFound';
 
 export const Perfiles = () => {
     let { username } = useParams();
@@ -26,6 +28,9 @@ export const Perfiles = () => {
     const [openEditProfilePic, setOpenEditProfilePic] = useState(false);
 
     const { ObtenerDataFavAndRec, getIdUserByUserName } = useUsuario();
+
+    const [userExists, setUserExists] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -82,6 +87,7 @@ export const Perfiles = () => {
                 });
 
             console.log('Imagen subida:', response);
+            // Puedes agregar lógica para actualizar la imagen del usuario si es necesario
         } catch (error) {
             console.error('Error al subir la imagen:', error);
         }
@@ -91,19 +97,21 @@ export const Perfiles = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-
                 var idUser = null;
 
-                if (username == getStorageUser().userName) {
+                if (username.toLowerCase() === getStorageUser().username.toLowerCase()) {
                     idUser = getStorageUser().usuarioId;
+                    setUserImage(getStorageUser().profileImageUrl);
+                    setUserExists(true)
                 } else {
                     const Usuario = await getIdUserByUserName({ username: username });
-                    idUser = Usuario.userId
-                    setUserImage(Usuario.user.profileImageUrl)
-
+                    if (!Usuario || !Usuario.userId) {
+                        setUserExists(false);
+                        return;
+                    }
+                    idUser = Usuario.userId;
+                    setUserImage(Usuario.user.profileImageUrl);
                 }
-
-                //const idUser = username == getStorageUser().username ? getStorageUser().usuarioId : await getIdUserByUserName({ username: username });
 
                 setIdUser(idUser);
 
@@ -113,27 +121,52 @@ export const Perfiles = () => {
 
                 setCantidadReceta(result.recetaCount)
                 setCantidadFavoritos(result.favouriteCount)
-
             } catch (error) {
                 console.error('Error fetching data', error);
+                setUserExists(false); // Asumiendo que un error puede indicar que el usuario no existe
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
-    }, [username])
+    }, [username, getIdUserByUserName, ObtenerDataFavAndRec]);
+
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '80vh',
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (!userExists) {
+        return <UserNotFound />;
+    }
 
     return (
         <div style={{ width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
                 <div style={{ width: '50%', display: 'flex', justifyContent: 'center' }}>
-                    <div style={{ position: 'relative' }} onMouseEnter={() => {
-                        if (IdUser == getStorageUser().usuarioId) {
-
-                            document.querySelector('.edit-icon-button').style.display = 'block';
-                        }
-                    }}
+                    <div
+                        style={{ position: 'relative' }}
+                        onMouseEnter={() => {
+                            if (IdUser === getStorageUser().usuarioId) {
+                                const editButton = document.querySelector('.edit-icon-button');
+                                if (editButton) editButton.style.display = 'block';
+                            }
+                        }}
                         onMouseLeave={() => {
-                            document.querySelector('.edit-icon-button').style.display = 'none';
-                        }} >
+                            const editButton = document.querySelector('.edit-icon-button');
+                            if (editButton) editButton.style.display = 'none';
+                        }}
+                    >
                         <Avatar
                             sx={{
                                 width: 100,
@@ -142,7 +175,7 @@ export const Perfiles = () => {
                             }}
                             src={userImage}
                         >
-                            H
+                            {username?.substring(0, 1).toUpperCase()}
                         </Avatar>
                         <IconButton
                             className="edit-icon-button"
@@ -188,57 +221,68 @@ export const Perfiles = () => {
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={value} index={0}>
-                    {(getStorageUser().username).toLowerCase() === username.toLowerCase() ? <PerfilOwner setCantidadFavoritos={setCantidadFavoritos} setCantidadReceta={setCantidadReceta} /> : <PerfilOther userName={username} />}
+                    {
+                        (cantidadReceta !== null && cantidadReceta !== undefined) ?
+                            (getStorageUser().username.toLowerCase() === username.toLowerCase())
+                                ? <PerfilOwner setCantidadFavoritos={setCantidadFavoritos} setCantidadReceta={setCantidadReceta} cantidadReceta={cantidadReceta} />
+                                : <PerfilOther userName={username} cantidadReceta={cantidadReceta} />
+                            : null
+                    }
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={1}>
-                    <Favourites userName={username} setCantidadFavoritos={setCantidadFavoritos} />
+                    {
+                        (cantidadFavoritos !== null && cantidadFavoritos !== undefined) ?
+                            (getStorageUser().username.toLowerCase() === username.toLowerCase())
+                                ? <Favourites userName={username} setCantidadFavoritos={setCantidadFavoritos} cantidadFavoritos={cantidadFavoritos} />
+                                : <FavouritesOther userName={username} setCantidadFavoritos={setCantidadFavoritos} cantidadFavoritos={cantidadFavoritos} />
+                            : null
+                    }
                 </CustomTabPanel>
             </Box>
             {
-                openEditProfilePic
-                    ?
-                    <Modal
-                        open={openEditProfilePic}
-                        closeAfterTransition
-                        BackdropProps={{
-                            timeout: 500,
-                        }}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}>
+                openEditProfilePic &&
+                <Modal
+                    open={openEditProfilePic}
+                    closeAfterTransition
+                    BackdropProps={{
+                        timeout: 500,
+                    }}
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
 
-                        <Box
-                            sx={{
-                                width: { xs: '60vw', md: '60vw', lg: '60vw' },
-                                height: { xs: '85vh', md: '85vh', lg: '85vh' },
-                                bgcolor: 'background.paper',
-                                border: '2px solid #000',
-                                boxShadow: 24,
-                                p: 4,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}>
-                            <IconButton
-                                onClick={handleClose}
-                                sx={{ position: 'absolute', top: 8, right: 8 }}
-                            >
-                                <CloseIcon />
-                            </IconButton>
-                            <div>
-                                <form onSubmit={handleSubmit}>
-                                    <input type="file" onChange={handleImageChange} />
-                                    <button type="submit">Subir Imagen</button>
-                                </form>
-                            </div>
-                        </Box>
-                    </Modal>
-                    : <></>
+                    <Box
+                        sx={{
+                            width: { xs: '60vw', md: '60vw', lg: '60vw' },
+                            height: { xs: '85vh', md: '85vh', lg: '85vh' },
+                            bgcolor: 'background.paper',
+                            border: '2px solid #000',
+                            boxShadow: 24,
+                            p: 4,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                        <IconButton
+                            onClick={handleClose}
+                            sx={{ position: 'absolute', top: 8, right: 8 }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                        <div>
+                            <form onSubmit={handleSubmit}>
+                                <input type="file" onChange={handleImageChange} />
+                                <button type="submit">Subir Imagen</button>
+                            </form>
+                        </div>
+                    </Box>
+                </Modal>
             }
         </div>
     )

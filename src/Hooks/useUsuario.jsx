@@ -67,11 +67,13 @@ export const useUsuario = () => {
         }
     }
 
-    const ObtenerFavourites = async ({ idUser }) => {
+    const ObtenerFavourites = async ({ data }) => {
         try {
-            const result = await getFavourites(idUser);
-            console.log("mi result favoritos", result?.data);
-            setFavourites(result?.data[0])
+            console.log("log mi data", data);
+
+            const result = await getFavourites(data);
+            console.log("mi result favoritos", result?.Favourites);
+            setFavourites(result?.Favourites)
             return result;
 
         } catch (error) {
@@ -94,7 +96,7 @@ export const useUsuario = () => {
     const ObtenerIdFavourites = async ({ idUser }) => {
         try {
             const result = await getIdFavourites(idUser);
-            console.log("mi result favoritos", result?.favourites);
+            console.log("mi result favoritos obtener id", result?.favourites);
             setIdFavourites(result?.favourites)
             return result;
 

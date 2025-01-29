@@ -13,6 +13,7 @@ import SessionGuard from './components/SessionGuard/SessionGuard';
 import { Favourites } from './components/Menu/Seccion/MyFavourites';
 import { ShoppingList } from './components/Menu/ShoppingList';
 import { ImageContent } from './components/Menu/Seccion/EmailContent'
+import { DescoveryRecipe } from './components/Menu/Seccion/DescoveryRecipe';
 
 function App() {
 
@@ -45,8 +46,7 @@ function App() {
             </>} /> */}
             <Route path="profile/:username" element={<Perfiles />} />
             <Route path="discoveryChefs" element={<DescubrirChefs />} />
-            <Route path="testing1" element={<Testing1 />} />
-            <Route path="testing2" element={<Testing2 />} />
+            <Route path="discoveryRecipes" element={<DescoveryRecipe />} />
             <Route path="shoppingList" element={<ShoppingList />} />
             <Route path="p/:idReceta" element={<FullPageReceta />} />
           </Route>
