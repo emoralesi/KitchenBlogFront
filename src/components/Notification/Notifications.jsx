@@ -1,37 +1,31 @@
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { Badge, IconButton, List, ListItem, Popover } from '@mui/material';
+import { Badge, IconButton, List, ListItem, Popover, Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useNotification } from '../../Hooks/useNotification';
 import { PopUpNotification } from '../../utils/PopUpNotificaiton';
 import { NotificationList } from './NotificationList';
 
 const NotificationBell = () => {
-
     const [anchorEl, setAnchorEl] = useState(null);
-    const { notifications, ObtenerNotificaciones } = useNotification();
+    const { notifications, totalNoti, totalUnread, setTotalUnread, ObtenerNotificaciones, LeerNotificaciones } = useNotification();
+    const [limit, setLimit] = useState(10);
     const [cantidadNotificaciones, setCantidadNotificaciones] = useState(0);
+    const page = 1;
 
     useEffect(() => {
         var userId = null;
         if (localStorage.getItem('UserLogged')) {
-            console.log(JSON.parse(localStorage.getItem('UserLogged')));
-            console.log(JSON.parse(localStorage.getItem('UserLogged')).usuarioId);
             userId = JSON.parse(localStorage.getItem('UserLogged')).usuarioId;
         }
 
-        ObtenerNotificaciones({ idUser: userId })
+        ObtenerNotificaciones({ idUser: userId, page: page, limit });
 
-        // Establecer conexión SSE
         const eventSource = new EventSource(`${import.meta.env.VITE_APP_API_URL}/events/${userId}`);
-
-        // Manejar eventos recibidos
         eventSource.onmessage = (event) => {
             const newNotification = JSON.parse(event.data);
-            console.log("mi notificacion desde el server", newNotification);
-            //setNotifications(prevNotifications => [...prevNotifications, newNotification]);
-            setCantidadNotificaciones(prevCount => prevCount + 1);
-            PopUpNotification({ params: newNotification, userId: userId })
-            ObtenerNotificaciones({ idUser: userId })
+            // setCantidadNotificaciones(prevCount => prevCount + 1);
+            PopUpNotification({ params: newNotification, userId });
+            ObtenerNotificaciones({ idUser: userId, page: 1, limit });
         };
 
         return () => {
@@ -44,7 +38,25 @@ const NotificationBell = () => {
     };
 
     const handleClose = () => {
+
+        const IdNotifications = notifications.filter((value) => (
+            value.readed === false
+        )).map((value) => (
+            value._id
+        ))
+        LeerNotificaciones(IdNotifications);
         setAnchorEl(null);
+
+        const userId = localStorage.getItem('UserLogged')
+            ? JSON.parse(localStorage.getItem('UserLogged')).usuarioId
+            : null;
+        setLimit(10)
+        ObtenerNotificaciones({ idUser: userId, page: page, limit: 10 });
+    };
+
+    const loadMore = () => {
+        setLimit(prevLimit => prevLimit + 5);
+        ObtenerNotificaciones({ idUser: JSON.parse(localStorage.getItem('UserLogged')).usuarioId, page: 1, limit: limit + 5 });
     };
 
     const open = Boolean(anchorEl);
@@ -53,7 +65,7 @@ const NotificationBell = () => {
     return (
         <div style={{ marginRight: '20px' }}>
             <IconButton onClick={handleClick} color="inherit">
-                <Badge badgeContent={notifications.length} color="error">
+                <Badge badgeContent={totalUnread} color="error">
                     <NotificationsIcon />
                 </Badge>
             </IconButton>
@@ -72,13 +84,17 @@ const NotificationBell = () => {
                 }}
             >
                 <List sx={{ width: { xs: '90vw', md: '60vw', lg: '40vw' }, height: { xs: '70vh', md: '85vh', lg: '85vh' }, overflow: 'auto' }}>
-                    {console.log("mis notificacioness", notifications)}
                     {notifications.map((notification, index) => (
                         <ListItem key={index}>
                             <NotificationList params={notification} />
                         </ListItem>
                     ))}
                 </List>
+                {notifications.length < totalNoti && (
+                    <Button onClick={loadMore} fullWidth variant="contained" color="primary">
+                        See More
+                    </Button>
+                )}
             </Popover>
         </div>
     );

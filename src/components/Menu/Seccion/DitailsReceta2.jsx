@@ -28,64 +28,6 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
 
     const handleClose = () => { setOpen(false); isFromProfile ? window.history.replaceState('', '', `/main/profile/${idUser}`) : window.history.replaceState('', '', `/main/${origen}`) };
 
-    const handleShowMoreComments = () => {
-        setVisibleComments((prev) => prev + 3);
-    };
-
-    const handleShowMoreAnswers = (index) => {
-        setVisibleAnswers((prev) => ({
-            ...prev,
-            [index]: (prev[index] || 3) + 3,
-        }));
-    };
-
-    const handleResponseContentChange = (index, value) => {
-        setResponseContent((prev) => ({
-            ...prev,
-            [index]: value,
-        }));
-    };
-
-    const handleReaction = async (id, estado, type, parentComment) => {
-        console.log("mi tipo", type);
-        await SaveUpdateCommentReaction({ body: { idComment: id, idUser: getStorageUser().usuarioId, estado: estado, type: type, parentComment: parentComment, idReceta: idReceta } });
-
-        setReactions((prevReactions) => ({
-            ...prevReactions,
-            [id]: {
-                ...prevReactions[id],
-                estado: estado,
-                count: estado ? prevReactions[id].count + 1 : prevReactions[id].count - 1
-            },
-        }));
-    };
-
-    const handleSendResponse = async (index, commentId, parentComment, type) => {
-        console.log("mi comentario y/o respuesta", responseContent[index]);
-
-        const id = await guardarComment({
-            comentario: {
-                content: responseContent[index],
-                user: getStorageUser().usuarioId,
-                parentComment: parentComment,
-                receta: idReceta,
-                type: type
-            }
-        });
-        setReactions((prevReactions) => ({
-            ...prevReactions,
-            [id]: {
-                ...prevReactions[id],
-                estado: false,
-                count: 0
-            },
-        }));
-        await getDetailsReceta({ recetaId: idReceta });
-        setResponseContent((prev) => ({
-            ...prev,
-            [index]: '',
-        }));
-    };
 
     useEffect(() => {
         const fetchDetailsReceta = async () => {
@@ -182,9 +124,9 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
                 detailsReceta == null
                     ? <h1>Lo sentimos, no pudimos encontrar la Receta</h1>
                     : <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'column', height: '100%', width: '100%', overflow: 'auto' }}>
-                        <RecipeFirstPart data={detailsReceta} />
+                        <RecipeFirstPart detailsReceta={detailsReceta} />
                         {/* <RecipeSecondPart data={detailsReceta} /> */}
-                        <RecipeThirdPart data={detailsReceta} />
+                        <RecipeThirdPart detailsReceta={detailsReceta} reactions={reactions} setReactions={setReactions} recetaReactions={recetaReactions} setRecetaReactions={setRecetaReactions} idReceta={idReceta} />
                     </Box >
             }
         </Box >;

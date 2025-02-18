@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { getNotifications } from "../services/NotificationService";
+import { getNotifications, updateNotifications } from "../services/NotificationService";
 
-export const useNotification = () => {
+export const useNotification = (page, limit) => {
 
     const [notifications, setNotifications] = useState([]);
-    
-    const ObtenerNotificaciones = async ({ idUser }) => {
+    const [totalNoti, setTotalNoti] = useState(0);
+    const [totalUnread, setTotalUnread] = useState(0);
+
+    const ObtenerNotificaciones = async ({ idUser, page, limit }) => {
 
         try {
-            const result = await getNotifications(idUser);
+            const result = await getNotifications(idUser, page, limit);
             setNotifications(result.notifications)
+            setTotalNoti(result.total)
+            setTotalUnread(result.totalUnread)
 
         } catch (error) {
             console.log(error);
@@ -18,5 +22,16 @@ export const useNotification = () => {
 
     }
 
-    return { notifications, ObtenerNotificaciones }
+    const LeerNotificaciones = async (idNotificaciones) => {
+        try {
+            const result = await updateNotifications(idNotificaciones);
+
+            console.log("mi result readed", result);
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    return { notifications, totalNoti, totalUnread, setTotalUnread, ObtenerNotificaciones, LeerNotificaciones }
 }

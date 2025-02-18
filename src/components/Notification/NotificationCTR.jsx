@@ -4,7 +4,7 @@ import MessageIcon from '@mui/icons-material/Message';
 export const NotificationCTR = ({ params }) => {
     console.log("mis params CTR", params);
     return (
-        <Box sx={{ width: '100%', backgroundColor: 'gray' }}>
+        <Box sx={{ width: '100%'}}>
             <div style={{ display: 'flex' }}>
                 <div style={{ width: '15%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <MessageIcon fontSize="large" />

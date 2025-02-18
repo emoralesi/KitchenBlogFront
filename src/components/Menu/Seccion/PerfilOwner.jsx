@@ -13,7 +13,7 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Fab, IconButton, Modal, SvgIcon, Typography, Zoom } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Fab, Grid, IconButton, Modal, Skeleton, SvgIcon, Typography, Zoom } from "@mui/material";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import debounce from 'just-debounce-it';
@@ -28,6 +28,7 @@ import { DetailsReceta } from './DitailsReceta2';
 import { RecetaForm } from "./RecetaForm";
 import { UpdateRecetaForm } from './UpdateRecetaForm';
 import IconSvg from '../../../utils/IconSvg';
+import { SkeletonWave } from '../../../utils/Skeleton';
 
 export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadReceta }) => {
 
@@ -74,6 +75,9 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
   const [favouriteInfo, setFavouriteInfo] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(15);
+
+  const [loading, setLoading] = useState(true);
+
   const externalRef = useRef()
   const { isNearScreen } = useNearScreen({
     externalRef: cantidadReceta == 0 ? null : externalRef,
@@ -118,29 +122,48 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
   ), [misRecetas])
 
   useEffect(function () {
-    if (isNearScreen) { debounceHandleNextPage() }
+    console.log("is near", isNearScreen);
+    console.log("is loading", loading);
+
+    if (isNearScreen && !loading) { debounceHandleNextPage() }
     console.log(isNearScreen);
 
   }, [isNearScreen])
 
   useEffect(() => {
-    getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
-      setReactionInfo(res.Recetas?.map(recipe => {
-        return {
-          idReceta: recipe._id,
-          usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-        };
-      }))
+    const simulateDelay = (promise) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(promise);
+        }, 1000); // Delay of 5 seconds
+      });
+    };
 
-      setFavouriteInfo(res.Recetas?.map(recipe => {
-        return {
-          idReceta: recipe._id,
-          usuarios_id_favourite: recipe.favourite
-        }
-      }))
-    })
-    ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
-  }, [])
+    simulateDelay(getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }))
+      .then((res) => {
+        setReactionInfo(res.Recetas?.map((recipe) => {
+          return {
+            idReceta: recipe._id,
+            usuarios_id_reaction: recipe.reactions.map((reaction) => reaction.user_id),
+          };
+        }));
+
+        setFavouriteInfo(res.Recetas?.map((recipe) => {
+          return {
+            idReceta: recipe._id,
+            usuarios_id_favourite: recipe.favourite,
+          };
+        }));
+        console.log("seteo el loading como false");
+
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+
+    ObtenerIdFavourites({ idUser: getStorageUser().usuarioId });
+  }, []);
 
   const handleBookmarkClick = async (id, action) => {
 
@@ -170,14 +193,16 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
         <AddIcon />
       </Fab>
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: '15px' }}>
-        {misRecetas?.sort((a, b) => {
-          if (a.pined !== b.pined) {
-            return b.pined - a.pined;
-          }
-          return new Date(b.fechaReceta) - new Date(a.fechaReceta);
-        })
-          .map((card, index) => (
-            <Zoom key={card._id} in={true} timeout={300 + (index * 10)}>
+        {loading ? (
+          <SkeletonWave />
+        ) : (
+          misRecetas?.sort((a, b) => {
+            if (a.pined !== b.pined) {
+              return b.pined - a.pined;
+            }
+            return new Date(b.fechaReceta) - new Date(a.fechaReceta);
+          }).map((card, index) => (
+            <Zoom key={card._id} in={true} timeout={300 + (index * 20)}>
               <Box
                 sx={{
                   p: 0,
@@ -299,7 +324,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
                         >
                           {idFavourites?.includes(card._id) ? <BookmarkIcon fontSize='large' sx={{ color: 'yellow' }} /> : <BookmarkBorderIcon fontSize='large' />}
                         </IconButton>
-                        <p>{favouriteInfo?.find(value => value.idReceta === card._id).usuarios_id_favourite.length}</p>
+                        <p>{favouriteInfo?.find(value => value.idReceta === card._id).usuarios_id_favourite?.length}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
@@ -507,7 +532,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
                     flexDirection: 'column',
                     justifyContent: 'center'
                   }}>
-                    <ul style={{ height: '100%', padding: '0px 0px 0px 10px', margin: 0, display: 'flex', flexDirection: 'column' }}>
+                    <ul style={{ height: '100%', padding: '0px 10px 0px 10px', margin: 0, display: 'flex', flexDirection: 'column' }}>
                       <h3>{card?.titulo}</h3>
                       <div style={{ display: 'flex', alignItems: 'center', height: '15px' }}>
                         <AccessTimeIcon />
@@ -528,7 +553,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', width: '100%'}}>
+                      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -563,7 +588,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
               </Box>
             </Zoom>
           ))
-        }
+        )}
         {
           misRecetas?.length == 0 ? <h4>Not Recetas Founded</h4> : misRecetas.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
         }

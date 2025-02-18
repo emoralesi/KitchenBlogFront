@@ -339,7 +339,7 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                                     flexDirection: 'column',
                                     justifyContent: 'center'
                                 }}>
-                                    <ul style={{ height: '100%', padding: '0px 0px 0px 10px', margin: 0, display: 'flex', flexDirection: 'column' }}>
+                                    <ul style={{ height: '100%', padding: '0px 10px 0px 10px', margin: 0, display: 'flex', flexDirection: 'column' }}>
                                         <h3>{card?.titulo}</h3>
                                         <div style={{ display: 'flex', alignItems: 'center', height: '15px' }}>
                                             <AccessTimeIcon />

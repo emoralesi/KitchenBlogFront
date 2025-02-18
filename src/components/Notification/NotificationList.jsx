@@ -24,7 +24,12 @@ export const NotificationList = ({ params }) => {
             componente = null; // O algún componente por defecto o mensaje de error
     }
 
-    return (<div style={{ width: '100%' }}>
+    return (<div style={{
+        width: '100%',
+        backgroundColor: params.readed === true ? '#f5f5f5' : '#0707937d',
+        boxShadow: params.readed === true ? 'unset': '0px 10px 10px -3px rgba(0, 0, 0, 0.5)',
+        border : params.readed === true ? 'unset' : 'solid 1px #00000052'
+    }}>
         {componente}
     </div>);
 }

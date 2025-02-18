@@ -11,7 +11,7 @@ import { FullPageReceta } from './components/Menu/Seccion/FullPageReceta';
 import { Perfiles } from './components/Menu/Seccion/Perfiles';
 import SessionGuard from './components/SessionGuard/SessionGuard';
 import { Favourites } from './components/Menu/Seccion/MyFavourites';
-import { ShoppingList } from './components/Menu/ShoppingList';
+import { ShoppingList2 } from './components/Menu/ShoppingList2'
 import { ImageContent } from './components/Menu/Seccion/EmailContent'
 import { DescoveryRecipe } from './components/Menu/Seccion/DescoveryRecipe';
 
@@ -47,7 +47,7 @@ function App() {
             <Route path="profile/:username" element={<Perfiles />} />
             <Route path="discoveryChefs" element={<DescubrirChefs />} />
             <Route path="discoveryRecipes" element={<DescoveryRecipe />} />
-            <Route path="shoppingList" element={<ShoppingList />} />
+            <Route path="shoppingList" element={<ShoppingList2 />} />
             <Route path="p/:idReceta" element={<FullPageReceta />} />
           </Route>
           <Route

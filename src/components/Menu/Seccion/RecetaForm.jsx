@@ -463,8 +463,10 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
                                         )}
                                     </Box>
                                 ))}
-                                <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
-                                <Button type="submit" variant="contained" color="success">Save Recipe</Button>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
+                                    <Button type="submit" variant="contained" color="success" sx={{marginRight:'20px'}}>Save Recipe</Button>
+                                </div>
                             </form>
                         </div>
                     </div>

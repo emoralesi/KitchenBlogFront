@@ -5,7 +5,7 @@ import { getStorageUser } from "../../utils/StorageUser";
 export const NotificationCTA = ({ params }) => {
     console.log("mis params", params);
     return (
-        <Box sx={{ width: '100%', backgroundColor: 'gray' }}>
+        <Box sx={{ width: '100%' }}>
             {
                 console.log(params)
             }
