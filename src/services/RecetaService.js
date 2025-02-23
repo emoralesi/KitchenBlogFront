@@ -44,15 +44,20 @@ export async function updateReceta({ receta }) {
 
     try {
 
+        const formData = new FormData();
+
+        receta.imagesRecipe.forEach(image => {
+            formData.append('recipeImages', image);
+        });
+
+        formData.append('receta', JSON.stringify(receta));
+
         const requestOptions = {
             method: 'POST',
             headers: {
-                "Content-Type": "application/json",
                 "Authorization": `Bearer ${getStorageUser().token}`
-                // 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify(receta)
-
+            body: formData
         };
 
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/updateReceta`, requestOptions).then((res) => {

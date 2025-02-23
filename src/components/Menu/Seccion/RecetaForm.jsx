@@ -1,13 +1,15 @@
-import { Box, Button, Modal, Slide, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { Box, Button, FormControl, IconButton, ImageList, ImageListItem, InputLabel, MenuItem, Modal, Select, Slide, styled, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useReceta } from '../../../Hooks/useReceta';
-import { getStorageUser } from '../../../utils/StorageUser';
 import { useCategoria } from '../../../Hooks/useCategoria';
-import { useSubCategoria } from '../../../Hooks/useSubCategoria';
-import { useIngrediente } from '../../../Hooks/useIngrediente';
 import { useDificultad } from '../../../Hooks/useDificultad';
+import { useIngrediente } from '../../../Hooks/useIngrediente';
 import { useMedida } from '../../../Hooks/useMedida';
+import { useReceta } from '../../../Hooks/useReceta';
+import { useSubCategoria } from '../../../Hooks/useSubCategoria';
 import { useUtencilios } from '../../../Hooks/useUtencilios';
+import { getStorageUser } from '../../../utils/StorageUser';
 
 export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta, setReactionInfo, setFavouriteInfo, page, limit }) => {
     const [title, setTitle] = useState('');
@@ -23,6 +25,7 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
     const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: '' }]);
     const [imagesRecipe, setImagesRecipe] = useState([]);
     const [imagesSteps, setImagesSteps] = useState([]);
+    const [imageUrl, setImageUrl] = useState([]);
 
 
     const handleClose = () => setOpen(false);
@@ -34,6 +37,18 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
     const { ObtenerDificultad, dificultadesAll } = useDificultad();
     const { ObtenerMedida, medidasAll } = useMedida();
     const { ObtenerUntencilios, utenciliosAll } = useUtencilios()
+
+    const VisuallyHiddenInput = styled('input')({
+        clip: 'rect(0 0 0 0)',
+        clipPath: 'inset(50%)',
+        height: 1,
+        overflow: 'hidden',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        whiteSpace: 'nowrap',
+        width: 1,
+    });
 
     useEffect(() => {
 
@@ -50,7 +65,17 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
             setSubCategoria(savedFormData.subCategoria || []);
             setGrupoIngrediente(savedFormData.grupoIngrediente || [{ nombreGrupo: '', items: [{ id: 1, valor: 0, idIngrediente: '', idMedida: '' }] }]);
             setPasos(savedFormData.pasos || [{ pasoNumero: 1, descripcion: '' }]);
-            setImagesRecipe(savedFormData.imagesRecipe || []);
+            if (savedFormData.imagesRecipe) {
+                setImagesRecipe(savedFormData.imagesRecipe);
+                setImageUrl((prevUrls) => {
+                    const newUrls = savedFormData.imagesRecipe.map((file) => URL.createObjectURL(file));
+                    return [...prevUrls, ...newUrls];
+                });
+            } else {
+                setImagesRecipe([])
+                setImageUrl([])
+            }
+
             setImagesSteps(savedFormData.imagesSteps || []);
         }
 
@@ -85,13 +110,20 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
     const handleImageChange = (e) => {
         const selectedFiles = Array.from(e.target.files);
 
-        // Limitar el número de imágenes seleccionadas a un máximo de 3
         if (selectedFiles.length > 3) {
             alert("Puedes subir un máximo de 3 imágenes");
-            return;
+            return prevImages;
         }
 
-        setImagesRecipe(selectedFiles);
+        setImagesRecipe((prevImages) => {
+            const newImages = [...prevImages, ...selectedFiles];
+            return newImages;
+        });
+
+        setImageUrl((prevUrls) => {
+            const newUrls = selectedFiles.map((file) => URL.createObjectURL(file));
+            return [...prevUrls, ...newUrls];
+        });
     };
 
     const handleAddGrupoIngrediente = () => {
@@ -144,6 +176,11 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
         } else {
             setSubCategoria([...subCategoria, categoryId]);
         }
+    };
+
+    const handleDeleteImage = (index) => {
+        setImagesRecipe((prevImages) => prevImages.filter((_, i) => i !== index));
+        setImageUrl((prevUrls) => prevUrls.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
@@ -237,13 +274,63 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
                             X
                         </Button>
                         <div style={{ overflow: 'auto', width: '100%', height: '100%' }}>
+                            {
+                                console.log("asi quedo mi imagenRecipe", imagesRecipe)
+
+                            }
+                            {
+                                console.log("asi quedo mi imagenUrl", imageUrl)
+
+                            }
                             <form onSubmit={handleSubmit}>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={handleImageChange}
-                                />
+                                <Button
+                                    component="label"
+                                    role={undefined}
+                                    variant="contained"
+                                    tabIndex={-1}
+                                    startIcon={<CloudUploadIcon />}
+                                >
+                                    Upload files
+                                    <VisuallyHiddenInput
+                                        type="file"
+                                        onChange={handleImageChange}
+                                        multiple
+                                    />
+                                </Button>
+                                <ImageList sx={{ width: '100%', height: 'auto', alignItems: 'center' }} cols={imageUrl.length} gap={8}>
+                                    {imageUrl.map((image, index) => (
+                                        <ImageListItem key={index} sx={{ justifyItems: 'center', width: '100%', alignItems: 'center' }}>
+                                            <div style={{ position: 'relative', height: '220px' }}>
+                                                <img
+                                                    src={image}// Usa image.url para mostrar la previsualización
+                                                    alt={`Image ${index}`}
+                                                    loading="lazy"
+                                                    style={{
+                                                        width: '200px',
+                                                        height: '200px',
+                                                        objectFit: 'cover',
+                                                        position: 'relative'
+                                                    }}
+                                                />
+                                                <IconButton
+                                                    onClick={() => handleDeleteImage(index)}
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 8,
+                                                        right: 8,
+                                                        color: 'white',
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                        '&:hover': {
+                                                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                                        },
+                                                    }}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </div>
+                                        </ImageListItem>
+                                    ))}
+                                </ImageList>
                                 <TextField
                                     label="Title"
                                     value={title}
@@ -465,7 +552,7 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
                                 ))}
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
-                                    <Button type="submit" variant="contained" color="success" sx={{marginRight:'20px'}}>Save Recipe</Button>
+                                    <Button type="submit" variant="contained" color="success" sx={{ marginRight: '20px' }}>Save Recipe</Button>
                                 </div>
                             </form>
                         </div>

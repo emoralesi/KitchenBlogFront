@@ -1,13 +1,15 @@
-import { Box, Button, Modal, Slide, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { Box, Button, FormControl, IconButton, ImageList, ImageListItem, InputLabel, MenuItem, Modal, Select, Slide, styled, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useReceta } from '../../../Hooks/useReceta';
-import { getStorageUser } from '../../../utils/StorageUser';
 import { useCategoria } from '../../../Hooks/useCategoria';
-import { useSubCategoria } from '../../../Hooks/useSubCategoria';
-import { useIngrediente } from '../../../Hooks/useIngrediente';
 import { useDificultad } from '../../../Hooks/useDificultad';
+import { useIngrediente } from '../../../Hooks/useIngrediente';
 import { useMedida } from '../../../Hooks/useMedida';
+import { useReceta } from '../../../Hooks/useReceta';
+import { useSubCategoria } from '../../../Hooks/useSubCategoria';
 import { useUtencilios } from '../../../Hooks/useUtencilios';
+import { getStorageUser } from '../../../utils/StorageUser';
 
 export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, page, limit, setReactionInfo, setFavouriteInfo }) => {
     const [title, setTitle] = useState('');
@@ -19,6 +21,8 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
     const [categoria, setCategoria] = useState('');
     const [utencilio, setUtencilio] = useState([]);
     const [subCategoria, setSubCategoria] = useState([]);
+    const [imageUrl, setImageUrl] = useState([]);
+    const [imagesRecipe, setImagesRecipe] = useState([]);
     const [grupoIngrediente, setGrupoIngrediente] = useState([{ nombreGrupo: '', items: [{ valor: 0, idIngrediente: '', idMedida: '' }] }]);
     const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: '', images: [] }]);
 
@@ -31,6 +35,19 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
     const { ObtenerDificultad, dificultadesAll } = useDificultad();
     const { ObtenerMedida, medidasAll } = useMedida();
     const { ObtenerUntencilios, utenciliosAll } = useUtencilios()
+
+
+    const VisuallyHiddenInput = styled('input')({
+        clip: 'rect(0 0 0 0)',
+        clipPath: 'inset(50%)',
+        height: 1,
+        overflow: 'hidden',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        whiteSpace: 'nowrap',
+        width: 1,
+    });
 
     const convertirDatos = (data) => {
         return data.grupoIngrediente.map(grupo => ({
@@ -45,6 +62,11 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
         }));
     };
 
+    const handleDeleteImage = (index) => {
+        setImagesRecipe((prevImages) => prevImages.filter((_, i) => i !== index));
+        setImageUrl((prevUrls) => prevUrls.filter((_, i) => i !== index));
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             await ObtenerCategoria();
@@ -57,7 +79,7 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
             const data = await getDetailsReceta({ recetaId });
             const datosConvertidos = convertirDatos(data);
 
-            console.log("Datos convertidos", datosConvertidos);
+            // console.log("Datos convertidos", datosConvertidos);
             setGrupoIngrediente(datosConvertidos); // Usar siempre la versión convertida
 
             setTitle(data.titulo);
@@ -68,6 +90,8 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
             setDificultad(data.dificultad);
             setCategoria(data.categoria);
             setUtencilio(data.utencilio);
+            setImagesRecipe(data.images);
+            setImageUrl(data.images)
             setSubCategoria(data.subCategoria);
             setPasos(data.pasos);
         };
@@ -92,6 +116,38 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
         const newGroups = [...grupoIngrediente];
         newGroups[groupIndex].items.push({ valor: 0, idIngrediente: '', idMedida: '' });
         setGrupoIngrediente(newGroups);
+    };
+
+    function startsWithCloudinary(url) {
+        return url.startsWith("http://res.cloudinary.com");
+    }
+
+    const transformCloudinaryUrl = (url, width, height) => {
+        if (startsWithCloudinary(url)) {
+            return url.replace("/upload/", `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`);
+        } else {
+            return url
+        }
+
+    };
+
+    const handleImageChange = (e) => {
+        const selectedFiles = Array.from(e.target.files);
+
+        if (selectedFiles.length > 3) {
+            alert("Puedes subir un máximo de 3 imágenes");
+            return prevImages;
+        }
+
+        setImagesRecipe((prevImages) => {
+            const newImages = [...prevImages, ...selectedFiles];
+            return newImages;
+        });
+
+        setImageUrl((prevUrls) => {
+            const newUrls = selectedFiles.map((file) => URL.createObjectURL(file));
+            return [...prevUrls, ...newUrls];
+        });
     };
 
     const handleDeleteItem = (groupIndex, itemIndex) => {
@@ -137,6 +193,7 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
             utencilio,
             subCategoria,
             pasos,
+            imagesRecipe,
             user: getStorageUser().usuarioId
         };
         console.log("mi data", data);
@@ -158,6 +215,7 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
             }))
         })
         handleClose();
+
     };
 
     return (
@@ -189,7 +247,7 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
                     }}
                 >
                     {
-                        console.log("item o items", grupoIngrediente)
+                        // console.log("item o items", grupoIngrediente)
                     }
                     <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', width: '100%', height: '100%' }}>
                         <Button onClick={handleClose} size='small' sx={{ alignSelf: 'flex-end', height: '30px' }}>
@@ -197,6 +255,60 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
                         </Button>
                         <div style={{ overflow: 'auto', width: '100%', height: '100%' }}>
                             <form onSubmit={handleSubmit}>
+
+                                <Button
+                                    component="label"
+                                    role={undefined}
+                                    variant="contained"
+                                    tabIndex={-1}
+                                    startIcon={<CloudUploadIcon />}
+                                >
+                                    Upload files
+                                    <VisuallyHiddenInput
+                                        type="file"
+                                        onChange={handleImageChange}
+                                        multiple
+                                    />
+                                </Button>
+                                <ImageList
+                                    sx={{ width: '100%', height: 'auto', alignItems: 'center' }}
+                                    cols={imageUrl.length}
+                                    gap={8}
+                                >
+                                    {imageUrl.map((image, index) => (
+                                        <ImageListItem key={index} sx={{ justifyItems: 'center', width: '100%', alignItems: 'center' }}>
+                                            <div style={{ position: 'relative', height: '220px' }}>
+                                                <img
+                                                    src={transformCloudinaryUrl(image, 300, 200)}
+                                                    alt={`Image ${index}`}
+                                                    loading="lazy"
+                                                    style={{
+                                                        width: '200px',
+                                                        height: '200px',
+                                                        objectFit: 'cover',
+                                                        position: 'relative'
+                                                    }}
+                                                />
+                                                <IconButton
+                                                    onClick={() => handleDeleteImage(index)} // Add your delete logic here
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 8,
+                                                        right: 8,
+                                                        color: 'white', // Or any color you prefer
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional background
+                                                        '&:hover': {
+                                                            backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker on hover
+                                                        },
+                                                    }}
+                                                >
+                                                    <DeleteIcon />  {/* Added DeleteIcon */}
+                                                </IconButton>
+                                            </div>
+                                        </ImageListItem>
+                                    ))}
+                                </ImageList>
+
                                 <TextField
                                     label="Title"
                                     value={title}
@@ -312,12 +424,6 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
                                             fullWidth
                                             margin="normal"
                                         />
-                                        {
-                                            console.log("me deberia llenar", group)
-                                        }
-                                        {
-                                            //me esta trayendo group.item cuando me deberia traer group.items
-                                        }
                                         {group.items?.map((item, itemIndex) => (
                                             <Box key={item.id} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                                                 <TextField
