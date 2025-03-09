@@ -12,7 +12,7 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import SearchIcon from '@mui/icons-material/Search';
-import { Accordion, AccordionDetails, AccordionSummary, Avatar, Box, Button, Fab, FormControl, IconButton, InputLabel, MenuItem, Modal, Select, TextField, Typography, Zoom } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Avatar, Box, Button, Fab, FormControl, Grid, IconButton, InputLabel, MenuItem, Modal, Select, TextField, Typography, Zoom } from "@mui/material";
 import debounce from 'just-debounce-it';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,7 @@ import IconSvg from '../../../utils/IconSvg';
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from './DitailsReceta';
 import { SkeletonWave } from '../../../utils/Skeleton';
+import { simulateDelay } from '../../../utils/Delay';
 
 export const DescoveryRecipe = () => {
 
@@ -50,10 +51,31 @@ export const DescoveryRecipe = () => {
     const [subCategoria, setSubCategoria] = useState([]);
     const [ingredientes, setIngredientes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchState, setSearchState] = useState(false);
 
     const { ObtenerCategoria, categoriasAll } = useCategoria();
     const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
     const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+
+    const GetAllRecipes = async () => {
+        setLoading(true);
+        simulateDelay(ObtenerRecetasInfo({ data: { page, limit } })).then((res) => {
+            setReactionInfo(res.Recetas?.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                };
+            }))
+            setFavouriteInfo(res.Recetas?.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_favourite: recipe.favourite
+                }
+            }))
+        }).finally(() => {
+            setLoading(false)
+        });
+    }
 
     const handleToggleSubCategoria = (categoryId) => {
         if (subCategoria.includes(categoryId)) {
@@ -107,36 +129,10 @@ export const DescoveryRecipe = () => {
 
     useEffect(() => {
 
-        const simulateDelay = (promise) => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(promise);
-                }, 1500); // Delay of 5 seconds
-            });
-        };
-
         const fetchData = async () => {
             try {
                 setIdUser(getStorageUser().usuarioId);
-                await simulateDelay(ObtenerRecetasInfo({ data: { page, limit } })).then((res) => {
-                    console.log("este es mi res", res);
-
-                    setReactionInfo(res.Recetas?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                        };
-                    }))
-
-                    setFavouriteInfo(res.Recetas?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_favourite: recipe.favourite
-                        }
-                    }))
-                }).finally(() => {
-                    setLoading(false)
-                });
+                await GetAllRecipes();
             } catch (error) {
                 console.error('Error fetching data', error);
             }
@@ -178,108 +174,163 @@ export const DescoveryRecipe = () => {
         console.log("clicked the clear icon...");
     };
 
+    const GetRecipeAction = () => {
+        setLoading(true);
+        simulateDelay(ObtenerRecetasInfo({ data: { page, limit, filter: { titulo: filterSearch, categoria: categoria !== "" ? categoria : null, subCategoria, ingredientes } } })).then((res) => {
+            setReactionInfo(res.Recetas?.map(recipe => ({
+                idReceta: recipe._id,
+                usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+            })));
+            setFavouriteInfo(res.Recetas?.map(recipe => ({
+                idReceta: recipe._id,
+                usuarios_id_favourite: recipe.favourite
+            })));
+        }).finally(() => {
+            setLoading(false)
+        });
+    }
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
             <Box sx={{ height: 'auto', width: '100%', marginBottom: '20px' }}>
                 <div id="app" style={{ width: '100%', height: '100%' }}>
-                    <FormControl sx={{ margin: 0 }}>
-                        <TextField
-                            size="small"
-                            variant="outlined"
-                            error={errorSearch}
-                            helperText={errorSearch ? "Type 3 words at least" : null}
-                            placeholder='Type at least 3 words...'
-                            onChange={handleChange}
-                            onKeyDown={debounce((ev) => {
-                                console.log(`Pressed keyCode ${ev.key}`);
-                                if (ev.key === 'Enter') {
-                                    console.log("mi length", textSearch.length);
-                                    if (textSearch.length == 0) {
-                                        if (errorSearch) {
-                                            setErrorSearch(false);
+                    <Grid container spacing={2} alignItems="center" sx={{ marginBottom: '20px', marginTop: '10px' }}>
+                        <Grid item xs={12} md={6}> {/* TextSearch ocupa todo en xs, y 6 en md */}
+                            <FormControl fullWidth>
+                                <TextField
+                                    size="small"
+                                    variant="outlined"
+                                    error={errorSearch}
+                                    helperText={errorSearch ? "Type 3 words at least" : null}
+                                    placeholder='Type at least 3 words...'
+                                    onChange={handleChange}
+                                    onKeyDown={debounce((ev) => {
+                                        console.log(`Pressed keyCode ${ev.key}`);
+                                        if (ev.key === 'Enter') {
+                                            console.log("mi length", textSearch.length);
+                                            if (textSearch.length >= 0 && textSearch.length < 3) {
+                                                setErrorSearch(true);
+                                                return;
+                                            } else {
+                                                if (errorSearch) {
+                                                    setErrorSearch(false);
+                                                }
+                                                setFilterSearch(textSearch);
+                                                console.log("mi textSearch", textSearch);
+
+                                                ObtenerRecetasInfo({ data: { page, limit, filter: { titulo: textSearch } } }).then((res) => {
+                                                    console.log("este es mi res", res);
+
+                                                    setReactionInfo(res.Recetas?.map(recipe => {
+                                                        return {
+                                                            idReceta: recipe._id,
+                                                            usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                                                        };
+                                                    }));
+
+                                                    setFavouriteInfo(res.Recetas?.map(recipe => {
+                                                        return {
+                                                            idReceta: recipe._id,
+                                                            usuarios_id_favourite: recipe.favourite
+                                                        };
+                                                    }));
+                                                });
+                                                setSearchState(true);
+                                                setLimit(15);
+                                                return;
+                                            }
                                         }
-                                        setFilterSearch(null);
-                                        setCategoria('');
-                                        setSubCategoria([]);
-                                        setIngredientes([]);
-                                        setLimit(15)
-                                        ObtenerRecetasInfo({ data: { page, limit } }).then((res) => {
-                                            setReactionInfo(res.Recetas?.map(recipe => {
-                                                return {
-                                                    idReceta: recipe._id,
-                                                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                                                };
-                                            }));
-
-                                            setFavouriteInfo(res.Recetas?.map(recipe => {
-                                                return {
-                                                    idReceta: recipe._id,
-                                                    usuarios_id_favourite: recipe.favourite
-                                                };
-                                            }));
-                                        });
-
-                                        return;
-                                    }
-                                    if (textSearch.length > 0 && textSearch.length < 3) {
-                                        setErrorSearch(true);
-                                        return;
-                                    } else {
-                                        if (errorSearch) {
-                                            setErrorSearch(false);
-                                        }
-                                        setFilterSearch(textSearch);
-                                        console.log("mi textSearch", textSearch);
-
-                                        ObtenerRecetasInfo({ data: { page, limit, filter: { titulo: textSearch } } }).then((res) => {
-                                            console.log("este es mi res", res);
-
-                                            setReactionInfo(res.Recetas?.map(recipe => {
-                                                return {
-                                                    idReceta: recipe._id,
-                                                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                                                };
-                                            }));
-
-                                            setFavouriteInfo(res.Recetas?.map(recipe => {
-                                                return {
-                                                    idReceta: recipe._id,
-                                                    usuarios_id_favourite: recipe.favourite
-                                                };
-                                            }));
-                                        });
-                                        return;
-                                    }
-                                }
-                            }, 800)}
-
-                            value={textSearch}
-                            InputProps={{
-                                startAdornment: (
-                                    <IconButton
+                                    }, 800)}
+                                    value={textSearch}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <IconButton
+                                                onClick={() => {
+                                                    if (textSearch.length < 3) {
+                                                        setErrorSearch(true);
+                                                    } else {
+                                                        (errorSearch) ? setErrorSearch(false) : null;
+                                                    }
+                                                }}
+                                                position="start"
+                                            >
+                                                <SearchIcon />
+                                            </IconButton>
+                                        ),
+                                        endAdornment: (
+                                            <IconButton
+                                                position="end"
+                                                style={{ display: showClearIcon }}
+                                                onClick={handleClick}
+                                            >
+                                                <ClearIcon />
+                                            </IconButton>
+                                        )
+                                    }}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={3}> {/* Botón Buscar y Resetear ocupan todo en xs, y 3 en md */}
+                            <Grid container spacing={1}>
+                                <Grid item xs={12} md={6}>
+                                    <Button
+                                        variant="contained"
                                         onClick={() => {
                                             if (textSearch.length < 3) {
-                                                setErrorSearch(true)
+                                                setErrorSearch(true);
                                             } else {
-                                                (errorSearch) ? setErrorSearch(false) : null
+                                                (errorSearch) ? setErrorSearch(false) : null;
+                                                if (textSearch.length > 0 && textSearch.length < 3) {
+                                                    setErrorSearch(true);
+                                                    return;
+                                                } else {
+                                                    if (errorSearch) {
+                                                        setErrorSearch(false);
+                                                    }
+                                                    setFilterSearch(textSearch);
+                                                    console.log("mi textSearch", textSearch);
+                                                    setLoading(true);
+                                                    simulateDelay(ObtenerRecetasInfo({ data: { page, limit, filter: { titulo: textSearch } } })).then((res) => {
+                                                        console.log("este es mi res", res);
+                                                        setReactionInfo(res.Recetas?.map(recipe => ({
+                                                            idReceta: recipe._id,
+                                                            usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                                                        })));
+                                                        setFavouriteInfo(res.Recetas?.map(recipe => ({
+                                                            idReceta: recipe._id,
+                                                            usuarios_id_favourite: recipe.favourite
+                                                        })));
+                                                    }).finally(() => {
+                                                        setLoading(false);
+                                                    });
+                                                    setSearchState(true);
+                                                    setLimit(15);
+                                                    return;
+                                                }
                                             }
                                         }}
-                                        position="start">
-                                        <SearchIcon />
-                                    </IconButton>
-                                ),
-                                endAdornment: (
-                                    <IconButton
-                                        position="end"
-                                        style={{ display: showClearIcon }}
-                                        onClick={handleClick}
+                                        fullWidth
                                     >
-                                        <ClearIcon />
-                                    </IconButton>
-                                )
-                            }}
-                        />
-                    </FormControl>
+                                        BUSCAR
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <Button
+                                        variant='outlined'
+                                        disabled={!searchState}
+                                        onClick={async () => {
+                                            await GetAllRecipes();
+                                            setSearchState(false);
+                                            setFilterSearch(null)
+                                        }}
+                                        fullWidth
+                                    >
+                                        RESETEAR
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Grid>
                 </div>
                 <Accordion sx={{ width: '100%' }}>
                     <AccordionSummary
@@ -290,82 +341,83 @@ export const DescoveryRecipe = () => {
                         <Typography>Filter</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        <Button onClick={() => {
-                            console.log(categoria);
-                            console.log(subCategoria);
-                            console.log(filterSearch)
-
-                            ObtenerRecetasInfo({ data: { page, limit, filter: { titulo: filterSearch, categoria: categoria !== "" ? categoria : null, subCategoria, ingredientes } } }).then((res) => {
-
-                                setReactionInfo(res.Recetas?.map(recipe => {
-                                    return {
-                                        idReceta: recipe._id,
-                                        usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                                    };
-                                }))
-
-                                setFavouriteInfo(res.Recetas?.map(recipe => {
-                                    return {
-                                        idReceta: recipe._id,
-                                        usuarios_id_favourite: recipe.favourite
-                                    }
-                                }))
-                            });
-
-                        }} variant='contained' color='secondary'>
-                            FILTER
-                        </Button>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Category</InputLabel>
-                            <Select
-                                value={categoria}
-                                onChange={(e) => setCategoria(e.target.value)}
-                            >
-                                <MenuItem key={"emptyone"} value={""}>
-                                    <p>NOT SELECTED</p>
-                                </MenuItem>
-                                {categoriasAll.map((category) => (
-                                    <MenuItem key={category._id} value={category._id}>
-                                        {category.nombreCategoria}
-                                    </MenuItem>
-                                ))}
-
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Ingredientes</InputLabel>
-                            <Select
-                                multiple
-                                value={ingredientes}
-                                onChange={(e) => setIngredientes(e.target.value)}
-                            >
-                                {
-                                    ingredientesAll?.map((ingrediente) => (
-                                        <MenuItem key={ingrediente._id} value={ingrediente._id}>
-                                            {ingrediente.nombreIngrediente}
+                        <Grid container spacing={2} alignItems="center">
+                            {/* Category Selection */}
+                            <Grid item md={6} xs={12}>
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel>Category</InputLabel>
+                                    <Select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+                                        <MenuItem key={"emptyone"} value={""}>
+                                            <p>NOT SELECTED</p>
                                         </MenuItem>
-                                    ))
-                                }
-                            </Select>
-                        </FormControl>
-                        <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, overflow: 'auto' }}>
-                            {subCategoriasAll.map((subCategory) => (
+                                        {categoriasAll.map((category) => (
+                                            <MenuItem key={category._id} value={category._id}>
+                                                {category.nombreCategoria}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Ingredients Selection */}
+                            <Grid item md={6} xs={12}>
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel>Ingredients</InputLabel>
+                                    <Select multiple value={ingredientes} onChange={(e) => setIngredientes(e.target.value)}>
+                                        {ingredientesAll?.map((ingrediente) => (
+                                            <MenuItem key={ingrediente._id} value={ingrediente._id}>
+                                                {ingrediente.nombreIngrediente}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Subcategory Buttons */}
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle1">Subcategories</Typography>
+                                <Grid container spacing={1}>
+                                    {subCategoriasAll.map((subCategory) => {
+                                        const isSelected = subCategoria.includes(subCategory._id);
+                                        return (
+                                            <Grid item xs={4} key={subCategory._id}>
+                                                <Button
+                                                    fullWidth
+                                                    variant={isSelected ? "contained" : "outlined"}
+                                                    onClick={() => handleToggleSubCategoria(subCategory._id)}
+                                                    sx={{
+                                                        transition: "background-color 0.3s",
+                                                        "&:hover": {
+                                                            backgroundColor: isSelected
+                                                                ? "rgba(0, 0, 0, 0.12)"
+                                                                : "rgba(0, 0, 0, 0.04)",
+                                                        },
+                                                    }}
+                                                >
+                                                    {subCategory.nombreSubCategoria}
+                                                </Button>
+                                            </Grid>
+                                        );
+                                    })}
+                                </Grid>
+                            </Grid>
+
+                            {/* Filter and Clear Buttons */}
+                            <Grid item xs={12} style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
                                 <Button
-                                    key={subCategory._id}
-                                    variant={subCategoria.includes(subCategory._id) ? 'contained' : 'outlined'}
-                                    onClick={() => handleToggleSubCategoria(subCategory._id)}
-                                    sx={{
-                                        transition: 'background-color 0.3s',
-                                        '&:hover': {
-                                            backgroundColor: subCategoria.includes(subCategory._id) ? 'rgba(0, 0, 0, 0.12)' : 'rgba(0, 0, 0, 0.04)',
-                                        },
-                                        minWidth: '200px'
-                                    }}
+                                    onClick={GetRecipeAction}
+                                    variant='contained'
+                                    color='secondary'
                                 >
-                                    {subCategory.nombreSubCategoria}
+                                    FILTER
                                 </Button>
-                            ))}
-                        </Box>
+                                <Button onClick={() => {
+
+                                }} variant="outlined">
+                                    CLEAR
+                                </Button>
+                            </Grid>
+                        </Grid>
                     </AccordionDetails>
                 </Accordion>
             </Box>
@@ -495,8 +547,7 @@ export const DescoveryRecipe = () => {
                                                     >
                                                         {idFavourites?.includes(card._id) ? <BookmarkIcon fontSize='large' sx={{ color: 'yellow' }} /> : <BookmarkBorderIcon fontSize='large' />}
                                                     </IconButton>
-
-                                                    <p>{favouriteInfo?.find(value => value.idReceta == card._id).usuarios_id_favourite.length}</p>
+                                                    <p>{favouriteInfo?.filter(value => value.idReceta === card._id)[0]?.usuarios_id_favourite.length}</p>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                                     <IconButton
@@ -526,11 +577,11 @@ export const DescoveryRecipe = () => {
                                                     >
                                                         <FavoriteIcon
                                                             sx={{
-                                                                color: reactionInfo?.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
+                                                                color: reactionInfo?.filter(value => value.idReceta === card?._id)[0]?.usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
                                                             }}
                                                         />
                                                     </IconButton>
-                                                    <span>{reactionInfo?.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
+                                                    <span>{reactionInfo?.filter(value => value.idReceta === card?._id)[0]?.usuarios_id_reaction.length}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                                     <IconButton onClick={() => {
@@ -647,50 +698,7 @@ export const DescoveryRecipe = () => {
                                         </div>
                                     </Box>
                                 </Box>
-                                {/* <Box
-                            sx={{
-                                p: 2,
-                                border: 1,
-                                borderRadius: 2,
-                                minWidth: "220px", // Minimum width
-                                maxWidth: "500px", // Maximum width
-                                minHeight: "280px", // Minimum height
-                                maxHeight: "620px", // Maximum height
-                            }}
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Button onClick={(e) => {
-                                    e.preventDefault();
-                                    setIdReceta(card?._id);
-                                    window.history.replaceState('', '', `/main/p/${card._id}`);
-                                    setOpenReceta(true);
-                                }}>open me</Button>
-                                {
-                                    card?.pined ? <PushPinIcon /> : <></>
-                                }
-                                {
-                                    idFavourites?.includes(card._id)
-                                        ? <IconButton
-                                            onClick={() => handleBookmarkClick(card._id, false)}
-                                            sx={{ transition: 'color 0.3s' }}
-                                        >
-                                            <BookmarkIcon sx={{ color: 'yellow' }} />
 
-                                        </IconButton>
-                                        : <IconButton
-                                            onClick={() => handleBookmarkClick(card._id, true)}
-                                            sx={{ transition: 'color 0.3s' }}
-                                        >
-                                            <BookmarkBorderIcon />
-                                        </IconButton>
-                                }
-                            </div>
-                            <img src={card?.image} alt={card.title} width="100%" />
-
-                            <h2>{card.titulo}</h2>
-                            <p>{card.descripcion}</p>
-                            <p>{card._id}</p>
-                        </Box> */}
                             </Zoom>
                         ))}
                         {

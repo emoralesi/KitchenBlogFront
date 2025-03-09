@@ -200,19 +200,7 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
 
         await actualizarReceta({ data: data });
         await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
-            setReactionInfo(res.Recetas?.map(recipe => {
-                return {
-                    idReceta: recipe._id,
-                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                };
-            }))
 
-            setFavouriteInfo(res.Recetas?.map(recipe => {
-                return {
-                    idReceta: recipe._id,
-                    usuarios_id_favourite: recipe.favourite
-                }
-            }))
         })
         handleClose();
 

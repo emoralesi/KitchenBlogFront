@@ -8,6 +8,8 @@ export const useReceta = () => {
     const [detailsReceta, setDetailsReceta] = useState([]);
     const [recetasInfo, setRecetasInfo] = useState([]);
     const [cantidadReceta, setCantidadReceta] = useState(null);
+    const [reactionInfo, setReactionInfo] = useState(null);
+    const [favouriteInfo, setFavouriteInfo] = useState(null);
 
     const guardarReceta = async ({ data }) => {
 
@@ -16,7 +18,7 @@ export const useReceta = () => {
             if (result.status == 'ok') {
                 enqueueSnackbar('Receta Registrado correctaente', { variant: 'success' });
             } else {
-                enqueueSnackbar('Hubo un error al guardar la receta', { variant: 'warning' });
+                enqueueSnackbar('Hubo un error al guardar la receta', { variant: 'error' });
             }
             return result;
 
@@ -82,6 +84,19 @@ export const useReceta = () => {
             console.log("mi result", result);
 
             setMisRecetas(result.Recetas);
+            setReactionInfo(result.Recetas?.map((recipe) => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_reaction: recipe.reactions.map((reaction) => reaction.user_id),
+                };
+            }));
+
+            setFavouriteInfo(result.Recetas?.map((recipe) => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_favourite: recipe.favourite,
+                };
+            }));
             return result;
         } catch (error) {
             enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
@@ -127,5 +142,5 @@ export const useReceta = () => {
         }
     }
 
-    return { guardarReceta, GetRecetasByIdReceta, GetRecetasByIdUser, getDetailsReceta, getUserAndReceta, detailsReceta, misRecetas, saveUpdateReactionReceta, setMisRecetas, actualizarReceta, actualizarPined, desactivarReceta, ObtenerRecetasInfo, recetasInfo, cantidadReceta }
+    return { guardarReceta, GetRecetasByIdReceta, GetRecetasByIdUser, getDetailsReceta, getUserAndReceta, detailsReceta, misRecetas, saveUpdateReactionReceta, setMisRecetas, actualizarReceta, actualizarPined, desactivarReceta, ObtenerRecetasInfo, recetasInfo, cantidadReceta, reactionInfo, favouriteInfo, setFavouriteInfo, setReactionInfo }
 }

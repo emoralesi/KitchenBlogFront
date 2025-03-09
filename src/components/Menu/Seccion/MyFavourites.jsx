@@ -21,22 +21,22 @@ import debounce from 'just-debounce-it';
 import IconSvg from '../../../utils/IconSvg';
 import { useNavigate } from 'react-router-dom';
 import { SkeletonWave } from '../../../utils/Skeleton';
+import { simulateDelay } from '../../../utils/Delay';
 
 export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }) => {
 
     const navigate = useNavigate();
 
-    const { ObtenerFavourites, getIdUserByUserName, favourites, idFavourites, SaveUpdateMyFavourites, ObtenerIdFavourites } = useUsuario();
+    const { ObtenerFavourites, getIdUserByUserName, favourites, idFavourites, SaveUpdateMyFavourites, ObtenerIdFavourites, favouriteInfo, reactionInfo } = useUsuario();
     const { saveUpdateReactionReceta } = useReceta();
     const [openReceta, setOpenReceta] = useState(false)
     const [idReceta, setIdReceta] = useState(null);
     const [idUsuario, setIdUsuario] = useState(null);
     const [isExpanded, setIsExpanded] = useState({});
-    const [reactionInfo, setReactionInfo] = useState(null);
-    const [favouriteInfo, setFavouriteInfo] = useState(null);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(15);
 
+    const [loadingNearScreen, setLoadingNearScreen] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const externalRef = useRef()
@@ -54,21 +54,11 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
             if (favourites.length < cantidadFavoritos) {
                 const newLimit = limit + 10;
                 setLimit(newLimit);
-                ObtenerFavourites({ data: { data: { idUser: getStorageUser().usuarioId, page, limit: newLimit } } }).then((res) => {
-                    setReactionInfo(res.Favourites?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                        };
-                    }))
-
-                    setFavouriteInfo(res.Favourites.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_favourite: recipe.favourite
-                        }
-                    }))
-                })
+                setLoadingNearScreen(true);
+                ObtenerFavourites({ data: { data: { idUser: getStorageUser().usuarioId, page, limit: newLimit } } })
+                    .finally(() => {
+                        setLoadingNearScreen(false);
+                    })
             }
         }, 250
     ), [favourites])
@@ -81,33 +71,10 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
 
 
     useEffect(() => {
-
-        const simulateDelay = (promise) => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(promise);
-                }, 1500); // Delay of 5 seconds
-            });
-        };
-
         const fetchData = async () => {
             try {
                 setIdUsuario(getStorageUser().usuarioId);
-                await simulateDelay(ObtenerFavourites({ data: { data: { idUser: getStorageUser().usuarioId, page, limit } } })).then((res) => {
-                    setReactionInfo(res.Favourites?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                        };
-                    }))
-
-                    setFavouriteInfo(res.Favourites.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_favourite: recipe.favourite
-                        }
-                    }))
-                })
+                await simulateDelay(ObtenerFavourites({ data: { data: { idUser: getStorageUser().usuarioId, page, limit } } }))
                 await ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
             } catch (error) {
                 console.error('Error fetching data', error);
@@ -123,20 +90,7 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
 
         await SaveUpdateMyFavourites({ body: { idUser: idUsuario, idReceta: id, estado: action } })
         await ObtenerIdFavourites({ idUser: idUsuario })
-        await ObtenerFavourites({ data: { data: { idUser: idUsuario, page, limit } } }).then((res) => {
-            setFavouriteInfo(res.Favourites.map(recipe => {
-                return {
-                    idReceta: recipe._id,
-                    usuarios_id_favourite: recipe.favourite
-                }
-            }))
-            setReactionInfo(res.Favourites?.map(recipe => {
-                return {
-                    idReceta: recipe._id,
-                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                };
-            }))
-        })
+        await ObtenerFavourites({ data: { data: { idUser: idUsuario, page, limit } } })
         action ? setCantidadFavoritos(prevCantidad => prevCantidad + 1) : setCantidadFavoritos(prevCantidad => prevCantidad - 1)
 
     };
@@ -434,7 +388,12 @@ export const Favourites = ({ userName, setCantidadFavoritos, cantidadFavoritos }
                                 favourites?.filter(value => value._id).length == 0 ? <h4>Not Favourites Added</h4> : <></>
                             }
                         </>}
-
+                    {
+                        loadingNearScreen ?
+                            <SkeletonWave />
+                            :
+                            <></>
+                    }
                 </Box>
                 : <h1>No se ecnontraron Favoritos</h1>
             }

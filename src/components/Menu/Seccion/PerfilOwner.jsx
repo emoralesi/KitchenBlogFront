@@ -29,6 +29,7 @@ import { RecetaForm } from "./RecetaForm";
 import { UpdateRecetaForm } from './UpdateRecetaForm';
 import IconSvg from '../../../utils/IconSvg';
 import { SkeletonWave } from '../../../utils/Skeleton';
+import { simulateDelay } from '../../../utils/Delay';
 
 export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadReceta }) => {
 
@@ -64,18 +65,17 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
 
   const [openForm, setOpenForm] = useState(false);
   const [openUpdateForm, setOpenUpdateForm] = useState(false);
-  const { getUserAndReceta, misRecetas, setMisRecetas, actualizarPined, desactivarReceta, saveUpdateReactionReceta } = useReceta();
+  const { getUserAndReceta, misRecetas, setMisRecetas, actualizarPined, desactivarReceta, saveUpdateReactionReceta, reactionInfo, favouriteInfo, setFavouriteInfo, setReactionInfo } = useReceta();
   const { ObtenerIdFavourites, idFavourites, setIdFavourites, SaveUpdateMyFavourites } = useUsuario();
   const [openReceta, setOpenReceta] = useState(false)
   const [idReceta, setIdReceta] = useState(null);
   const [UpdateId, setUpdateId] = useState(null);
   const [currentCard, setCurrentCard] = useState(null);
   const [isExpanded, setIsExpanded] = useState({});
-  const [reactionInfo, setReactionInfo] = useState(null);
-  const [favouriteInfo, setFavouriteInfo] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(15);
 
+  const [loadingNearScreen, setLoadingNearScreen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const externalRef = useRef()
@@ -89,78 +89,29 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
   const debounceHandleNextPage = useCallback(debounce(
     () => {
 
-      console.log("mi cantidad receta", cantidadReceta);
-      console.log("mi recetas.length", misRecetas.length);
-      console.log(cantidadReceta < misRecetas.length);
-
       if (misRecetas.length < cantidadReceta) {
-        console.log("pase por el debounce");
-        console.log("mi limit", limit);
 
         const newLimit = limit + 10;
-        console.log("mi new limit", newLimit);
 
         setLimit(newLimit);
-        getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page: 1, limit: newLimit } }).then((res) => {
-
-          setReactionInfo(res.Recetas?.map(recipe => {
-            return {
-              idReceta: recipe._id,
-              usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-            };
-          }))
-
-          setFavouriteInfo(res.Recetas?.map(recipe => {
-            return {
-              idReceta: recipe._id,
-              usuarios_id_favourite: recipe.favourite
-            }
-          }))
-        })
+        setLoadingNearScreen(true)
+        simulateDelay(getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page: 1, limit: newLimit } }))
+          .finally(() => {
+            setLoadingNearScreen(false)
+          })
       }
     }, 250
   ), [misRecetas])
 
   useEffect(function () {
-    console.log("is near", isNearScreen);
-    console.log("is loading", loading);
-
     if (isNearScreen && !loading) { debounceHandleNextPage() }
-    console.log(isNearScreen);
-
   }, [isNearScreen])
 
   useEffect(() => {
-    const simulateDelay = (promise) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(promise);
-        }, 1000); // Delay of 5 seconds
-      });
-    };
-
     simulateDelay(getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }))
-      .then((res) => {
-        setReactionInfo(res.Recetas?.map((recipe) => {
-          return {
-            idReceta: recipe._id,
-            usuarios_id_reaction: recipe.reactions.map((reaction) => reaction.user_id),
-          };
-        }));
-
-        setFavouriteInfo(res.Recetas?.map((recipe) => {
-          return {
-            idReceta: recipe._id,
-            usuarios_id_favourite: recipe.favourite,
-          };
-        }));
-        console.log("seteo el loading como false");
-
+      .finally((res) => {
         setLoading(false);
       })
-      .catch(() => {
-        setLoading(false);
-      });
 
     ObtenerIdFavourites({ idUser: getStorageUser().usuarioId });
   }, []);
@@ -465,19 +416,7 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
                             <Button variant='outlined' onClick={handleCloseConfirmation}>CANCEL</Button>
                             <Button sx={{ marginRight: '15px' }} variant='contained' color='error' onClick={async (e) => {
                               await desactivarReceta({ recetaId: card._id }); await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
-                                setReactionInfo(res.Recetas?.map(recipe => {
-                                  return {
-                                    idReceta: recipe._id,
-                                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                                  };
-                                }))
 
-                                setFavouriteInfo(res.Recetas?.map(recipe => {
-                                  return {
-                                    idReceta: recipe._id,
-                                    usuarios_id_favourite: recipe.favourite
-                                  }
-                                }))
                               }); handleCloseConfirmation();
                               console.log(idFavourites);
                               console.log(card._id);
@@ -589,6 +528,9 @@ export const PerfilOwner = ({ setCantidadFavoritos, setCantidadReceta, cantidadR
             </Zoom>
           ))
         )}
+        {
+          loadingNearScreen ? <SkeletonWave /> : <></>
+        }
         {
           misRecetas?.length == 0 ? <h4>Not Recetas Founded</h4> : misRecetas.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
         }

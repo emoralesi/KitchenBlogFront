@@ -9,6 +9,8 @@ export const useUsuario = () => {
     const [usuariosDescubrir, setUsuariosDescubrir] = useState([]);
     const [favourites, setFavourites] = useState([])
     const [idFavourites, setIdFavourites] = useState([])
+    const [reactionInfo, setReactionInfo] = useState(null);
+    const [favouriteInfo, setFavouriteInfo] = useState(null);
 
     const navigate = useNavigate();
 
@@ -74,6 +76,19 @@ export const useUsuario = () => {
             const result = await getFavourites(data);
             console.log("mi result favoritos", result?.Favourites);
             setFavourites(result?.Favourites)
+            setReactionInfo(result?.Favourites?.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
+                };
+            }))
+
+            setFavouriteInfo(result?.Favourites.map(recipe => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_favourite: recipe.favourite
+                }
+            }))
             return result;
 
         } catch (error) {
@@ -115,5 +130,5 @@ export const useUsuario = () => {
         }
     }
 
-    return { RegistarUsuario, usuariosAll, setUsuariosAll, usuariosAllDataGrid, setUsuariosAllDataGrid, usuariosDescubrir, ObtenerUsuariosDescubrir, getIdUserByUserName, ObtenerFavourites, favourites, idFavourites, ObtenerIdFavourites, setIdFavourites, SaveUpdateMyFavourites, ObtenerDataFavAndRec }
+    return { RegistarUsuario, usuariosAll, setUsuariosAll, usuariosAllDataGrid, setUsuariosAllDataGrid, usuariosDescubrir, ObtenerUsuariosDescubrir, getIdUserByUserName, ObtenerFavourites, favourites, idFavourites, ObtenerIdFavourites, setIdFavourites, SaveUpdateMyFavourites, ObtenerDataFavAndRec, favouriteInfo, reactionInfo }
 }

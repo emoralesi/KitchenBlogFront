@@ -10,30 +10,33 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { Box, Button, Fab, IconButton, Modal, Typography, Zoom } from "@mui/material";
+import debounce from 'just-debounce-it';
 import { useCallback, useEffect, useRef, useState } from "react";
+import useNearScreen from '../../../Hooks/useNearScreen';
 import { useReceta } from '../../../Hooks/useReceta';
 import { useUsuario } from "../../../Hooks/useUsuario";
-import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from './DitailsReceta';
 import { dateConvert } from '../../../utils/dateConvert';
 import { TypeNotification } from '../../../utils/enumTypeNoti';
-import useNearScreen from '../../../Hooks/useNearScreen';
-import debounce from 'just-debounce-it';
 import IconSvg from '../../../utils/IconSvg';
+import { SkeletonWave } from '../../../utils/Skeleton';
+import { getStorageUser } from "../../../utils/StorageUser";
+import { DetailsReceta } from './DitailsReceta';
+import { simulateDelay } from '../../../utils/Delay';
 
 export const PerfilOther = ({ userName, cantidadReceta }) => {
 
     const [openForm, setOpenForm] = useState(false);
-    const { getUserAndReceta, misRecetas, saveUpdateReactionReceta } = useReceta();
+    const { getUserAndReceta, misRecetas, saveUpdateReactionReceta, reactionInfo, favouriteInfo } = useReceta();
     const [openReceta, setOpenReceta] = useState(false)
     const [idReceta, setIdReceta] = useState(null);
     const [idUser, setIdUser] = useState(null)
     const { getIdUserByUserName, ObtenerIdFavourites, SaveUpdateMyFavourites, idFavourites, setIdFavourites } = useUsuario();
     const [isExpanded, setIsExpanded] = useState({});
-    const [reactionInfo, setReactionInfo] = useState(null);
-    const [favouriteInfo, setFavouriteInfo] = useState(null);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(15);
+
+    const [loadingNearScreen, setLoadingNearScreen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const externalRef = useRef()
     const { isNearScreen } = useNearScreen({
@@ -44,28 +47,12 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
     const debounceHandleNextPage = useCallback(debounce(
         () => {
 
-            console.log("mi cantidad receta", cantidadReceta);
-            console.log("mi recetas.length", misRecetas.length);
-            console.log(cantidadReceta < misRecetas.length);
-
             if (misRecetas.length < cantidadReceta) {
                 const newLimit = limit + 10;
                 setLimit(newLimit);
-                getUserAndReceta({ data: { userId: idUser, page, limit: newLimit } }).then((res) => {
-                    setReactionInfo(res.Recetas?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                        };
-                    }))
-
-                    setFavouriteInfo(res.Recetas?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_favourite: recipe.favourite
-                        }
-                    }))
-                });
+                setLoadingNearScreen(true);
+                getUserAndReceta({ data: { userId: idUser, page, limit: newLimit } })
+                    .finally(() => { setLoadingNearScreen(false) });
             }
         }, 250
     ), [misRecetas])
@@ -83,27 +70,15 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                     return result.userId
                 });
                 setIdUser(idUsuario);
-                await getUserAndReceta({ data: { userId: idUsuario, page, limit } }).then((res) => {
-                    setReactionInfo(res.Recetas?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_reaction: recipe.reactions.map(reaction => reaction.user_id)
-                        };
-                    }))
-
-                    setFavouriteInfo(res.Recetas?.map(recipe => {
-                        return {
-                            idReceta: recipe._id,
-                            usuarios_id_favourite: recipe.favourite
-                        }
-                    }))
-                });
+                await simulateDelay(getUserAndReceta({ data: { userId: idUsuario, page, limit } }))
             } catch (error) {
                 console.error('Error fetching data', error);
             }
         };
         ObtenerIdFavourites({ idUser: getStorageUser().usuarioId })
-        fetchData();
+        fetchData().finally(() => {
+            setLoading(false);
+        });
     }, [userName]);
 
     const handleBookmarkClick = async (id, action) => {
@@ -126,267 +101,273 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
     return (
         <Box>
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: '15px' }}>
-                {misRecetas?.sort((a, b) => {
-                    if (a.pined !== b.pined) {
-                        return b.pined - a.pined;
-                    }
-                    return new Date(b.fechaReceta) - new Date(a.fechaReceta);
-                }).map((card, index) => (
-                    <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
-                        <Box
-                            sx={{
-                                p: 0,
-                                border: 1,
-                                position: 'relative',
-                                borderRadius: 2,
-                                height: '58vh',
-                                display: 'flex', // Usar flexbox para organizar el contenido
-                                flexDirection: 'column', // Colocar elementos en columnas
-                            }}
-                        >
-                            {/* Box que contiene la imagen */}
+
+                {loading ? <SkeletonWave />
+                    :
+                    misRecetas?.sort((a, b) => {
+                        if (a.pined !== b.pined) {
+                            return b.pined - a.pined;
+                        }
+                        return new Date(b.fechaReceta) - new Date(a.fechaReceta);
+                    }).map((card, index) => (
+                        <Zoom key={card._id} in={true} timeout={300 + (index * 80)}>
                             <Box
                                 sx={{
-                                    width: '100%',
-                                    height: isExpanded[card._id] ? '0%' : '50%',
-                                    transition: 'ease-in-out 0.5s',
-                                    position: 'relative'
+                                    p: 0,
+                                    border: 1,
+                                    position: 'relative',
+                                    borderRadius: 2,
+                                    height: '58vh',
+                                    display: 'flex', // Usar flexbox para organizar el contenido
+                                    flexDirection: 'column', // Colocar elementos en columnas
                                 }}
                             >
-                                <Button
-                                    onClick={() => {
-                                        setIdReceta(card?._id);
-                                        window.history.replaceState('', '', `/main/p/${card._id}`);
-                                        setOpenReceta(true);
-                                    }}
+                                {/* Box que contiene la imagen */}
+                                <Box
                                     sx={{
                                         width: '100%',
-                                        height: '100%',
-                                        p: 0,
-                                        position: 'relative', // Necesario para posicionar el texto en el centro
-                                        overflow: 'hidden', // Asegura que el contenido extra no se salga del botón
-                                        '&:hover .overlay': {
-                                            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Oscurece el contenido en hover
-                                        },
-                                        '&:hover .text': {
-                                            opacity: 1, // Muestra el texto en hover
-                                        },
+                                        height: isExpanded[card._id] ? '0%' : '50%',
+                                        transition: 'ease-in-out 0.5s',
+                                        position: 'relative'
                                     }}
                                 >
-                                    <img
-                                        style={{
+                                    <Button
+                                        onClick={() => {
+                                            setIdReceta(card?._id);
+                                            window.history.replaceState('', '', `/main/p/${card._id}`);
+                                            setOpenReceta(true);
+                                        }}
+                                        sx={{
                                             width: '100%',
                                             height: '100%',
-                                            objectFit: 'cover',
-                                            borderRadius: '8px 8px 0px 0px',
-                                        }}
-                                        srcSet={card ? card.images[0] : null}
-                                        src={card ? card.images[0] : null}
-                                        alt="Imagen"
-                                        loading="lazy"
-                                    />
-
-                                    {/* Caja para la superposición oscura */}
-                                    <Box
-                                        className="overlay"
-                                        sx={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            height: '100%',
-                                            backgroundColor: 'rgba(0, 0, 0, 0)', // Transparente por defecto
-                                            transition: 'background-color 0.3s ease', // Suaviza la transición del color de fondo
-                                        }}
-                                    />
-
-                                    {/* Texto que aparece en el hover */}
-                                    <Typography
-                                        className="text"
-                                        sx={{
-                                            position: 'absolute',
-                                            top: '50%',
-                                            left: '50%',
-                                            transform: 'translate(-50%, -50%)',
-                                            color: 'white',
-                                            opacity: 0, // Oculto por defecto
-                                            transition: 'opacity 0.3s ease', // Suaviza la transición de la opacidad
-                                            fontWeight: 'bold',
+                                            p: 0,
+                                            position: 'relative', // Necesario para posicionar el texto en el centro
+                                            overflow: 'hidden', // Asegura que el contenido extra no se salga del botón
+                                            '&:hover .overlay': {
+                                                backgroundColor: 'rgba(0, 0, 0, 0.5)', // Oscurece el contenido en hover
+                                            },
+                                            '&:hover .text': {
+                                                opacity: 1, // Muestra el texto en hover
+                                            },
                                         }}
                                     >
-                                        See more
-                                    </Typography>
-                                </Button>
-                                {card?.pined ? <div style={{ position: 'absolute', right: 0, top: -10, display: 'flex', alignItems: 'center', rotate: '20px' }}>
-                                    <PushPinIcon sx={{ fontSize: '25px' }} />
-                                </div> : <></>}
+                                        <img
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                borderRadius: '8px 8px 0px 0px',
+                                            }}
+                                            srcSet={card ? card.images[0] : null}
+                                            src={card ? card.images[0] : null}
+                                            alt="Imagen"
+                                            loading="lazy"
+                                        />
 
-                                <div style={{ position: 'absolute', right: 2, top: 25, display: 'flex', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <IconButton
-                                                onClick={() => {
-                                                    handleBookmarkClick(card._id, !favouriteInfo.find(value => value.idReceta == card._id).usuarios_id_favourite.some((user) => user === getStorageUser().usuarioId));
+                                        {/* Caja para la superposición oscura */}
+                                        <Box
+                                            className="overlay"
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: 'rgba(0, 0, 0, 0)', // Transparente por defecto
+                                                transition: 'background-color 0.3s ease', // Suaviza la transición del color de fondo
+                                            }}
+                                        />
 
-                                                    const receta = favouriteInfo.find(value => value.idReceta === card?._id);
+                                        {/* Texto que aparece en el hover */}
+                                        <Typography
+                                            className="text"
+                                            sx={{
+                                                position: 'absolute',
+                                                top: '50%',
+                                                left: '50%',
+                                                transform: 'translate(-50%, -50%)',
+                                                color: 'white',
+                                                opacity: 0, // Oculto por defecto
+                                                transition: 'opacity 0.3s ease', // Suaviza la transición de la opacidad
+                                                fontWeight: 'bold',
+                                            }}
+                                        >
+                                            See more
+                                        </Typography>
+                                    </Button>
+                                    {card?.pined ? <div style={{ position: 'absolute', right: 0, top: -10, display: 'flex', alignItems: 'center', rotate: '20px' }}>
+                                        <PushPinIcon sx={{ fontSize: '25px' }} />
+                                    </div> : <></>}
 
-                                                    const userExists = receta.usuarios_id_favourite.some(value => value === getStorageUser().usuarioId);
+                                    <div style={{ position: 'absolute', right: 2, top: 25, display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <IconButton
+                                                    onClick={() => {
+                                                        handleBookmarkClick(card._id, !favouriteInfo.find(value => value.idReceta == card._id).usuarios_id_favourite.some((user) => user === getStorageUser().usuarioId));
 
-                                                    let updatedUsuariosIdFavourite;
+                                                        const receta = favouriteInfo.find(value => value.idReceta === card?._id);
 
-                                                    if (userExists) {
-                                                        updatedUsuariosIdFavourite = receta.usuarios_id_favourite.filter(value => value !== getStorageUser().usuarioId);
-                                                    } else {
-                                                        updatedUsuariosIdFavourite = [...receta.usuarios_id_favourite, getStorageUser().usuarioId];
+                                                        const userExists = receta.usuarios_id_favourite.some(value => value === getStorageUser().usuarioId);
+
+                                                        let updatedUsuariosIdFavourite;
+
+                                                        if (userExists) {
+                                                            updatedUsuariosIdFavourite = receta.usuarios_id_favourite.filter(value => value !== getStorageUser().usuarioId);
+                                                        } else {
+                                                            updatedUsuariosIdFavourite = [...receta.usuarios_id_favourite, getStorageUser().usuarioId];
+                                                        }
+
+                                                        const updatedFavouriteInfo = favouriteInfo.map(item =>
+                                                            item.idReceta === card?._id ? { ...item, usuarios_id_favourite: updatedUsuariosIdFavourite } : item
+                                                        );
+
+                                                        setFavouriteInfo(updatedFavouriteInfo);
+
+                                                    }
+                                                    }
+                                                    sx={{ transition: 'color 0.3s', padding: 0 }}
+                                                >
+                                                    {idFavourites?.includes(card._id) ? <BookmarkIcon fontSize='large' sx={{ color: 'yellow' }} /> : <BookmarkBorderIcon fontSize='large' />}
+                                                </IconButton>
+
+                                                <p>{favouriteInfo?.find(value => value.idReceta == card._id).usuarios_id_favourite.length}</p>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <IconButton
+                                                    onClick={() => {
+
+                                                        saveUpdateReactionReceta({ data: { idReceta: card?._id, idUser: getStorageUser().usuarioId, estado: !reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value === getStorageUser().usuarioId), type: TypeNotification.LikeToReceta } })
+                                                        const receta = reactionInfo.find(value => value.idReceta === card?._id);
+
+                                                        const userExists = receta.usuarios_id_reaction.some(value => value === getStorageUser().usuarioId);
+
+                                                        let updatedUsuariosIdReaction;
+
+                                                        if (userExists) {
+                                                            updatedUsuariosIdReaction = receta.usuarios_id_reaction.filter(value => value !== getStorageUser().usuarioId);
+                                                        } else {
+                                                            updatedUsuariosIdReaction = [...receta.usuarios_id_reaction, getStorageUser().usuarioId];
+                                                        }
+
+                                                        const updatedReactionInfo = reactionInfo.map(item =>
+                                                            item.idReceta === card?._id ? { ...item, usuarios_id_reaction: updatedUsuariosIdReaction } : item
+                                                        );
+
+                                                        setReactionInfo(updatedReactionInfo);
                                                     }
 
-                                                    const updatedFavouriteInfo = favouriteInfo.map(item =>
-                                                        item.idReceta === card?._id ? { ...item, usuarios_id_favourite: updatedUsuariosIdFavourite } : item
-                                                    );
-
-                                                    setFavouriteInfo(updatedFavouriteInfo);
-
-                                                }
-                                                }
-                                                sx={{ transition: 'color 0.3s', padding: 0 }}
-                                            >
-                                                {idFavourites?.includes(card._id) ? <BookmarkIcon fontSize='large' sx={{ color: 'yellow' }} /> : <BookmarkBorderIcon fontSize='large' />}
-                                            </IconButton>
-
-                                            <p>{favouriteInfo?.find(value => value.idReceta == card._id).usuarios_id_favourite.length}</p>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <IconButton
-                                                onClick={() => {
-
-                                                    saveUpdateReactionReceta({ data: { idReceta: card?._id, idUser: getStorageUser().usuarioId, estado: !reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value === getStorageUser().usuarioId), type: TypeNotification.LikeToReceta } })
-                                                    const receta = reactionInfo.find(value => value.idReceta === card?._id);
-
-                                                    const userExists = receta.usuarios_id_reaction.some(value => value === getStorageUser().usuarioId);
-
-                                                    let updatedUsuariosIdReaction;
-
-                                                    if (userExists) {
-                                                        updatedUsuariosIdReaction = receta.usuarios_id_reaction.filter(value => value !== getStorageUser().usuarioId);
-                                                    } else {
-                                                        updatedUsuariosIdReaction = [...receta.usuarios_id_reaction, getStorageUser().usuarioId];
                                                     }
-
-                                                    const updatedReactionInfo = reactionInfo.map(item =>
-                                                        item.idReceta === card?._id ? { ...item, usuarios_id_reaction: updatedUsuariosIdReaction } : item
-                                                    );
-
-                                                    setReactionInfo(updatedReactionInfo);
-                                                }
-
-                                                }
-                                            >
-                                                <FavoriteIcon
-                                                    sx={{
-                                                        color: reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
-                                                    }}
-                                                />
-                                            </IconButton>
-                                            <span>{reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <IconButton onClick={() => {
-                                                setIdReceta(card?._id);
-                                                window.history.replaceState('', '', `/main/p/${card._id}`);
-                                                setOpenReceta(true);
-                                            }}>
-                                                <CommentIcon sx={{ color: 'blue', width: '34px' }} />
-                                            </IconButton>
-                                            <p>{card?.comments.length}</p>
+                                                >
+                                                    {
+                                                        console.log("mi react info", reactionInfo)
+                                                    }
+                                                    <FavoriteIcon
+                                                        sx={{
+                                                            color: reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.some(value => value == getStorageUser().usuarioId) ? 'red' : 'gray', transition: 'color 0.5s'
+                                                        }}
+                                                    />
+                                                </IconButton>
+                                                <span>{reactionInfo.find(value => value.idReceta === card?._id).usuarios_id_reaction.length}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <IconButton onClick={() => {
+                                                    setIdReceta(card?._id);
+                                                    window.history.replaceState('', '', `/main/p/${card._id}`);
+                                                    setOpenReceta(true);
+                                                }}>
+                                                    <CommentIcon sx={{ color: 'blue', width: '34px' }} />
+                                                </IconButton>
+                                                <p>{card?.comments.length}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        top: '100%',
-                                        left: '50%',
-                                        transform: 'translate(-50%, -50%)',
-                                        zIndex: 1, // Para asegurar que el Fab esté sobre los demás elementos
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            left: '50%',
+                                            transform: 'translate(-50%, -50%)',
+                                            zIndex: 1, // Para asegurar que el Fab esté sobre los demás elementos
+                                        }}
+                                    >
+                                        <Fab
+                                            aria-label="add"
+                                            onClick={() => { handleClickExpand(card?._id) }}
+                                            sx={{ height: '30px', width: '30px', minHeight: 'unset', color: 'black', boxShadow: 'unset', backgroundColor: 'white' }}
+                                        >
+                                            {isExpanded[card?._id] ? <RemoveCircleIcon /> : <AddIcon />}
+                                        </Fab>
+                                    </div>
+                                </Box>
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: isExpanded[card._id] ? '100%' : '50%',
+                                        transition: 'ease-in-out 0.5s',
+                                        backgroundColor: 'white', // Fondo blanco
+                                        borderRadius: '0px 0px 8px 8px',
+                                        overflow: isExpanded[card._id] ? 'auto' : 'none',
+                                        scrollbarWidth: 'thin',
+                                        clipPath: 'border-box',
+                                        position: 'relative'
                                     }}
                                 >
-                                    <Fab
-                                        aria-label="add"
-                                        onClick={() => { handleClickExpand(card?._id) }}
-                                        sx={{ height: '30px', width: '30px', minHeight: 'unset', color: 'black', boxShadow: 'unset', backgroundColor: 'white' }}
-                                    >
-                                        {isExpanded[card?._id] ? <RemoveCircleIcon /> : <AddIcon />}
-                                    </Fab>
-                                </div>
-                            </Box>
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    height: isExpanded[card._id] ? '100%' : '50%',
-                                    transition: 'ease-in-out 0.5s',
-                                    backgroundColor: 'white', // Fondo blanco
-                                    borderRadius: '0px 0px 8px 8px',
-                                    overflow: isExpanded[card._id] ? 'auto' : 'none',
-                                    scrollbarWidth: 'thin',
-                                    clipPath: 'border-box',
-                                    position: 'relative'
-                                }}
-                            >
-                                <div style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex', // Usar flexbox para centrar el contenido
-                                    flexDirection: 'column',
-                                    justifyContent: 'center'
-                                }}>
-                                    <ul style={{ height: '100%', padding: '0px 10px 0px 10px', margin: 0, display: 'flex', flexDirection: 'column' }}>
-                                        <h3>{card?.titulo}</h3>
-                                        <div style={{ display: 'flex', alignItems: 'center', height: '15px' }}>
-                                            <AccessTimeIcon />
-                                            <p>{card?.hours > 0 ? card?.hours + "h " + card?.minutes + "m" : card?.minutes + "M"}</p>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                <PersonIcon />
-                                                <p>{card?.cantidadPersonas}</p>
+                                    <div style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex', // Usar flexbox para centrar el contenido
+                                        flexDirection: 'column',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <ul style={{ height: '100%', padding: '0px 10px 0px 10px', margin: 0, display: 'flex', flexDirection: 'column' }}>
+                                            <h3>{card?.titulo}</h3>
+                                            <div style={{ display: 'flex', alignItems: 'center', height: '15px' }}>
+                                                <AccessTimeIcon />
+                                                <p>{card?.hours > 0 ? card?.hours + "h " + card?.minutes + "m" : card?.minutes + "M"}</p>
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                <AssignmentIcon />
-                                                <p>{card?.dificultad[0].nombreDificultad}</p>
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                <RestaurantIcon />
-                                                <p>{card?.categoria[0].nombreCategoria}</p>
-                                            </div>
-                                        </div>
-
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            {
-                                                card?.subCategoria.map((value) =>
-                                                    IconSvg(value.nombreSubCategoria)
-                                                )
-                                            }
-                                        </div>
-
-                                        <p>{dateConvert(card?.fechaReceta)}</p>
-                                        <p>{card?.descripcion}</p>
-
-                                        <h3>INGREDIENTS</h3>
-                                        {
-                                            card?.grupoIngrediente?.map((value) => (
-                                                <div key={value.nombreGrupo}>
-                                                    <h4>{value.nombreGrupo}</h4>
-                                                    {value.item.map((value2, index) => (
-                                                        <p>{`${value2.valor} ${value2.medida.nombreMedida == 'Quantity' ? '' : value2.medida.nombreMedida} ${value2.ingrediente.nombreIngrediente}`}</p>
-                                                    ))}
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <PersonIcon />
+                                                    <p>{card?.cantidadPersonas}</p>
                                                 </div>
-                                            ))
-                                        }
-                                    </ul>
-                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <AssignmentIcon />
+                                                    <p>{card?.dificultad[0].nombreDificultad}</p>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <RestaurantIcon />
+                                                    <p>{card?.categoria[0].nombreCategoria}</p>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                {
+                                                    card?.subCategoria.map((value) =>
+                                                        IconSvg(value.nombreSubCategoria)
+                                                    )
+                                                }
+                                            </div>
+
+                                            <p>{dateConvert(card?.fechaReceta)}</p>
+                                            <p>{card?.descripcion}</p>
+
+                                            <h3>INGREDIENTS</h3>
+                                            {
+                                                card?.grupoIngrediente?.map((value) => (
+                                                    <div key={value.nombreGrupo}>
+                                                        <h4>{value.nombreGrupo}</h4>
+                                                        {value.item.map((value2, index) => (
+                                                            <p>{`${value2.valor} ${value2.medida.nombreMedida == 'Quantity' ? '' : value2.medida.nombreMedida} ${value2.ingrediente.nombreIngrediente}`}</p>
+                                                        ))}
+                                                    </div>
+                                                ))
+                                            }
+                                        </ul>
+                                    </div>
+                                </Box>
                             </Box>
-                        </Box>
-                        {/* <Box
+                            {/* <Box
                             sx={{
                                 p: 2,
                                 border: 1,
@@ -430,8 +411,11 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                             <p>{card.descripcion}</p>
                             <p>{card._id}</p>
                         </Box> */}
-                    </Zoom>
-                ))}
+                        </Zoom>
+                    ))
+
+                }
+                {loadingNearScreen ? <SkeletonWave /> : <></>}
                 {
                     misRecetas?.length == 0 ? <h4>Not Recetas Founded</h4> : <></>
                 }
