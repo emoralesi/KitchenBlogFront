@@ -13,14 +13,15 @@ export const RecipeThirdPart = ({
     setReactions,
     recetaReactions,
     setRecetaReactions,
-    idReceta
+    idReceta,
+    getDetailsReceta,
+    saveUpdateReactionReceta
 }) => {
 
     const [visibleComments, setVisibleComments] = useState(3);
     const [visibleAnswers, setVisibleAnswers] = useState({});
     const [commentParent, setCommentParent] = useState('');
     const [responseContent, setResponseContent] = useState({});
-    const { getDetailsReceta, saveUpdateReactionReceta } = useReceta();
     const { SaveUpdateCommentReaction, guardarComment } = useComment();
 
     const handleShowMoreComments = () => {
@@ -86,7 +87,7 @@ export const RecipeThirdPart = ({
 
 
     return (
-        <Grid container sx={{ width: '100%' }}>
+        <Grid container sx={{ width: '100%', paddingLeft: '20px' }}>
             <Grid item xs={12} sm={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'column', width: '100%', marginBottom: '20px' }}>
                 <Accordion defaultExpanded sx={{ width: '100%', padding: 0, boxShadow: 'unset' }} >
                     <AccordionSummary
@@ -174,81 +175,93 @@ export const RecipeThirdPart = ({
                     {
                         console.log("mi details Receta", detailsReceta)
                     }
-                    {detailsReceta?.comments?.filter(value => value._id).length > 0
-                        ? detailsReceta?.comments?.filter(value => value._id).slice(0, visibleComments).map((comment, index) => (
-
-                            comment._id
-                                ?
-                                <Paper key={index} style={{ marginBottom: '16px', position: 'relative', padding: '16px' }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between'
-                                    }}>
-                                        <h3>
-                                            {comment.user.username} : {comment.content}
-                                        </h3>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <IconButton
-                                                onClick={() => {
-                                                    handleReaction(comment._id, !reactions[comment._id].estado, TypeNotification.LikeToComment, null);
-                                                }}
-                                            >
-                                                <FavoriteIcon
-                                                    sx={{ color: reactions[comment._id]?.estado ? 'red' : 'gray', transition: 'color 0.5s' }}
+                    {detailsReceta?.comments
+                        ?.slice()
+                        .sort((a, b) => new Date(b.dateComment) - new Date(a.dateComment))
+                        .filter(value => value._id).length > 0
+                        ? detailsReceta?.comments
+                            ?.slice()
+                            .sort((a, b) => new Date(b.dateComment) - new Date(a.dateComment))
+                            .filter(value => value._id)
+                            .slice(0, visibleComments)
+                            .map((comment, index) => (
+                                comment._id
+                                    ?
+                                    <Paper key={index} style={{ marginBottom: '16px', position: 'relative', padding: '16px' }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between'
+                                        }}>
+                                            <h3>
+                                                {comment.user.username} : {comment.content}
+                                            </h3>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <IconButton
+                                                    onClick={() => {
+                                                        handleReaction(comment._id, !reactions[comment._id].estado, TypeNotification.LikeToComment, null);
+                                                    }}
+                                                >
+                                                    <FavoriteIcon
+                                                        sx={{ color: reactions[comment._id]?.estado ? 'red' : 'gray', transition: 'color 0.5s' }}
+                                                    />
+                                                </IconButton>
+                                                <span>{reactions[comment._id]?.count}</span>
+                                            </div>
+                                        </div>
+                                        {
+                                            comment.responses
+                                                .slice()
+                                                .sort((a, b) => new Date(a.dateComment) - new Date(b.dateComment))
+                                                .filter(value => value._id)
+                                                .slice(0, visibleAnswers[index] || 3)
+                                                .map((answerd, i) => (
+                                                    <Typography key={i} variant="body2" style={{ marginLeft: '16px', position: 'relative' }}>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between'
+                                                        }}>
+                                                            {answerd.user.username} : {answerd.content}
+                                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <IconButton
+                                                                    onClick={() => {
+                                                                        handleReaction(answerd._id, !reactions[answerd._id]?.estado, TypeNotification.LikeToAnswerd, answerd.parentComment)
+                                                                    }}
+                                                                >
+                                                                    <FavoriteIcon
+                                                                        sx={{ color: reactions[answerd._id]?.estado ? 'red' : 'gray', transition: 'color 0.5s' }}
+                                                                    />
+                                                                </IconButton>
+                                                                <span>{reactions[answerd._id]?.count}</span>
+                                                            </div>
+                                                        </div>
+                                                    </Typography>
+                                                ))
+                                        }
+                                        < div style={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
+                                            <div>
+                                                <TextField
+                                                    type='text'
+                                                    sx={{ paddingRight: '10%' }}
+                                                    value={responseContent[index] || ''}
+                                                    onChange={(e) => handleResponseContentChange(index, e.target.value)}
                                                 />
-                                            </IconButton>
-                                            <span>{reactions[comment._id]?.count}</span>
+                                                <Button variant='outlined' onClick={() => handleSendResponse(index, comment.id, comment._id, TypeNotification.CommentToAnswerd)}>SEND</Button>
+                                            </div>
+                                            {comment.responses.filter(value => value._id).length > (visibleAnswers[index] || 3) && (
+                                                <Button
+                                                    size="small"
+                                                    onClick={() => handleShowMoreAnswers(index)}
+                                                    style={{ marginTop: '8px' }}
+                                                >
+                                                    Show more answers
+                                                </Button>
+                                            )}
                                         </div>
-                                    </div>
-                                    {
-                                        comment.responses.filter(value => value._id).slice(0, visibleAnswers[index] || 3).map((answerd, i) => (
-                                            <Typography key={i} variant="body2" style={{ marginLeft: '16px', position: 'relative' }}>
-                                                <div style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'space-between'
-                                                }}>
-                                                    {answerd.user.username} : {answerd.content}
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <IconButton
-                                                            onClick={() => {
-                                                                handleReaction(answerd._id, !reactions[answerd._id]?.estado, TypeNotification.LikeToAnswerd, answerd.parentComment)
-                                                            }}
-                                                        >
-                                                            <FavoriteIcon
-                                                                sx={{ color: reactions[answerd._id]?.estado ? 'red' : 'gray', transition: 'color 0.5s' }}
-                                                            />
-                                                        </IconButton>
-                                                        <span>{reactions[answerd._id]?.count}</span>
-                                                    </div>
-                                                </div>
-                                            </Typography>
-                                        ))
-                                    }
-                                    < div style={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
-                                        <div>
-                                            <TextField
-                                                type='text'
-                                                sx={{ paddingRight: '10%' }}
-                                                value={responseContent[index] || ''}
-                                                onChange={(e) => handleResponseContentChange(index, e.target.value)}
-                                            />
-                                            <Button variant='outlined' onClick={() => handleSendResponse(index, comment.id, comment._id, TypeNotification.CommentToAnswerd)}>SEND</Button>
-                                        </div>
-                                        {comment.responses.filter(value => value._id).length > (visibleAnswers[index] || 3) && (
-                                            <Button
-                                                size="small"
-                                                onClick={() => handleShowMoreAnswers(index)}
-                                                style={{ marginTop: '8px' }}
-                                            >
-                                                Show more answers
-                                            </Button>
-                                        )}
-                                    </div>
-                                </Paper>
-                                : <></>
-                        ))
+                                    </Paper>
+                                    : <></>
+                            ))
                         : <div><h1>No Comments Yet</h1></div>
                     }
                     {detailsReceta?.comments?.filter(value => value._id).length > visibleComments && (

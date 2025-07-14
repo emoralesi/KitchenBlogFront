@@ -9,7 +9,7 @@ export const RecipeFirstPart = ({ detailsReceta }) => {
     };
 
     return (
-        <Grid container sx={{ width: '100%' }}>
+        <Grid container sx={{ width: '100%', paddingLeft: '10px' }}>
             <Grid item xs={12} sm={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'column', width: '100%', marginBottom: '20px' }}>
                 <Box sx={{ width: '100%' }} >
                     <h1>{detailsReceta.titulo}</h1>

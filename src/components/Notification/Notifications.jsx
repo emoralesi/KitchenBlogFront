@@ -8,7 +8,7 @@ import { NotificationList } from './NotificationList';
 const NotificationBell = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const { notifications, totalNoti, totalUnread, setTotalUnread, ObtenerNotificaciones, LeerNotificaciones } = useNotification();
-    const [limit, setLimit] = useState(10);
+    const [limit, setLimit] = useState(9);
     const [cantidadNotificaciones, setCantidadNotificaciones] = useState(0);
     const page = 1;
 

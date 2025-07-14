@@ -10,11 +10,11 @@ export const NotificationLike = ({ params }) => {
         if (params.action) {
             switch (params.action) {
                 case TypeNotification.LikeToAnswerd:
-                    return <h5>{params.user_action[0].username} ha dado like a tu respuesta "{params.comment[0].content}" al comentario "{params.parentComment.content}" de la Receta : "{params.receta[0]?.titulo}".</h5>;
+                    return <h5>{params.user_action[0]?.username} ha dado like a tu respuesta "{params.comment[0]?.content}" al comentario "{params.parentComment?.content}" de la Receta : "{params.receta[0]?.titulo}".</h5>;
                 case TypeNotification.LikeToComment:
-                    return <h5>{params.user_action[0].username} ha dado like a tu comentario "{params.comment[0].content}" de la Receta: "{params.receta[0]?.titulo}".</h5>;
+                    return <h5>{params.user_action[0]?.username} ha dado like a tu comentario "{params.comment[0]?.content}" de la Receta: "{params.receta[0]?.titulo}".</h5>;
                 case TypeNotification.LikeToReceta:
-                    return <h5>{params.user_action[0].username} ha dado like a tu Receta: "{params.receta[0]?.titulo}".</h5>
+                    return <h5>{params.user_action[0]?.username} ha dado like a tu Receta: "{params.receta[0]?.titulo}".</h5>
                 default:
                     return <h5>Error en notificacion</h5>;
             }

@@ -39,7 +39,7 @@ function App() {
           )}>
           </Route >
           <Route path="/main" element={<SessionGuard element={<MainContent />} />}>
-            <Route path="bienvenido" element={<ImageContent />} />
+            <Route path="bienvenido" element={<Bienvenido />} />
             {/* <Route path="myFavourites" element={<>
               <h1>MY FAVOURITES</h1>
               <Favourites />

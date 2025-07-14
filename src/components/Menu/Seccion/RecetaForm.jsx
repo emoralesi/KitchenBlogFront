@@ -447,6 +447,7 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
                                         rows={4}
                                         fullWidth
                                         margin="normal"
+                                        inputProps={{ maxLength: 250 }}
                                     />
                                     <Typography sx={{
                                         position: 'absolute',

@@ -68,6 +68,14 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
                 position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
                 overflowY: 'auto'
             }}>
+                <div style={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
+                    <Button onClick={() => {
+                        setOpen(false)
+                    }} size='small'>
+                        X
+                    </Button>
+                </div>
+
                 <Typography variant="h5" gutterBottom>Lista de Ingredientes</Typography>
                 {recipes.map(recipe => (
                     <Box key={recipe._id} sx={{ mb: 3 }}>
@@ -101,7 +109,11 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
                         ))}
                     </Box>
                 ))}
-                <Button onClick={() => setOpen(false)} variant="contained" color="secondary" sx={{ mt: 2 }}>Cerrar</Button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 15 }}>
+                    <Button onClick={() => setOpen(false)} variant="contained" color="secondary" sx={{ mt: 2 }}>Cerrar</Button>
+                    <Button onClick={() => setOpen(false)} variant="contained" color="success" sx={{ mt: 2 }}>Enviar Lista Al Correo</Button>
+                </div>
+
             </Box>
         </Modal>
     );

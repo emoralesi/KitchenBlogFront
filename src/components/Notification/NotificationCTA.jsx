@@ -15,8 +15,8 @@ export const NotificationCTA = ({ params }) => {
                 </div>
                 {
                     params.parentComment.user._id == getStorageUser().usuarioId
-                        ? <h5 style={{ width: '85%' }}>{`${params.user_action[0].username} ha respondido a tu comentario ${params.parentComment.content} de la Receta: "${params.receta[0]?.titulo}".`}</h5>
-                        : <h5 style={{ width: '85%' }}>{` ${params.user_action[0].username} también ha respondido al comentario de ${params.parentComment.user[0].username} : "${params.parentComment.content}" en la Receta: "${params.receta[0]?.titulo}".`}</h5>
+                        ? <h5 style={{ width: '85%' }}>{`${params.user_action[0]?.username} ha respondido a tu comentario ${params.parentComment?.content} de la Receta: "${params.receta[0]?.titulo}".`}</h5>
+                        : <h5 style={{ width: '85%' }}>{` ${params.user_action[0]?.username} también ha respondido al comentario de ${params.parentComment?.user[0]?.username} : "${params.parentComment?.content}" en la Receta: "${params.receta[0]?.titulo}".`}</h5>
                 }
             </div>
         </Box>

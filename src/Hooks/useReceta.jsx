@@ -34,7 +34,6 @@ export const useReceta = () => {
     const actualizarPined = async (id, action) => {
         try {
             const result = await updatePined({ data: { id: id, action: action } });
-            enqueueSnackbar('Receta actualizada correctaente', { variant: 'success' });
             return true;
 
         } catch (error) {
@@ -49,8 +48,14 @@ export const useReceta = () => {
 
         try {
             const result = await updateReceta({ receta: data });
-            enqueueSnackbar('Receta actualizada correctaente', { variant: 'success' });
-            return true;
+            console.log("mi result update", result);
+            if (result.status === 'ok') {
+                enqueueSnackbar('Receta actualizada correctaente', { variant: 'success' });
+            } else {
+                enqueueSnackbar('No fue posible actualizar la receta', { variant: 'error' });
+            }
+
+            return result;
 
         } catch (error) {
             enqueueSnackbar('A ocurrido un error, favor intente mas tarde', { variant: 'error' });
@@ -108,6 +113,19 @@ export const useReceta = () => {
     const ObtenerRecetasInfo = async ({ data }) => {
         try {
             const result = await GetRecetasInfo({ data });
+            setReactionInfo(result.Recetas?.map((recipe) => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_reaction: recipe.reactions.map((reaction) => reaction.user_id),
+                };
+            }));
+
+            setFavouriteInfo(result.Recetas?.map((recipe) => {
+                return {
+                    idReceta: recipe._id,
+                    usuarios_id_favourite: recipe.favourite,
+                };
+            }));
             console.log("obtenerRecetasInfo", result);
             setRecetasInfo(result.Recetas);
             setCantidadReceta(result.totalRecetas);

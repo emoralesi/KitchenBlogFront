@@ -1,6 +1,6 @@
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, Button, FormControl, IconButton, ImageList, ImageListItem, InputLabel, MenuItem, Modal, Select, Slide, styled, TextField } from '@mui/material';
+import { Box, Button, CircularProgress, FormControl, IconButton, ImageList, ImageListItem, InputLabel, MenuItem, Modal, Select, Slide, styled, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useCategoria } from '../../../Hooks/useCategoria';
 import { useDificultad } from '../../../Hooks/useDificultad';
@@ -21,6 +21,7 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
     const [categoria, setCategoria] = useState('');
     const [utencilio, setUtencilio] = useState([]);
     const [subCategoria, setSubCategoria] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [imageUrl, setImageUrl] = useState([]);
     const [imagesRecipe, setImagesRecipe] = useState([]);
     const [grupoIngrediente, setGrupoIngrediente] = useState([{ nombreGrupo: '', items: [{ valor: 0, idIngrediente: '', idMedida: '' }] }]);
@@ -179,7 +180,9 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
     };
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
+
         const data = {
             _id: recetaId,
             titulo: title,
@@ -196,13 +199,120 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
             imagesRecipe,
             user: getStorageUser().usuarioId
         };
-        console.log("mi data", data);
 
-        await actualizarReceta({ data: data });
-        await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } }).then((res) => {
+        if (!title.trim()) {
+            alert("El título es obligatorio.");
+            return;
+        }
 
-        })
-        handleClose();
+        function capitalizarTitulo(titulo) {
+            if (!titulo || titulo.length === 0) {
+                return titulo;
+            }
+
+            const palabras = titulo.split(' ');
+
+            const palabrasCapitalizadas = palabras.map(palabra => {
+                return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
+            });
+
+            return palabrasCapitalizadas.join(' ');
+        }
+
+        data.titulo = capitalizarTitulo(data.titulo);
+
+        if (!description.trim()) {
+            alert("La descripcion es obligatorio.");
+            return;
+        }
+
+        if (!(cantidadPersonas > 0)) {
+            alert("La cantidad de personas debe ser mayor a 0 ");
+            return;
+        }
+
+        if (!dificultad.trim()) {
+            alert("La dificultad es obligatoria.");
+            return;
+        }
+
+        if (!categoria.trim()) {
+            alert("La categoria es obligatoria.");
+            return;
+        }
+
+        if (imagesRecipe.length < 1) {
+            alert("Debes subir al menos 1 imagen");
+            return;
+        }
+
+        if (imagesRecipe.length < 1) {
+            alert("Debes subir al menos 1 imagen");
+            return;
+        }
+
+        if (imagesRecipe.length > 5) {
+            alert("Puedes subir un máximo de 5 imágenes");
+            return;
+        }
+
+        let ingredientesValidos = true;
+        for (const grupo of grupoIngrediente) {
+            if (grupo.items.length === 0) {
+                ingredientesValidos = false;
+                break;
+            }
+            for (const item of grupo.items) {
+                if (!(item.valor > 0) || !item.idIngrediente || !item.idMedida) {
+                    ingredientesValidos = false;
+                    break;
+                }
+            }
+            if (!ingredientesValidos) break;
+        }
+
+        if (!ingredientesValidos) {
+            alert("Cada grupo de ingredientes debe tener al menos un ingrediente con valor mayor a 0, y tanto el ID del ingrediente como la medida deben estar seleccionados.");
+            return;
+        }
+
+        if (pasos.length === 0) {
+            alert("La receta debe tener al menos un paso.");
+            return;
+        }
+
+        for (const paso of pasos) {
+            if (!paso.descripcion.trim()) {
+                alert("La descripción de cada paso es obligatoria.");
+                return;
+            }
+        }
+
+        if (grupoIngrediente.length > 1) {
+            for (const grupo of grupoIngrediente) {
+                if (!grupo.nombreGrupo.trim()) {
+                    ingredientesValidos = false;
+                    break;
+                }
+            }
+        }
+
+        if (!ingredientesValidos) {
+            alert("Si hay más de un grupo, todos deben tener un nombre.");
+            return;
+        }
+        setLoading(true)
+        try {
+            const result = await actualizarReceta({ data: data });
+            if (result?.status === 'ok') {
+                await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } })
+                handleClose();
+            }
+        } catch (error) {
+            setLoading(false)
+        }
+        setLoading(false)
+
 
     };
 
@@ -254,6 +364,7 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
                                     Upload files
                                     <VisuallyHiddenInput
                                         type="file"
+                                        accept="image/*"
                                         onChange={handleImageChange}
                                         multiple
                                     />
@@ -297,22 +408,42 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
                                     ))}
                                 </ImageList>
 
-                                <TextField
-                                    label="Title"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    fullWidth
-                                    margin="normal"
-                                />
-                                <TextField
-                                    label="Description"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    multiline
-                                    rows={4}
-                                    fullWidth
-                                    margin="normal"
-                                />
+                                <Box sx={{ position: 'relative' }}>
+                                    <TextField
+                                        label="Title"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        fullWidth
+                                        margin="normal"
+                                        inputProps={{ maxLength: 55 }}
+                                    />
+                                    <Typography sx={{
+                                        position: 'absolute',
+                                        bottom: 8,
+                                        right: 8,
+                                    }} variant="caption" color="textSecondary">
+                                        {title.length}/{50}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ position: 'relative' }}>
+                                    <TextField
+                                        label="Description"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        multiline
+                                        rows={4}
+                                        fullWidth
+                                        margin="normal"
+                                        inputProps={{ maxLength: 250 }}
+                                    />
+                                    <Typography sx={{
+                                        position: 'absolute',
+                                        bottom: 8,
+                                        right: 8,
+                                    }} variant="caption" color="textSecondary">
+                                        {description.length}/{250}
+                                    </Typography>
+                                </Box>
                                 <TextField
                                     label="Hours"
                                     type="number"
@@ -498,29 +629,46 @@ export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, pa
                                             fullWidth
                                             margin="normal"
                                         />
-                                        <TextField
-                                            label="Description"
-                                            value={step.descripcion}
-                                            onChange={(e) => {
-                                                const newPasos = [...pasos];
-                                                newPasos[index].descripcion = e.target.value;
-                                                setPasos(newPasos);
-                                            }}
-                                            multiline
-                                            rows={2}
-                                            fullWidth
-                                            margin="normal"
-                                        />
+                                        <Box sx={{ position: 'relative' }}>
+                                            <TextField
+                                                label="Description"
+                                                value={step.descripcion}
+                                                onChange={(e) => {
+                                                    const newPasos = [...pasos];
+                                                    newPasos[index].descripcion = e.target.value;
+                                                    setPasos(newPasos);
+                                                }}
+                                                multiline
+                                                rows={2}
+                                                fullWidth
+                                                margin="normal"
+                                                inputProps={{ maxLength: 250 }}
+                                            />
+                                            <Typography sx={{
+                                                position: 'absolute',
+                                                bottom: 8,
+                                                right: 8,
+                                            }} variant="caption" color="textSecondary">
+                                                {step.descripcion.length}/{250}
+                                            </Typography>
+                                        </Box>
                                         {pasos.length > 1 && (
                                             <Button onClick={() => handleDeletePaso(index)} variant="outlined" color="error">Delete Paso</Button>
                                         )}
                                     </Box>
                                 ))}
-                                <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
-                                <Button type="submit" variant="contained" color="warning">Update Recipe</Button>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
+                                    <Button type="submit" variant="contained" color="warning">Update Recipe</Button>
+                                </div>
                             </form>
                         </div>
                     </div>
+                    {loading && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1000 }}>
+                            <CircularProgress />
+                        </Box>
+                    )}
                 </Box>
             </Slide>
         </Modal>
