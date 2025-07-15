@@ -8,7 +8,6 @@ import ClearIcon from "@mui/icons-material/Clear";
 import CommentIcon from "@mui/icons-material/Comment";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import PersonIcon from "@mui/icons-material/Person";
-import PushPinIcon from "@mui/icons-material/PushPin";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 import SearchIcon from "@mui/icons-material/Search";
@@ -32,6 +31,7 @@ import {
   Zoom,
 } from "@mui/material";
 import debounce from "just-debounce-it";
+import { enqueueSnackbar } from "notistack";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCategoria } from "../../../Hooks/useCategoria";
@@ -43,11 +43,9 @@ import { useUsuario } from "../../../Hooks/useUsuario";
 import { dateConvert } from "../../../utils/dateConvert";
 import { TypeNotification } from "../../../utils/enumTypeNoti";
 import IconSvg from "../../../utils/IconSvg";
+import { SkeletonWave } from "../../../utils/Skeleton";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from "./DitailsReceta";
-import { SkeletonWave } from "../../../utils/Skeleton";
-import { simulateDelay } from "../../../utils/Delay";
-import { enqueueSnackbar } from "notistack";
 
 export const DescoveryRecipe = () => {
   const navigate = useNavigate();
@@ -74,6 +72,12 @@ export const DescoveryRecipe = () => {
   } = useUsuario();
   const [isExpanded, setIsExpanded] = useState({});
   const [textSearch, setTextSearch] = useState("");
+  const [filterBy, setFilterBy] = useState({
+    categoria: "",
+    subCategoria: "",
+    ingredientes: [],
+  });
+
   const [errorSearch, setErrorSearch] = useState(false);
   const [filterSearch, setFilterSearch] = useState(null);
   const [page, setPage] = useState(1);
@@ -93,7 +97,7 @@ export const DescoveryRecipe = () => {
 
   const GetAllRecipes = async () => {
     setLoading(true);
-    simulateDelay(ObtenerRecetasInfo({ data: { page, limit } }))
+    ObtenerRecetasInfo({ data: { page, limit } })
       .then((res) => {
         setReactionInfo(
           res.Recetas?.map((recipe) => {
@@ -135,10 +139,6 @@ export const DescoveryRecipe = () => {
 
   const debounceHandleNextPage = useCallback(
     debounce(() => {
-      console.log("mi cantidad receta", cantidadReceta);
-      console.log("mi recetasInfo.length", recetasInfo.length);
-      console.log(cantidadReceta < recetasInfo.length);
-
       if (recetasInfo.length < cantidadReceta && cantidadReceta !== null) {
         const newLimit = limit + 9;
         setPreviousLength(recetasInfo.length);
@@ -150,9 +150,9 @@ export const DescoveryRecipe = () => {
             limit: newLimit,
             filter: {
               titulo: filterSearch,
-              categoria: categoria !== "" ? categoria : null,
-              subCategoria,
-              ingredientes,
+              categoria: filterBy.categoria,
+              subCategoria: filterBy.subCategoria,
+              ingredientes: filterBy.ingredientes,
             },
           },
         }).finally(() => {
@@ -168,7 +168,6 @@ export const DescoveryRecipe = () => {
       if (isNearScreen && !loading) {
         debounceHandleNextPage();
       }
-      console.log(isNearScreen);
     },
     [isNearScreen]
   );
@@ -202,7 +201,6 @@ export const DescoveryRecipe = () => {
       ? (result = [...idFavourites, id])
       : (result = idFavourites.filter((favourite) => favourite != id));
 
-    console.log("asi me quedo el idFacourite", result);
     setIdFavourites(result);
   };
 
@@ -223,7 +221,6 @@ export const DescoveryRecipe = () => {
   const handleClick = () => {
     setTextSearch("");
     setShowClearIcon("none");
-    console.log("clicked the clear icon...");
   };
 
   const GetRecipeAction = () => {
@@ -237,20 +234,28 @@ export const DescoveryRecipe = () => {
     }
 
     setLoading(true);
-    simulateDelay(
-      ObtenerRecetasInfo({
-        data: {
-          page,
-          limit,
-          filter: {
-            titulo: filterSearch,
-            categoria: categoria !== "" ? categoria : null,
-            subCategoria,
-            ingredientes,
-          },
-        },
-      })
-    )
+
+    const filter = {
+      titulo: filterSearch,
+      categoria: categoria !== "" ? categoria : null,
+      subCategoria,
+      ingredientes,
+    };
+
+    setFilterBy({
+      categoria: categoria !== "" ? categoria : null,
+      subCategoria: subCategoria,
+      ingredientes: ingredientes,
+    });
+    console.log("mi filtro", filter);
+
+    ObtenerRecetasInfo({
+      data: {
+        page,
+        limit,
+        filter,
+      },
+    })
       .then((res) => {
         setReactionInfo(
           res.Recetas?.map((recipe) => ({
@@ -283,8 +288,6 @@ export const DescoveryRecipe = () => {
             sx={{ marginBottom: "20px", marginTop: "10px" }}
           >
             <Grid item xs={12} md={6}>
-              {" "}
-              {/* TextSearch ocupa todo en xs, y 6 en md */}
               <FormControl fullWidth>
                 <TextField
                   size="small"
@@ -294,9 +297,7 @@ export const DescoveryRecipe = () => {
                   placeholder="Type at least 3 words..."
                   onChange={handleChange}
                   onKeyDown={debounce((ev) => {
-                    console.log(`Pressed keyCode ${ev.key}`);
                     if (ev.key === "Enter") {
-                      console.log("mi length", textSearch.length);
                       if (textSearch.length >= 0 && textSearch.length < 3) {
                         setErrorSearch(true);
                         return;
@@ -305,13 +306,19 @@ export const DescoveryRecipe = () => {
                           setErrorSearch(false);
                         }
                         setFilterSearch(textSearch);
-                        console.log("mi textSearch", textSearch);
 
                         ObtenerRecetasInfo({
-                          data: { page, limit, filter: { titulo: textSearch } },
+                          data: {
+                            page,
+                            limit,
+                            filter: {
+                              titulo: filterSearch,
+                              categoria: filterBy.categoria,
+                              subCategoria: filterBy.subCategoria,
+                              ingredientes: filterBy.ingredientes,
+                            },
+                          },
                         }).then((res) => {
-                          console.log("este es mi res", res);
-
                           setReactionInfo(
                             res.Recetas?.map((recipe) => {
                               return {
@@ -368,9 +375,14 @@ export const DescoveryRecipe = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={3}>
-              {" "}
-              {/* Botón Buscar y Resetear ocupan todo en xs, y 3 en md */}
               <Grid container spacing={1}>
+                {filterSearch && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Buscando por: <strong>{filterSearch}</strong>
+                    </Typography>
+                  </Grid>
+                )}
                 <Grid item xs={12} md={6}>
                   <Button
                     variant="contained"
@@ -387,19 +399,20 @@ export const DescoveryRecipe = () => {
                             setErrorSearch(false);
                           }
                           setFilterSearch(textSearch);
-                          console.log("mi textSearch", textSearch);
                           setLoading(true);
-                          simulateDelay(
-                            ObtenerRecetasInfo({
-                              data: {
-                                page,
-                                limit,
-                                filter: { titulo: textSearch },
+                          ObtenerRecetasInfo({
+                            data: {
+                              page,
+                              limit,
+                              filter: {
+                                titulo: textSearch,
+                                categoria: filterBy.categoria,
+                                subCategoria: filterBy.subCategoria,
+                                ingredientes: filterBy.ingredientes,
                               },
-                            })
-                          )
+                            },
+                          })
                             .then((res) => {
-                              console.log("este es mi res", res);
                               setReactionInfo(
                                 res.Recetas?.map((recipe) => ({
                                   idReceta: recipe._id,
@@ -434,7 +447,19 @@ export const DescoveryRecipe = () => {
                     variant="outlined"
                     disabled={!searchState}
                     onClick={async () => {
-                      await GetAllRecipes();
+                      //await GetAllRecipes();
+                      ObtenerRecetasInfo({
+                        data: {
+                          page,
+                          limit,
+                          filter: {
+                            titulo: null,
+                            categoria: filterBy.categoria,
+                            subCategoria: filterBy.subCategoria,
+                            ingredientes: filterBy.ingredientes,
+                          },
+                        },
+                      });
                       setSearchState(false);
                       setFilterSearch(null);
                     }}
@@ -457,7 +482,6 @@ export const DescoveryRecipe = () => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2} alignItems="center">
-              {/* Category Selection */}
               <Grid item md={6} xs={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Category</InputLabel>
@@ -476,8 +500,6 @@ export const DescoveryRecipe = () => {
                   </Select>
                 </FormControl>
               </Grid>
-
-              {/* Ingredients Selection */}
               <Grid item md={6} xs={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Ingredients</InputLabel>
@@ -494,8 +516,6 @@ export const DescoveryRecipe = () => {
                   </Select>
                 </FormControl>
               </Grid>
-
-              {/* Subcategory Buttons */}
               <Grid item xs={12}>
                 <Typography variant="subtitle1">Subcategories</Typography>
                 <Grid container spacing={1}>
@@ -525,8 +545,6 @@ export const DescoveryRecipe = () => {
                   })}
                 </Grid>
               </Grid>
-
-              {/* Filter and Clear Buttons */}
               <Grid
                 item
                 xs={12}
@@ -557,21 +575,23 @@ export const DescoveryRecipe = () => {
                     setSubCategoria([]);
                     setIngredientes([]);
 
+                    setFilterBy({
+                      categoria: "",
+                      subCategoria: "",
+                      ingredientes: [],
+                    });
+
                     setLoading(true);
-                    simulateDelay(
-                      ObtenerRecetasInfo({
-                        data: {
-                          page,
-                          limit,
-                          filter: {
-                            titulo: filterSearch,
-                            categoria: categoria !== "" ? categoria : null,
-                            subCategoria,
-                            ingredientes,
-                          },
+
+                    ObtenerRecetasInfo({
+                      data: {
+                        page,
+                        limit,
+                        filter: {
+                          titulo: filterSearch
                         },
-                      })
-                    )
+                      },
+                    })
                       .then((res) => {
                         setReactionInfo(
                           res.Recetas?.map((recipe) => ({
@@ -754,7 +774,6 @@ export const DescoveryRecipe = () => {
                             }}
                           />
 
-                          {/* Texto que aparece en el hover */}
                           <Typography
                             className="text"
                             sx={{

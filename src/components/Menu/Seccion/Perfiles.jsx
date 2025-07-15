@@ -96,8 +96,6 @@ export const Perfiles = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    console.log("valor imagen", image);
-
     if (!image) {
       enqueueSnackbar("Debe seleccionar una imagen primero", {
         variant: "warning",
@@ -180,8 +178,6 @@ export const Perfiles = () => {
 
         const result = await ObtenerDataFavAndRec({ idUser: idUser });
 
-        console.log("mi result resultadoso", result);
-
         setCantidadReceta(result.recetaCount);
         setCantidadFavoritos(result.favouriteCount);
       } catch (error) {
@@ -194,30 +190,20 @@ export const Perfiles = () => {
     fetchData();
   }, [username, getIdUserByUserName, ObtenerDataFavAndRec]);
 
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "80vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   if (!userExists) {
     return <UserNotFound />;
   }
 
   return (
-    <div style={{ height: "100%" }}>
+    <div style={{ height: "100%", marginTop: "10px" }}>
       <div style={{ display: "flex", alignItems: "center" }}>
         <div
-          style={{ width: "50%", display: "flex", justifyContent: "center" }}
+          style={{
+            width: "50%",
+            display: "flex",
+            justifyContent: "center",
+            margin: "10px 10px 10px 10px",
+          }}
         >
           <div
             style={{ position: "relative" }}
@@ -261,13 +247,55 @@ export const Perfiles = () => {
             </IconButton>
           </div>
         </div>
-        <div style={{ width: "50%" }}>
-          <div style={{ width: "100%" }}>
-            <h2>{username}</h2>
-          </div>
-          <p>{`Recepies : ${cantidadReceta}`}</p>
-          <p>{`Favourites: ${cantidadFavoritos}`}</p>
-        </div>
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 500,
+            fontFamily: "Roboto, sans-serif",
+            color: "#333",
+            wordBreak: "break-word", // Evita desbordes
+          }}
+        >
+          <Box sx={{ width: "100%", mb: 1 }}>
+            <Typography
+              sx={{
+                fontWeight: 600,
+                fontFamily: "Playfair Display, serif",
+                fontSize: {
+                  xs: "1.5rem", // móviles
+                  sm: "2rem",
+                  md: "2.25rem",
+                },
+                lineHeight: 1.2,
+                overflowWrap: "break-word",
+                textAlign: "left",
+              }}
+            >
+              {username}
+            </Typography>
+          </Box>
+
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: "1rem",
+              fontFamily: "Roboto, sans-serif",
+              mb: 0.5,
+            }}
+          >
+            Recetas: <strong>{cantidadReceta ?? 0}</strong>
+          </Typography>
+
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: "1rem",
+              fontFamily: "Roboto, sans-serif",
+            }}
+          >
+            Favoritos: <strong>{cantidadFavoritos ?? 0}</strong>
+          </Typography>
+        </Box>
       </div>
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderColor: "divider" }}>
@@ -350,7 +378,6 @@ export const Perfiles = () => {
               alignItems: "center",
             }}
           >
-            {/* Botón de cierre */}
             <IconButton
               onClick={handleClose}
               sx={{ position: "absolute", top: 8, right: 8 }}
@@ -358,7 +385,6 @@ export const Perfiles = () => {
               <CloseIcon />
             </IconButton>
 
-            {/* Título */}
             <Typography variant="h6" sx={{ mb: 2 }}>
               Cambiar foto de perfil
             </Typography>
@@ -367,7 +393,6 @@ export const Perfiles = () => {
               <CircularProgress />
             ) : (
               <form onSubmit={handleSubmit} style={{ width: "100%" }}>
-                {/* Vista previa de la imagen */}
                 {image && (
                   <Box
                     sx={{
@@ -384,8 +409,6 @@ export const Perfiles = () => {
                     />
                   </Box>
                 )}
-
-                {/* Input de imagen */}
                 <Button
                   variant="contained"
                   component="label"
@@ -400,8 +423,6 @@ export const Perfiles = () => {
                     onChange={handleImageChange}
                   />
                 </Button>
-
-                {/* Botón de enviar */}
                 <Button
                   type="submit"
                   variant="contained"

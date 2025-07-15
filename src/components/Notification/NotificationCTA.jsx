@@ -3,12 +3,8 @@ import MessageIcon from '@mui/icons-material/Message';
 import { getStorageUser } from "../../utils/StorageUser";
 
 export const NotificationCTA = ({ params }) => {
-    console.log("mis params", params);
     return (
         <Box sx={{ width: '100%' }}>
-            {
-                console.log(params)
-            }
             <div style={{ display: 'flex' }}>
                 <div style={{ width: '15%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <MessageIcon fontSize="large" />

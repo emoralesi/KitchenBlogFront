@@ -37,13 +37,10 @@ export async function LoginUsuario(req) {
 export async function RegisterUsuario(req) {
     try {
 
-        console.log("my req", req);
-
         let data = {
             "email": req.emailUsuario,
             "password": req.password
         }
-        console.log("me cai despues del data");
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -54,15 +51,11 @@ export async function RegisterUsuario(req) {
 
         };
 
-        console.log("me cai despues del requestOption");
-
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/registro`, requestOptions).then((res) => {
             return res.json()
         }).then((res) => {
             return res
         });
-
-        console.log("me cai despues de la llamada");
 
         return response
 
@@ -74,7 +67,6 @@ export async function RegisterUsuario(req) {
 
 export async function obtenerIdUserByUsername(req) {
     try {
-        console.log(getStorageUser().token);
         let data = {
             username: req
         }
@@ -105,12 +97,9 @@ export async function obtenerIdUserByUsername(req) {
 export async function getUsuariosToDescubrir(req) {
     try {
 
-        console.log("my req", req);
-
         let data = {
             "userId": req.userId
         }
-        console.log("me cai despues del data");
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -122,16 +111,12 @@ export async function getUsuariosToDescubrir(req) {
 
         };
 
-        console.log("me cai despues del requestOption");
-
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerUsuariosDescubrir`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
             return res
         });
-
-        console.log("me cai despues de la llamada");
 
         return response
 
@@ -143,10 +128,6 @@ export async function getUsuariosToDescubrir(req) {
 
 export async function getFavourites({ data }) {
     try {
-
-        console.log("my req", data);
-
-        console.log("me cai despues del data");
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -158,16 +139,12 @@ export async function getFavourites({ data }) {
 
         };
 
-        console.log("me cai despues del requestOption");
-
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerFavourite`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
             return res
         });
-
-        console.log("me cai despues de la llamada");
 
         return response
 
@@ -180,12 +157,10 @@ export async function getFavourites({ data }) {
 export async function getDatosRecAndFav(req) {
     try {
 
-        console.log("my req", req);
-
         let data = {
             "idUser": req
         }
-        console.log("me cai despues del data");
+
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -197,16 +172,12 @@ export async function getDatosRecAndFav(req) {
 
         };
 
-        console.log("me cai despues del requestOption");
-
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerDataUsuario`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
             return res
         });
-
-        console.log("me cai despues de la llamada");
 
         return response
 
@@ -219,12 +190,9 @@ export async function getDatosRecAndFav(req) {
 export async function getIdFavourites(req) {
     try {
 
-        console.log("my req", req);
-
         let data = {
             "idUser": req
         }
-        console.log("me cai despues del data");
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -236,16 +204,12 @@ export async function getIdFavourites(req) {
 
         };
 
-        console.log("me cai despues del requestOption");
-
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/obtenerIdFavourites`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
             return res
         });
-
-        console.log("me cai despues de la llamada");
 
         return response
 
@@ -258,14 +222,11 @@ export async function getIdFavourites(req) {
 export async function saveUpdateFavourite(req) {
     try {
 
-        console.log("my req", req);
-
         let data = {
             "idUser": req.idUser,
             "idReceta": req.idReceta,
             "estado": req.estado
         }
-        console.log("me cai despues del data");
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -277,16 +238,12 @@ export async function saveUpdateFavourite(req) {
 
         };
 
-        console.log("me cai despues del requestOption");
-
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/saveUpdateFavourite`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
             return res
         });
-
-        console.log("me cai despues de la llamada");
 
         return response
 

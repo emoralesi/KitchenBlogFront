@@ -32,7 +32,6 @@ export const DetailsReceta = ({ isFull, setOpen, idReceta, idUser, isFromProfile
     useEffect(() => {
         const fetchDetailsReceta = async () => {
             try {
-                console.log("Ditailsss idUser", idUser);
                 const receta = await getDetailsReceta({ recetaId: idReceta });
 
                 if (!receta) {

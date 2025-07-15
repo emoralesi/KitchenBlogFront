@@ -9,7 +9,6 @@ import {
   obtenerIdUserByUsername,
   saveUpdateFavourite,
 } from "../services/UserService";
-import { simulateDelay } from "../utils/Delay";
 
 export const useUsuario = () => {
   const [usuariosAll, setUsuariosAll] = useState([]);
@@ -41,7 +40,6 @@ export const useUsuario = () => {
   const RegistarUsuario = async ({ body }) => {
     try {
       const result = await RegisterUsuario(body);
-      console.log("esto me trago result", result);
       return result;
     } catch (error) {
       console.log(error);
@@ -62,7 +60,6 @@ export const useUsuario = () => {
   const ObtenerUsuariosDescubrir = async ({ body }) => {
     try {
       const result = await getUsuariosToDescubrir(body);
-      console.log("mi result usuarios", result?.usuarios);
       setUsuariosDescubrir(
         result?.usuarios.filter((user) => user.recetasCount > 0)
       );
@@ -76,8 +73,6 @@ export const useUsuario = () => {
   const ObtenerFavourites = async ({ data }, timeup) => {
     try {
       const result = await getFavourites(data);
-
-      console.log("mi result favoritos", result?.Favourites);
       setFavourites(result?.Favourites);
       setReactionInfo(
         result?.Favourites?.map((recipe) => {
@@ -118,7 +113,6 @@ export const useUsuario = () => {
   const ObtenerIdFavourites = async ({ idUser }) => {
     try {
       const result = await getIdFavourites(idUser);
-      console.log("mi result favoritos obtener id", result?.favourites);
       setIdFavourites(result?.favourites);
       return result;
     } catch (error) {

@@ -3,10 +3,8 @@ import { Box } from "@mui/material";
 import { TypeNotification } from "../../utils/enumTypeNoti";
 
 export const NotificationLike = ({ params }) => {
-    console.log("mis params Like", params);
 
     const getContent = () => {
-        console.log("mi action", params.action);
         if (params.action) {
             switch (params.action) {
                 case TypeNotification.LikeToAnswerd:

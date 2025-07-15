@@ -11,8 +11,6 @@ export async function getNotifications(idNotificated, page, limit) {
             "limit": limit
         }
 
-        console.log("mi token", getStorageUser().token);
-
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -31,7 +29,6 @@ export async function getNotifications(idNotificated, page, limit) {
             return res
         });
 
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -47,8 +44,6 @@ export async function updateNotifications(idNotifications, page, limit) {
         let data = {
             "idNotifications": idNotifications
         }
-
-        console.log("mi token", getStorageUser().token);
 
         const requestOptions = {
             method: 'POST',
@@ -67,8 +62,7 @@ export async function updateNotifications(idNotifications, page, limit) {
         }).then((res) => {
             return res
         });
-
-        console.log("este es mi response", response);
+        
         return response
 
     } catch (error) {

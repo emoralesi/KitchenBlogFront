@@ -44,7 +44,6 @@ export const RecipeThirdPart = ({
     };
 
     const handleReaction = async (id, estado, type, parentComment) => {
-        console.log("mi tipo", type);
         await SaveUpdateCommentReaction({ body: { idComment: id, idUser: getStorageUser().usuarioId, estado: estado, type: type, parentComment: parentComment, idReceta: idReceta } });
 
         setReactions((prevReactions) => ({
@@ -58,7 +57,6 @@ export const RecipeThirdPart = ({
     };
 
     const handleSendResponse = async (index, commentId, parentComment, type) => {
-        console.log("mi comentario y/o respuesta", responseContent[index]);
 
         const id = await guardarComment({
             comentario: {
@@ -124,7 +122,6 @@ export const RecipeThirdPart = ({
                         <div style={{ marginRight: '20px' }}>
                             <IconButton
                                 onClick={() => {
-                                    console.log("my log", recetaReactions?.some(value => value.user_id === getStorageUser().usuarioId))
                                     recetaReactions?.some(value => value.user_id === getStorageUser().usuarioId)
                                         ? setRecetaReactions(recetaReactions.filter(reaction => reaction.user_id != getStorageUser().usuarioId))
                                         : setRecetaReactions([...recetaReactions, { user_id: getStorageUser().usuarioId }])
@@ -172,9 +169,6 @@ export const RecipeThirdPart = ({
                             setCommentParent('')
                         }} variant='outlined'>SEND</Button>
                     </div>
-                    {
-                        console.log("mi details Receta", detailsReceta)
-                    }
                     {detailsReceta?.comments
                         ?.slice()
                         .sort((a, b) => new Date(b.dateComment) - new Date(a.dateComment))

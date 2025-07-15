@@ -4,8 +4,6 @@ import { getStorageUser } from "./StorageUser";
 
 export const PopUpNotification = ({ params, userId }) => {
 
-    console.log("mi params", params);
-    console.log("entré al pop up");
     try {
         switch (params.action_noti) {
             case TypeNotification.CommentToAnswerd:

@@ -2,7 +2,6 @@ import { Box } from "@mui/material"
 import MessageIcon from '@mui/icons-material/Message';
 
 export const NotificationCTR = ({ params }) => {
-    console.log("mis params CTR", params);
     return (
         <Box sx={{ width: '100%'}}>
             <div style={{ display: 'flex' }}>

@@ -4,10 +4,8 @@ import { saveComment, saveUpdateReactionComment } from "../services/CommentServi
 export const useComment = () => {
     const guardarComment = async ({ comentario }) => {
 
-        console.log("data al useReceta", comentario);
         try {
             const result = await saveComment({ comment: comentario });
-            console.log("mi result del save commnet", result);
             enqueueSnackbar('Comentario Registrado correctaente', { variant: 'success' });
             return result.comment._id;
 
@@ -23,7 +21,6 @@ export const useComment = () => {
 
         try {
             const result = await saveUpdateReactionComment(body);
-            console.log("esto me trago result", result);
         } catch (error) {
             console.log(error);
         } finally {

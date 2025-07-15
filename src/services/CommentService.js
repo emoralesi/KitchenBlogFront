@@ -3,8 +3,6 @@ import { getStorageUser } from "../utils/StorageUser";
 
 export async function saveComment({ comment }) {
 
-    console.log("mi data", comment);
-
     try {
 
         const requestOptions = {
@@ -24,8 +22,6 @@ export async function saveComment({ comment }) {
         }).then((res) => {
             return res
         });
-
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -45,7 +41,6 @@ export async function saveUpdateReactionComment(req) {
             "idReceta": req.idReceta,
             "parentComment": req.parentComment
         }
-        console.log("me cai despues del data");
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -57,16 +52,12 @@ export async function saveUpdateReactionComment(req) {
 
         };
 
-        console.log("me cai despues del requestOption");
-
         const response = await fetch(`${import.meta.env.VITE_APP_API_URL}/saveUpdateCommentReaction`, requestOptions).then((res) => {
             Unauthorized(res.status)
             return res.json()
         }).then((res) => {
             return res
         });
-
-        console.log("me cai despues de la llamada");
 
         return response
 

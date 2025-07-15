@@ -59,14 +59,14 @@ export const ShoppingList2 = () => {
       <h1>SELECT YOUR SHOPPING LIST</h1>
       <Box
         sx={{
-            display: "grid",
-            gap: "15px",
-            gridTemplateColumns: {
-              xs: "1fr", // mobile: 1 item por fila
-              sm: "repeat(2, 1fr)", // pantallas medianas: 2 items por fila
-              md: "repeat(3, 1fr)", // pantallas grandes: 3 items por fila
-            },
-          }}
+          display: "grid",
+          gap: "15px",
+          gridTemplateColumns: {
+            xs: "1fr", // mobile: 1 item por fila
+            sm: "repeat(2, 1fr)", // pantallas medianas: 2 items por fila
+            md: "repeat(3, 1fr)", // pantallas grandes: 3 items por fila
+          },
+        }}
       >
         {favourites
           ?.sort((a, b) => {
@@ -99,7 +99,6 @@ export const ShoppingList2 = () => {
                     flexDirection: "column",
                   }}
                 >
-                  {/* Box que contiene la imagen */}
                   <Box
                     sx={{
                       width: "100%",
@@ -144,8 +143,6 @@ export const ShoppingList2 = () => {
                         alt="Imagen"
                         loading="lazy"
                       />
-
-                      {/* Caja para la superposición oscura */}
                       <Box
                         className="overlay"
                         sx={{
@@ -158,8 +155,6 @@ export const ShoppingList2 = () => {
                           transition: "background-color 0.3s ease", // Suaviza la transición del color de fondo
                         }}
                       />
-
-                      {/* Texto que aparece en el hover */}
                       <Typography
                         className="text"
                         sx={{
@@ -231,7 +226,6 @@ export const ShoppingList2 = () => {
                                 (favourite) => favourite != card._id
                               ));
 
-                          console.log("asi me quedo el setidSelected", result);
                           setidSelected(result);
                         }}
                       />
@@ -384,9 +378,6 @@ export const ShoppingList2 = () => {
             );
           })}
         {favourites?.length == 0 ? <h4>Not Recetas Founded</h4> : <></>}
-        {/* {
-                    favourites?.length > 6 ? <div id="visor" ref={externalRef}></div> : <></>
-                } */}
       </Box>
       {openReceta ? (
         <Modal

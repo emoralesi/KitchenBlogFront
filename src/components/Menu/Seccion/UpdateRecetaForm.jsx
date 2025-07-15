@@ -1,676 +1,816 @@
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, Button, CircularProgress, FormControl, IconButton, ImageList, ImageListItem, InputLabel, MenuItem, Modal, Select, Slide, styled, TextField, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { useCategoria } from '../../../Hooks/useCategoria';
-import { useDificultad } from '../../../Hooks/useDificultad';
-import { useIngrediente } from '../../../Hooks/useIngrediente';
-import { useMedida } from '../../../Hooks/useMedida';
-import { useReceta } from '../../../Hooks/useReceta';
-import { useSubCategoria } from '../../../Hooks/useSubCategoria';
-import { useUtencilios } from '../../../Hooks/useUtencilios';
-import { getStorageUser } from '../../../utils/StorageUser';
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  IconButton,
+  ImageList,
+  ImageListItem,
+  InputLabel,
+  MenuItem,
+  Modal,
+  Select,
+  Slide,
+  styled,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useEffect, useState } from "react";
+import { useCategoria } from "../../../Hooks/useCategoria";
+import { useDificultad } from "../../../Hooks/useDificultad";
+import { useIngrediente } from "../../../Hooks/useIngrediente";
+import { useMedida } from "../../../Hooks/useMedida";
+import { useReceta } from "../../../Hooks/useReceta";
+import { useSubCategoria } from "../../../Hooks/useSubCategoria";
+import { useUtencilios } from "../../../Hooks/useUtencilios";
+import { getStorageUser } from "../../../utils/StorageUser";
 
-export const UpdateRecetaForm = ({ open, setOpen, getUserAndReceta, recetaId, page, limit, setReactionInfo, setFavouriteInfo }) => {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [hours, setHours] = useState(0);
-    const [minutes, setMinutes] = useState(0);
-    const [cantidadPersonas, setCantidadPersonas] = useState(0);
-    const [dificultad, setDificultad] = useState('');
-    const [categoria, setCategoria] = useState('');
-    const [utencilio, setUtencilio] = useState([]);
-    const [subCategoria, setSubCategoria] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [imageUrl, setImageUrl] = useState([]);
-    const [imagesRecipe, setImagesRecipe] = useState([]);
-    const [grupoIngrediente, setGrupoIngrediente] = useState([{ nombreGrupo: '', items: [{ valor: 0, idIngrediente: '', idMedida: '' }] }]);
-    const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: '', images: [] }]);
+export const UpdateRecetaForm = ({
+  open,
+  setOpen,
+  getUserAndReceta,
+  recetaId,
+  page,
+  limit,
+  setReactionInfo,
+  setFavouriteInfo,
+}) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(0);
+  const [cantidadPersonas, setCantidadPersonas] = useState(0);
+  const [dificultad, setDificultad] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [utencilio, setUtencilio] = useState([]);
+  const [subCategoria, setSubCategoria] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState([]);
+  const [imagesRecipe, setImagesRecipe] = useState([]);
+  const [grupoIngrediente, setGrupoIngrediente] = useState([
+    { nombreGrupo: "", items: [{ valor: 0, idIngrediente: "", idMedida: "" }] },
+  ]);
+  const [pasos, setPasos] = useState([
+    { pasoNumero: 1, descripcion: "", images: [] },
+  ]);
 
-    const handleClose = () => setOpen(false);
-    const { getDetailsReceta, detailsReceta, actualizarReceta } = useReceta();
+  const handleClose = () => setOpen(false);
+  const { getDetailsReceta, detailsReceta, actualizarReceta } = useReceta();
 
-    const { ObtenerCategoria, categoriasAll } = useCategoria();
-    const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
-    const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
-    const { ObtenerDificultad, dificultadesAll } = useDificultad();
-    const { ObtenerMedida, medidasAll } = useMedida();
-    const { ObtenerUntencilios, utenciliosAll } = useUtencilios()
+  const { ObtenerCategoria, categoriasAll } = useCategoria();
+  const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
+  const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+  const { ObtenerDificultad, dificultadesAll } = useDificultad();
+  const { ObtenerMedida, medidasAll } = useMedida();
+  const { ObtenerUntencilios, utenciliosAll } = useUtencilios();
 
+  const VisuallyHiddenInput = styled("input")({
+    clip: "rect(0 0 0 0)",
+    clipPath: "inset(50%)",
+    height: 1,
+    overflow: "hidden",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    whiteSpace: "nowrap",
+    width: 1,
+  });
 
-    const VisuallyHiddenInput = styled('input')({
-        clip: 'rect(0 0 0 0)',
-        clipPath: 'inset(50%)',
-        height: 1,
-        overflow: 'hidden',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        whiteSpace: 'nowrap',
-        width: 1,
+  const convertirDatos = (data) => {
+    return data.grupoIngrediente.map((grupo) => ({
+      nombreGrupo: grupo.nombreGrupo,
+      _id: grupo._id,
+      items: grupo.item.map((item) => ({
+        _id: item._id,
+        valor: item.valor, // Ajustar este valor según sea necesario
+        idIngrediente: item.ingrediente._id,
+        idMedida: item.medida._id,
+      })),
+    }));
+  };
+
+  const handleDeleteImage = (index) => {
+    setImagesRecipe((prevImages) => prevImages.filter((_, i) => i !== index));
+    setImageUrl((prevUrls) => prevUrls.filter((_, i) => i !== index));
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await ObtenerCategoria();
+      await ObtenerSubCategorias();
+      await ObtenerIngrediente();
+      await ObtenerDificultad();
+      await ObtenerMedida();
+      await ObtenerUntencilios();
+
+      const data = await getDetailsReceta({ recetaId });
+      const datosConvertidos = convertirDatos(data);
+
+      setGrupoIngrediente(datosConvertidos); // Usar siempre la versión convertida
+
+      setTitle(data.titulo);
+      setDescription(data.descripcion);
+      setHours(data.hours);
+      setMinutes(data.minutes);
+      setCantidadPersonas(data.cantidadPersonas);
+      setDificultad(data.dificultad);
+      setCategoria(data.categoria);
+      setUtencilio(data.utencilio);
+      setImagesRecipe(data.images);
+      setImageUrl(data.images);
+      setSubCategoria(data.subCategoria);
+      setPasos(data.pasos);
+    };
+
+    fetchData();
+  }, [recetaId]);
+
+  const handleAddGrupoIngrediente = () => {
+    setGrupoIngrediente([
+      ...grupoIngrediente,
+      {
+        nombreGrupo: "",
+        items: [{ valor: 0, idIngrediente: "", idMedida: "" }],
+      },
+    ]);
+  };
+
+  const handleDeleteGrupoIngrediente = (index) => {
+    if (grupoIngrediente.length > 1) {
+      const newGroups = [...grupoIngrediente];
+      newGroups.splice(index, 1);
+      setGrupoIngrediente(newGroups);
+    }
+  };
+
+  const handleAddItem = (groupIndex) => {
+    const newGroups = [...grupoIngrediente];
+    newGroups[groupIndex].items.push({
+      valor: 0,
+      idIngrediente: "",
+      idMedida: "",
     });
+    setGrupoIngrediente(newGroups);
+  };
 
-    const convertirDatos = (data) => {
-        return data.grupoIngrediente.map(grupo => ({
-            nombreGrupo: grupo.nombreGrupo,
-            _id: grupo._id,
-            items: grupo.item.map(item => ({
-                _id: item._id,
-                valor: item.valor, // Ajustar este valor según sea necesario
-                idIngrediente: item.ingrediente._id,
-                idMedida: item.medida._id
-            }))
-        }));
-    };
+  function startsWithCloudinary(url) {
+    return url.startsWith("http://res.cloudinary.com");
+  }
 
-    const handleDeleteImage = (index) => {
-        setImagesRecipe((prevImages) => prevImages.filter((_, i) => i !== index));
-        setImageUrl((prevUrls) => prevUrls.filter((_, i) => i !== index));
-    };
+  const transformCloudinaryUrl = (url, width, height) => {
+    if (startsWithCloudinary(url)) {
+      return url.replace(
+        "/upload/",
+        `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`
+      );
+    } else {
+      return url;
+    }
+  };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            await ObtenerCategoria();
-            await ObtenerSubCategorias();
-            await ObtenerIngrediente();
-            await ObtenerDificultad();
-            await ObtenerMedida();
-            await ObtenerUntencilios();
+  const handleImageChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
 
-            const data = await getDetailsReceta({ recetaId });
-            const datosConvertidos = convertirDatos(data);
-
-            // console.log("Datos convertidos", datosConvertidos);
-            setGrupoIngrediente(datosConvertidos); // Usar siempre la versión convertida
-
-            setTitle(data.titulo);
-            setDescription(data.descripcion);
-            setHours(data.hours);
-            setMinutes(data.minutes);
-            setCantidadPersonas(data.cantidadPersonas);
-            setDificultad(data.dificultad);
-            setCategoria(data.categoria);
-            setUtencilio(data.utencilio);
-            setImagesRecipe(data.images);
-            setImageUrl(data.images)
-            setSubCategoria(data.subCategoria);
-            setPasos(data.pasos);
-        };
-
-        fetchData();
-    }, [recetaId]);
-
-
-    const handleAddGrupoIngrediente = () => {
-        setGrupoIngrediente([...grupoIngrediente, { nombreGrupo: '', items: [{ valor: 0, idIngrediente: '', idMedida: '' }] }]);
-    };
-
-    const handleDeleteGrupoIngrediente = (index) => {
-        if (grupoIngrediente.length > 1) {
-            const newGroups = [...grupoIngrediente];
-            newGroups.splice(index, 1);
-            setGrupoIngrediente(newGroups);
-        }
-    };
-
-    const handleAddItem = (groupIndex) => {
-        const newGroups = [...grupoIngrediente];
-        newGroups[groupIndex].items.push({ valor: 0, idIngrediente: '', idMedida: '' });
-        setGrupoIngrediente(newGroups);
-    };
-
-    function startsWithCloudinary(url) {
-        return url.startsWith("http://res.cloudinary.com");
+    if (selectedFiles.length > 3) {
+      alert("Puedes subir un máximo de 3 imágenes");
+      return prevImages;
     }
 
-    const transformCloudinaryUrl = (url, width, height) => {
-        if (startsWithCloudinary(url)) {
-            return url.replace("/upload/", `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`);
-        } else {
-            return url
-        }
+    setImagesRecipe((prevImages) => {
+      const newImages = [...prevImages, ...selectedFiles];
+      return newImages;
+    });
 
+    setImageUrl((prevUrls) => {
+      const newUrls = selectedFiles.map((file) => URL.createObjectURL(file));
+      return [...prevUrls, ...newUrls];
+    });
+  };
+
+  const handleDeleteItem = (groupIndex, itemIndex) => {
+    const newGroups = [...grupoIngrediente];
+    if (newGroups[groupIndex].items.length > 1) {
+      newGroups[groupIndex].items.splice(itemIndex, 1);
+      setGrupoIngrediente(newGroups);
+    }
+  };
+
+  const handleAddPaso = () => {
+    setPasos([
+      ...pasos,
+      { pasoNumero: pasos.length + 1, descripcion: "", images: [] },
+    ]);
+  };
+
+  const handleDeletePaso = (index) => {
+    if (pasos.length > 1) {
+      const newPasos = [...pasos];
+      newPasos.splice(index, 1);
+      setPasos(newPasos);
+    }
+  };
+
+  const handleToggleSubCategoria = (categoryId) => {
+    if (subCategoria.includes(categoryId)) {
+      setSubCategoria(subCategoria.filter((id) => id !== categoryId));
+    } else {
+      setSubCategoria([...subCategoria, categoryId]);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const data = {
+      _id: recetaId,
+      titulo: title,
+      descripcion: description,
+      hours,
+      minutes,
+      cantidadPersonas,
+      dificultad,
+      categoria,
+      grupoIngrediente,
+      utencilio,
+      subCategoria,
+      pasos,
+      imagesRecipe,
+      user: getStorageUser().usuarioId,
     };
 
-    const handleImageChange = (e) => {
-        const selectedFiles = Array.from(e.target.files);
+    if (!title.trim()) {
+      alert("El título es obligatorio.");
+      return;
+    }
 
-        if (selectedFiles.length > 3) {
-            alert("Puedes subir un máximo de 3 imágenes");
-            return prevImages;
+    function capitalizarTitulo(titulo) {
+      if (!titulo || titulo.length === 0) {
+        return titulo;
+      }
+
+      const palabras = titulo.split(" ");
+
+      const palabrasCapitalizadas = palabras.map((palabra) => {
+        return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
+      });
+
+      return palabrasCapitalizadas.join(" ");
+    }
+
+    data.titulo = capitalizarTitulo(data.titulo);
+
+    if (!description.trim()) {
+      alert("La descripcion es obligatorio.");
+      return;
+    }
+
+    if (!(cantidadPersonas > 0)) {
+      alert("La cantidad de personas debe ser mayor a 0 ");
+      return;
+    }
+
+    if (!dificultad.trim()) {
+      alert("La dificultad es obligatoria.");
+      return;
+    }
+
+    if (!categoria.trim()) {
+      alert("La categoria es obligatoria.");
+      return;
+    }
+
+    if (imagesRecipe.length < 1) {
+      alert("Debes subir al menos 1 imagen");
+      return;
+    }
+
+    if (imagesRecipe.length < 1) {
+      alert("Debes subir al menos 1 imagen");
+      return;
+    }
+
+    if (imagesRecipe.length > 5) {
+      alert("Puedes subir un máximo de 5 imágenes");
+      return;
+    }
+
+    let ingredientesValidos = true;
+    for (const grupo of grupoIngrediente) {
+      if (grupo.items.length === 0) {
+        ingredientesValidos = false;
+        break;
+      }
+      for (const item of grupo.items) {
+        if (!(item.valor > 0) || !item.idIngrediente || !item.idMedida) {
+          ingredientesValidos = false;
+          break;
         }
+      }
+      if (!ingredientesValidos) break;
+    }
 
-        setImagesRecipe((prevImages) => {
-            const newImages = [...prevImages, ...selectedFiles];
-            return newImages;
+    if (!ingredientesValidos) {
+      alert(
+        "Cada grupo de ingredientes debe tener al menos un ingrediente con valor mayor a 0, y tanto el ID del ingrediente como la medida deben estar seleccionados."
+      );
+      return;
+    }
+
+    if (pasos.length === 0) {
+      alert("La receta debe tener al menos un paso.");
+      return;
+    }
+
+    for (const paso of pasos) {
+      if (!paso.descripcion.trim()) {
+        alert("La descripción de cada paso es obligatoria.");
+        return;
+      }
+    }
+
+    if (grupoIngrediente.length > 1) {
+      for (const grupo of grupoIngrediente) {
+        if (!grupo.nombreGrupo.trim()) {
+          ingredientesValidos = false;
+          break;
+        }
+      }
+    }
+
+    if (!ingredientesValidos) {
+      alert("Si hay más de un grupo, todos deben tener un nombre.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await actualizarReceta({ data: data });
+      if (result?.status === "ok") {
+        await getUserAndReceta({
+          data: { userId: getStorageUser().usuarioId, page, limit },
         });
+        handleClose();
+      }
+    } catch (error) {
+      setLoading(false);
+    }
+    setLoading(false);
+  };
 
-        setImageUrl((prevUrls) => {
-            const newUrls = selectedFiles.map((file) => URL.createObjectURL(file));
-            return [...prevUrls, ...newUrls];
-        });
-    };
-
-    const handleDeleteItem = (groupIndex, itemIndex) => {
-        const newGroups = [...grupoIngrediente];
-        if (newGroups[groupIndex].items.length > 1) {
-            newGroups[groupIndex].items.splice(itemIndex, 1);
-            setGrupoIngrediente(newGroups);
-        }
-    };
-
-    const handleAddPaso = () => {
-        setPasos([...pasos, { pasoNumero: pasos.length + 1, descripcion: '', images: [] }]);
-    };
-
-    const handleDeletePaso = (index) => {
-        if (pasos.length > 1) {
-            const newPasos = [...pasos];
-            newPasos.splice(index, 1);
-            setPasos(newPasos);
-        }
-    };
-
-    const handleToggleSubCategoria = (categoryId) => {
-        if (subCategoria.includes(categoryId)) {
-            setSubCategoria(subCategoria.filter(id => id !== categoryId));
-        } else {
-            setSubCategoria([...subCategoria, categoryId]);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        const data = {
-            _id: recetaId,
-            titulo: title,
-            descripcion: description,
-            hours,
-            minutes,
-            cantidadPersonas,
-            dificultad,
-            categoria,
-            grupoIngrediente,
-            utencilio,
-            subCategoria,
-            pasos,
-            imagesRecipe,
-            user: getStorageUser().usuarioId
-        };
-
-        if (!title.trim()) {
-            alert("El título es obligatorio.");
-            return;
-        }
-
-        function capitalizarTitulo(titulo) {
-            if (!titulo || titulo.length === 0) {
-                return titulo;
-            }
-
-            const palabras = titulo.split(' ');
-
-            const palabrasCapitalizadas = palabras.map(palabra => {
-                return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
-            });
-
-            return palabrasCapitalizadas.join(' ');
-        }
-
-        data.titulo = capitalizarTitulo(data.titulo);
-
-        if (!description.trim()) {
-            alert("La descripcion es obligatorio.");
-            return;
-        }
-
-        if (!(cantidadPersonas > 0)) {
-            alert("La cantidad de personas debe ser mayor a 0 ");
-            return;
-        }
-
-        if (!dificultad.trim()) {
-            alert("La dificultad es obligatoria.");
-            return;
-        }
-
-        if (!categoria.trim()) {
-            alert("La categoria es obligatoria.");
-            return;
-        }
-
-        if (imagesRecipe.length < 1) {
-            alert("Debes subir al menos 1 imagen");
-            return;
-        }
-
-        if (imagesRecipe.length < 1) {
-            alert("Debes subir al menos 1 imagen");
-            return;
-        }
-
-        if (imagesRecipe.length > 5) {
-            alert("Puedes subir un máximo de 5 imágenes");
-            return;
-        }
-
-        let ingredientesValidos = true;
-        for (const grupo of grupoIngrediente) {
-            if (grupo.items.length === 0) {
-                ingredientesValidos = false;
-                break;
-            }
-            for (const item of grupo.items) {
-                if (!(item.valor > 0) || !item.idIngrediente || !item.idMedida) {
-                    ingredientesValidos = false;
-                    break;
-                }
-            }
-            if (!ingredientesValidos) break;
-        }
-
-        if (!ingredientesValidos) {
-            alert("Cada grupo de ingredientes debe tener al menos un ingrediente con valor mayor a 0, y tanto el ID del ingrediente como la medida deben estar seleccionados.");
-            return;
-        }
-
-        if (pasos.length === 0) {
-            alert("La receta debe tener al menos un paso.");
-            return;
-        }
-
-        for (const paso of pasos) {
-            if (!paso.descripcion.trim()) {
-                alert("La descripción de cada paso es obligatoria.");
-                return;
-            }
-        }
-
-        if (grupoIngrediente.length > 1) {
-            for (const grupo of grupoIngrediente) {
-                if (!grupo.nombreGrupo.trim()) {
-                    ingredientesValidos = false;
-                    break;
-                }
-            }
-        }
-
-        if (!ingredientesValidos) {
-            alert("Si hay más de un grupo, todos deben tener un nombre.");
-            return;
-        }
-        setLoading(true)
-        try {
-            const result = await actualizarReceta({ data: data });
-            if (result?.status === 'ok') {
-                await getUserAndReceta({ data: { userId: getStorageUser().usuarioId, page, limit } })
-                handleClose();
-            }
-        } catch (error) {
-            setLoading(false)
-        }
-        setLoading(false)
-
-
-    };
-
-    return (
-        <Modal
-            open={open}
-            closeAfterTransition
-            BackdropProps={{
-                timeout: 500,
-            }}
-            sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}
+  return (
+    <Modal
+      open={open}
+      closeAfterTransition
+      BackdropProps={{
+        timeout: 500,
+      }}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Slide direction="up" in={open}>
+        <Box
+          sx={{
+            width: { xs: "85vw", md: "85vw", lg: "90vw" },
+            height: { xs: "85vh", md: "85vh", lg: "90vh" },
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
-            <Slide direction="up" in={open}>
-                <Box
-                    sx={{
-                        width: { xs: '85vw', md: '85vw', lg: '90vw' },
-                        height: { xs: '85vh', md: '85vh', lg: '90vh' },
-                        bgcolor: 'background.paper',
-                        border: '2px solid #000',
-                        boxShadow: 24,
-                        p: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "column",
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <Button
+              onClick={handleClose}
+              size="small"
+              sx={{ alignSelf: "flex-end", height: "30px" }}
+            >
+              X
+            </Button>
+            <div style={{ overflow: "auto", width: "100%", height: "100%" }}>
+              <form onSubmit={handleSubmit}>
+                <Button
+                  component="label"
+                  role={undefined}
+                  variant="contained"
+                  tabIndex={-1}
+                  startIcon={<CloudUploadIcon />}
                 >
-                    {
-                        // console.log("item o items", grupoIngrediente)
-                    }
-                    <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', width: '100%', height: '100%' }}>
-                        <Button onClick={handleClose} size='small' sx={{ alignSelf: 'flex-end', height: '30px' }}>
-                            X
-                        </Button>
-                        <div style={{ overflow: 'auto', width: '100%', height: '100%' }}>
-                            <form onSubmit={handleSubmit}>
+                  Upload files
+                  <VisuallyHiddenInput
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    multiple
+                  />
+                </Button>
+                <ImageList
+                  sx={{ width: "100%", height: "auto", alignItems: "center" }}
+                  cols={imageUrl.length}
+                  gap={8}
+                >
+                  {imageUrl.map((image, index) => (
+                    <ImageListItem
+                      key={index}
+                      sx={{
+                        justifyItems: "center",
+                        width: "100%",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ position: "relative", height: "220px" }}>
+                        <img
+                          src={transformCloudinaryUrl(image, 300, 200)}
+                          alt={`Image ${index}`}
+                          loading="lazy"
+                          style={{
+                            width: "200px",
+                            height: "200px",
+                            objectFit: "cover",
+                            position: "relative",
+                          }}
+                        />
+                        <IconButton
+                          onClick={() => handleDeleteImage(index)} // Add your delete logic here
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            color: "white", // Or any color you prefer
+                            backgroundColor: "rgba(0, 0, 0, 0.5)", // Optional background
+                            "&:hover": {
+                              backgroundColor: "rgba(0, 0, 0, 0.7)", // Darker on hover
+                            },
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </div>
+                    </ImageListItem>
+                  ))}
+                </ImageList>
 
-                                <Button
-                                    component="label"
-                                    role={undefined}
-                                    variant="contained"
-                                    tabIndex={-1}
-                                    startIcon={<CloudUploadIcon />}
-                                >
-                                    Upload files
-                                    <VisuallyHiddenInput
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        multiple
-                                    />
-                                </Button>
-                                <ImageList
-                                    sx={{ width: '100%', height: 'auto', alignItems: 'center' }}
-                                    cols={imageUrl.length}
-                                    gap={8}
-                                >
-                                    {imageUrl.map((image, index) => (
-                                        <ImageListItem key={index} sx={{ justifyItems: 'center', width: '100%', alignItems: 'center' }}>
-                                            <div style={{ position: 'relative', height: '220px' }}>
-                                                <img
-                                                    src={transformCloudinaryUrl(image, 300, 200)}
-                                                    alt={`Image ${index}`}
-                                                    loading="lazy"
-                                                    style={{
-                                                        width: '200px',
-                                                        height: '200px',
-                                                        objectFit: 'cover',
-                                                        position: 'relative'
-                                                    }}
-                                                />
-                                                <IconButton
-                                                    onClick={() => handleDeleteImage(index)} // Add your delete logic here
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        top: 8,
-                                                        right: 8,
-                                                        color: 'white', // Or any color you prefer
-                                                        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional background
-                                                        '&:hover': {
-                                                            backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker on hover
-                                                        },
-                                                    }}
-                                                >
-                                                    <DeleteIcon />  {/* Added DeleteIcon */}
-                                                </IconButton>
-                                            </div>
-                                        </ImageListItem>
-                                    ))}
-                                </ImageList>
-
-                                <Box sx={{ position: 'relative' }}>
-                                    <TextField
-                                        label="Title"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        fullWidth
-                                        margin="normal"
-                                        inputProps={{ maxLength: 55 }}
-                                    />
-                                    <Typography sx={{
-                                        position: 'absolute',
-                                        bottom: 8,
-                                        right: 8,
-                                    }} variant="caption" color="textSecondary">
-                                        {title.length}/{50}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ position: 'relative' }}>
-                                    <TextField
-                                        label="Description"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        multiline
-                                        rows={4}
-                                        fullWidth
-                                        margin="normal"
-                                        inputProps={{ maxLength: 250 }}
-                                    />
-                                    <Typography sx={{
-                                        position: 'absolute',
-                                        bottom: 8,
-                                        right: 8,
-                                    }} variant="caption" color="textSecondary">
-                                        {description.length}/{250}
-                                    </Typography>
-                                </Box>
-                                <TextField
-                                    label="Hours"
-                                    type="number"
-                                    value={hours}
-                                    onChange={(e) => setHours(parseInt(e.target.value))}
-                                    fullWidth
-                                    margin="normal"
-                                />
-                                <TextField
-                                    label="Minutes"
-                                    type="number"
-                                    value={minutes}
-                                    onChange={(e) => setMinutes(parseInt(e.target.value))}
-                                    fullWidth
-                                    margin="normal"
-                                />
-                                <TextField
-                                    label="amount of people"
-                                    type="number"
-                                    value={cantidadPersonas}
-                                    onChange={(e) => setCantidadPersonas(parseInt(e.target.value))}
-                                    fullWidth
-                                    margin="normal"
-                                />
-                                <FormControl fullWidth margin="normal">
-                                    <InputLabel>Difficulty</InputLabel>
-                                    <Select
-                                        value={dificultad}
-                                        onChange={(e) => setDificultad(e.target.value)}
-                                    >
-                                        {
-                                            dificultadesAll?.map((dificulties) => (
-                                                <MenuItem key={dificulties._id} value={dificulties._id}>
-                                                    {dificulties.nombreDificultad}
-                                                </MenuItem>
-                                            ))
-                                        }
-                                    </Select>
-                                </FormControl>
-                                <FormControl fullWidth margin="normal">
-                                    <InputLabel>Category</InputLabel>
-                                    <Select
-                                        value={categoria}
-                                        onChange={(e) => setCategoria(e.target.value)}
-                                    >
-                                        {categoriasAll?.map((category) => (
-                                            <MenuItem key={category._id} value={category._id}>
-                                                {category.nombreCategoria}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                                <FormControl fullWidth margin="normal">
-                                    <InputLabel>Utensils</InputLabel>
-                                    <Select
-                                        multiple
-                                        value={utencilio}
-                                        onChange={(e) => setUtencilio(e.target.value)}
-                                    >
-                                        {
-                                            utenciliosAll?.map((utencilio) => (
-                                                <MenuItem key={utencilio._id} value={utencilio._id}>
-                                                    {utencilio.nombreUtencilio}
-                                                </MenuItem>
-                                            ))
-                                        }
-                                    </Select>
-                                </FormControl>
-                                <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, overflow: 'auto' }}>
-                                    {subCategoriasAll?.map((subCategory) => (
-                                        <Button
-                                            key={subCategory._id}
-                                            variant={subCategoria.includes(subCategory._id) ? 'contained' : 'outlined'}
-                                            onClick={() => handleToggleSubCategoria(subCategory._id)}
-                                            sx={{
-                                                transition: 'background-color 0.3s',
-                                                '&:hover': {
-                                                    backgroundColor: subCategoria.includes(subCategory._id) ? 'rgba(0, 0, 0, 0.12)' : 'rgba(0, 0, 0, 0.04)',
-                                                },
-                                                minWidth: '200px'
-                                            }}
-                                        >
-                                            {subCategory.nombreSubCategoria}
-                                        </Button>
-                                    ))}
-                                </Box>
-                                {grupoIngrediente?.map((group, groupIndex) => (
-                                    <Box key={groupIndex} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
-                                        <TextField
-                                            label="Group Name"
-                                            value={group.nombreGrupo}
-                                            onChange={(e) => {
-                                                const newGroups = [...grupoIngrediente];
-                                                newGroups[groupIndex].nombreGrupo = e.target.value;
-                                                setGrupoIngrediente(newGroups);
-                                            }}
-                                            fullWidth
-                                            margin="normal"
-                                        />
-                                        {group.items?.map((item, itemIndex) => (
-                                            <Box key={item.id} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                                                <TextField
-                                                    label="Value"
-                                                    type="number"
-                                                    value={item.valor}
-                                                    onChange={(e) => {
-                                                        const newGroups = [...grupoIngrediente];
-                                                        newGroups[groupIndex].items[itemIndex].valor = parseFloat(e.target.value);
-                                                        setGrupoIngrediente(newGroups);
-                                                    }}
-                                                    fullWidth
-                                                    margin="normal"
-                                                />
-                                                <FormControl fullWidth margin="normal">
-                                                    <InputLabel>Measure</InputLabel>
-                                                    <Select
-                                                        value={item.idMedida}
-                                                        onChange={(e) => {
-                                                            const newGroups = [...grupoIngrediente];
-                                                            newGroups[groupIndex].items[itemIndex].idMedida = e.target.value;
-                                                            setGrupoIngrediente(newGroups);
-                                                        }}
-                                                    >
-                                                        {
-                                                            medidasAll?.map((medida) => (
-                                                                <MenuItem key={medida._id} value={medida._id}>
-                                                                    {medida.nombreMedida}
-                                                                </MenuItem>
-                                                            ))
-                                                        }
-                                                    </Select>
-                                                </FormControl>
-                                                <FormControl fullWidth margin="normal">
-                                                    <InputLabel>Ingredient</InputLabel>
-                                                    <Select
-                                                        value={item.idIngrediente}
-                                                        onChange={(e) => {
-                                                            const newGroups = [...grupoIngrediente];
-                                                            newGroups[groupIndex].items[itemIndex].idIngrediente = e.target.value;
-                                                            setGrupoIngrediente(newGroups);
-                                                        }}
-                                                    >
-                                                        {
-                                                            ingredientesAll?.map((ingrediente) => (
-                                                                <MenuItem key={ingrediente._id} value={ingrediente._id}>
-                                                                    {ingrediente.nombreIngrediente}
-                                                                </MenuItem>
-                                                            ))
-                                                        }
-                                                    </Select>
-                                                </FormControl>
-                                                {group.items.length > 1 && (
-                                                    <Button
-                                                        onClick={() => handleDeleteItem(groupIndex, itemIndex)}
-                                                        variant="outlined"
-                                                        color="error"
-                                                    >
-                                                        Delete Item
-                                                    </Button>
-                                                )}
-                                            </Box>
-                                        ))}
-                                        {grupoIngrediente.length > 1 && (
-                                            <Button onClick={() => handleDeleteGrupoIngrediente(groupIndex)} variant="outlined" color="error">Delete Group</Button>
-                                        )}
-                                        <Button onClick={() => handleAddItem(groupIndex)} variant="contained">
-                                            Add Item
-                                        </Button>
-                                    </Box>
-                                ))}
-                                <Button onClick={handleAddGrupoIngrediente} variant="contained">Add Ingredient Group</Button>
-                                {pasos?.map((step, index) => (
-                                    <Box key={index} sx={{ border: '1px solid #ddd', padding: 2, marginBottom: 2 }}>
-                                        <TextField
-                                            label="Step Nuber"
-                                            type="number"
-                                            value={step.pasoNumero}
-                                            onChange={(e) => {
-                                                const newPasos = [...pasos];
-                                                newPasos[index].pasoNumero = parseInt(e.target.value);
-                                                setPasos(newPasos);
-                                            }}
-                                            fullWidth
-                                            margin="normal"
-                                        />
-                                        <Box sx={{ position: 'relative' }}>
-                                            <TextField
-                                                label="Description"
-                                                value={step.descripcion}
-                                                onChange={(e) => {
-                                                    const newPasos = [...pasos];
-                                                    newPasos[index].descripcion = e.target.value;
-                                                    setPasos(newPasos);
-                                                }}
-                                                multiline
-                                                rows={2}
-                                                fullWidth
-                                                margin="normal"
-                                                inputProps={{ maxLength: 250 }}
-                                            />
-                                            <Typography sx={{
-                                                position: 'absolute',
-                                                bottom: 8,
-                                                right: 8,
-                                            }} variant="caption" color="textSecondary">
-                                                {step.descripcion.length}/{250}
-                                            </Typography>
-                                        </Box>
-                                        {pasos.length > 1 && (
-                                            <Button onClick={() => handleDeletePaso(index)} variant="outlined" color="error">Delete Paso</Button>
-                                        )}
-                                    </Box>
-                                ))}
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Button onClick={handleAddPaso} variant="contained">Add Step</Button>
-                                    <Button type="submit" variant="contained" color="warning">Update Recipe</Button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    {loading && (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1000 }}>
-                            <CircularProgress />
-                        </Box>
-                    )}
+                <Box sx={{ position: "relative" }}>
+                  <TextField
+                    label="Title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    fullWidth
+                    margin="normal"
+                    inputProps={{ maxLength: 55 }}
+                  />
+                  <Typography
+                    sx={{
+                      position: "absolute",
+                      bottom: 8,
+                      right: 8,
+                    }}
+                    variant="caption"
+                    color="textSecondary"
+                  >
+                    {title.length}/{50}
+                  </Typography>
                 </Box>
-            </Slide>
-        </Modal>
-    );
-};    
+                <Box sx={{ position: "relative" }}>
+                  <TextField
+                    label="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    multiline
+                    rows={4}
+                    fullWidth
+                    margin="normal"
+                    inputProps={{ maxLength: 250 }}
+                  />
+                  <Typography
+                    sx={{
+                      position: "absolute",
+                      bottom: 8,
+                      right: 8,
+                    }}
+                    variant="caption"
+                    color="textSecondary"
+                  >
+                    {description.length}/{250}
+                  </Typography>
+                </Box>
+                <TextField
+                  label="Hours"
+                  type="number"
+                  value={hours}
+                  onChange={(e) => setHours(parseInt(e.target.value))}
+                  fullWidth
+                  margin="normal"
+                />
+                <TextField
+                  label="Minutes"
+                  type="number"
+                  value={minutes}
+                  onChange={(e) => setMinutes(parseInt(e.target.value))}
+                  fullWidth
+                  margin="normal"
+                />
+                <TextField
+                  label="amount of people"
+                  type="number"
+                  value={cantidadPersonas}
+                  onChange={(e) =>
+                    setCantidadPersonas(parseInt(e.target.value))
+                  }
+                  fullWidth
+                  margin="normal"
+                />
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Difficulty</InputLabel>
+                  <Select
+                    value={dificultad}
+                    onChange={(e) => setDificultad(e.target.value)}
+                  >
+                    {dificultadesAll?.map((dificulties) => (
+                      <MenuItem key={dificulties._id} value={dificulties._id}>
+                        {dificulties.nombreDificultad}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                  >
+                    {categoriasAll?.map((category) => (
+                      <MenuItem key={category._id} value={category._id}>
+                        {category.nombreCategoria}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Utensils</InputLabel>
+                  <Select
+                    multiple
+                    value={utencilio}
+                    onChange={(e) => setUtencilio(e.target.value)}
+                  >
+                    {utenciliosAll?.map((utencilio) => (
+                      <MenuItem key={utencilio._id} value={utencilio._id}>
+                        {utencilio.nombreUtencilio}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 1,
+                    marginBottom: 2,
+                    overflow: "auto",
+                  }}
+                >
+                  {subCategoriasAll?.map((subCategory) => (
+                    <Button
+                      key={subCategory._id}
+                      variant={
+                        subCategoria.includes(subCategory._id)
+                          ? "contained"
+                          : "outlined"
+                      }
+                      onClick={() => handleToggleSubCategoria(subCategory._id)}
+                      sx={{
+                        transition: "background-color 0.3s",
+                        "&:hover": {
+                          backgroundColor: subCategoria.includes(
+                            subCategory._id
+                          )
+                            ? "rgba(0, 0, 0, 0.12)"
+                            : "rgba(0, 0, 0, 0.04)",
+                        },
+                        minWidth: "200px",
+                      }}
+                    >
+                      {subCategory.nombreSubCategoria}
+                    </Button>
+                  ))}
+                </Box>
+                {grupoIngrediente?.map((group, groupIndex) => (
+                  <Box
+                    key={groupIndex}
+                    sx={{
+                      border: "1px solid #ddd",
+                      padding: 2,
+                      marginBottom: 2,
+                    }}
+                  >
+                    <TextField
+                      label="Group Name"
+                      value={group.nombreGrupo}
+                      onChange={(e) => {
+                        const newGroups = [...grupoIngrediente];
+                        newGroups[groupIndex].nombreGrupo = e.target.value;
+                        setGrupoIngrediente(newGroups);
+                      }}
+                      fullWidth
+                      margin="normal"
+                    />
+                    {group.items?.map((item, itemIndex) => (
+                      <Box
+                        key={item.id}
+                        sx={{ display: "flex", gap: 2, alignItems: "center" }}
+                      >
+                        <TextField
+                          label="Value"
+                          type="number"
+                          value={item.valor}
+                          onChange={(e) => {
+                            const newGroups = [...grupoIngrediente];
+                            newGroups[groupIndex].items[itemIndex].valor =
+                              parseFloat(e.target.value);
+                            setGrupoIngrediente(newGroups);
+                          }}
+                          fullWidth
+                          margin="normal"
+                        />
+                        <FormControl fullWidth margin="normal">
+                          <InputLabel>Measure</InputLabel>
+                          <Select
+                            value={item.idMedida}
+                            onChange={(e) => {
+                              const newGroups = [...grupoIngrediente];
+                              newGroups[groupIndex].items[itemIndex].idMedida =
+                                e.target.value;
+                              setGrupoIngrediente(newGroups);
+                            }}
+                          >
+                            {medidasAll?.map((medida) => (
+                              <MenuItem key={medida._id} value={medida._id}>
+                                {medida.nombreMedida}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                          <InputLabel>Ingredient</InputLabel>
+                          <Select
+                            value={item.idIngrediente}
+                            onChange={(e) => {
+                              const newGroups = [...grupoIngrediente];
+                              newGroups[groupIndex].items[
+                                itemIndex
+                              ].idIngrediente = e.target.value;
+                              setGrupoIngrediente(newGroups);
+                            }}
+                          >
+                            {ingredientesAll?.map((ingrediente) => (
+                              <MenuItem
+                                key={ingrediente._id}
+                                value={ingrediente._id}
+                              >
+                                {ingrediente.nombreIngrediente}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        {group.items.length > 1 && (
+                          <Button
+                            onClick={() =>
+                              handleDeleteItem(groupIndex, itemIndex)
+                            }
+                            variant="outlined"
+                            color="error"
+                          >
+                            Delete Item
+                          </Button>
+                        )}
+                      </Box>
+                    ))}
+                    {grupoIngrediente.length > 1 && (
+                      <Button
+                        onClick={() => handleDeleteGrupoIngrediente(groupIndex)}
+                        variant="outlined"
+                        color="error"
+                      >
+                        Delete Group
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => handleAddItem(groupIndex)}
+                      variant="contained"
+                    >
+                      Add Item
+                    </Button>
+                  </Box>
+                ))}
+                <Button onClick={handleAddGrupoIngrediente} variant="contained">
+                  Add Ingredient Group
+                </Button>
+                {pasos?.map((step, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      border: "1px solid #ddd",
+                      padding: 2,
+                      marginBottom: 2,
+                    }}
+                  >
+                    <TextField
+                      label="Step Nuber"
+                      type="number"
+                      value={step.pasoNumero}
+                      onChange={(e) => {
+                        const newPasos = [...pasos];
+                        newPasos[index].pasoNumero = parseInt(e.target.value);
+                        setPasos(newPasos);
+                      }}
+                      fullWidth
+                      margin="normal"
+                    />
+                    <Box sx={{ position: "relative" }}>
+                      <TextField
+                        label="Description"
+                        value={step.descripcion}
+                        onChange={(e) => {
+                          const newPasos = [...pasos];
+                          newPasos[index].descripcion = e.target.value;
+                          setPasos(newPasos);
+                        }}
+                        multiline
+                        rows={2}
+                        fullWidth
+                        margin="normal"
+                        inputProps={{ maxLength: 250 }}
+                      />
+                      <Typography
+                        sx={{
+                          position: "absolute",
+                          bottom: 8,
+                          right: 8,
+                        }}
+                        variant="caption"
+                        color="textSecondary"
+                      >
+                        {step.descripcion.length}/{250}
+                      </Typography>
+                    </Box>
+                    {pasos.length > 1 && (
+                      <Button
+                        onClick={() => handleDeletePaso(index)}
+                        variant="outlined"
+                        color="error"
+                      >
+                        Delete Paso
+                      </Button>
+                    )}
+                  </Box>
+                ))}
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Button onClick={handleAddPaso} variant="contained">
+                    Add Step
+                  </Button>
+                  <Button type="submit" variant="contained" color="warning">
+                    Update Recipe
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+          {loading && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 1000,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          )}
+        </Box>
+      </Slide>
+    </Modal>
+  );
+};

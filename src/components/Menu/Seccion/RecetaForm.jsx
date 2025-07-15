@@ -363,14 +363,6 @@ export const RecetaForm = ({ open, setOpen, setCantidadReceta, getUserAndReceta,
                             X
                         </Button>
                         <div style={{ overflow: 'auto', width: '100%', height: '100%' }}>
-                            {
-                                console.log("asi quedo mi imagenRecipe", imagesRecipe)
-
-                            }
-                            {
-                                console.log("asi quedo mi imagenUrl", imageUrl)
-
-                            }
                             <form onSubmit={handleSubmit}>
                                 <Button
                                     component="label"

@@ -25,9 +25,6 @@ export const useNotification = (page, limit) => {
     const LeerNotificaciones = async (idNotificaciones) => {
         try {
             const result = await updateNotifications(idNotificaciones);
-
-            console.log("mi result readed", result);
-
         } catch (error) {
             console.log(error);
         }

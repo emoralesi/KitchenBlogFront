@@ -68,7 +68,6 @@ export const Bienvenido = () => {
     formData.append("folderName", "Profiles_images");
 
     try {
-      console.log("me cai despues del data");
       const requestOptions = {
         method: "POST",
         headers: {
@@ -76,8 +75,6 @@ export const Bienvenido = () => {
         },
         body: formData,
       };
-
-      console.log("me cai despues del requestOption");
 
       const response = await fetch(
         `${import.meta.env.VITE_APP_API_URL}/upload-profile-image`,
@@ -91,7 +88,6 @@ export const Bienvenido = () => {
           return res;
         });
 
-      console.log("Imagen subida:", response);
       // Puedes agregar lógica para actualizar la imagen del usuario si es necesario
     } catch (error) {
       console.error("Error al subir la imagen:", error);
@@ -122,8 +118,6 @@ export const Bienvenido = () => {
         setIdUser(idUser);
 
         const result = await ObtenerDataFavAndRec({ idUser: idUser });
-
-        console.log("mi result resultadoso", result);
 
         setCantidadReceta(result.recetaCount);
         setCantidadFavoritos(result.favouriteCount);

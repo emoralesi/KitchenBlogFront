@@ -31,7 +31,6 @@ export async function saveReceta({ receta }) {
             return res
         });
 
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -66,8 +65,6 @@ export async function updateReceta({ receta }) {
         }).then((res) => {
             return res
         });
-
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -77,8 +74,6 @@ export async function updateReceta({ receta }) {
 }
 
 export async function updatePined({ data }) {
-
-    console.log("mi datasi ultra unimark", data);
 
     try {
 
@@ -99,8 +94,6 @@ export async function updatePined({ data }) {
         }).then((res) => {
             return res
         });
-
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -129,8 +122,6 @@ export async function saveReactionReceta({ data }) {
         }).then((res) => {
             return res
         });
-
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -142,7 +133,6 @@ export async function saveReactionReceta({ data }) {
 export async function GetRecetasByIdUser({ data }) {
 
     try {
-        console.log("mi receta service data", data);
 
         const requestOptions = {
             method: 'POST',
@@ -162,7 +152,6 @@ export async function GetRecetasByIdUser({ data }) {
             return res
         });
 
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -193,7 +182,6 @@ export async function GetRecetasInfo({ data }) {
             return res
         });
 
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -224,7 +212,6 @@ export async function GetRecetasByIdReceta({ recetaId }) {
             return res
         });
 
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {
@@ -254,7 +241,6 @@ export async function desactivateRecepies({ recetaId }) {
             return res
         });
 
-        console.log("este es mi response", response);
         return response
 
     } catch (error) {

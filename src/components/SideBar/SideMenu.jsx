@@ -8,10 +8,6 @@ export default function SideMenu() {
 
     const [dataMenu, setDataMenu] = useState(menuData.menus)
 
-    useEffect(() => {
-        console.log("ME renderice");
-    }, [])
-
     return (
         <div style={{ height: 'calc(100vh - 100px)' }}>
             <List sx={{

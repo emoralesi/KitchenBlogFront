@@ -91,7 +91,6 @@ export const ShoppingList = () => {
                               (favourite) => favourite != card._id
                             ));
 
-                        console.log("asi me quedo el setidSelected", result);
                         setidSelected(result);
                       }}
                     />

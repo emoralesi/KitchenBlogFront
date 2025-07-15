@@ -16,7 +16,6 @@ export default function LogIn({ handleCreateNewClick }) {
 
         const result = await LoginUsuario({ userEmail, password });
 
-        console.log("mi result", result);
         if (result.status == 'ok') {
             localStorage.setItem('UserLogged', JSON.stringify(result));
             enqueueSnackbar('Inicio de sesion correcto', { variant: 'success' });
