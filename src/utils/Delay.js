@@ -1,7 +1,5 @@
-export const simulateDelay = (promise) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(promise);
-        }, 1500); // Delay of 5 seconds
-    });
+export const simulateDelay = async (promise) => {
+  const result = await promise;
+  await new Promise((res) => setTimeout(res, 3000));
+  return result;
 };

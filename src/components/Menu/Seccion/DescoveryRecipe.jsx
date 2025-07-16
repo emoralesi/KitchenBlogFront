@@ -278,7 +278,14 @@ export const DescoveryRecipe = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+    <Box
+      sx={{
+        height: "100%",
+        marginTop: "10px",
+        marginRight: "10px",
+        marginLeft: "10px",
+      }}
+    >
       <Box sx={{ height: "auto", width: "100%", marginBottom: "20px" }}>
         <div id="app" style={{ width: "100%", height: "100%" }}>
           <Grid
@@ -588,7 +595,7 @@ export const DescoveryRecipe = () => {
                         page,
                         limit,
                         filter: {
-                          titulo: filterSearch
+                          titulo: filterSearch,
                         },
                       },
                     })

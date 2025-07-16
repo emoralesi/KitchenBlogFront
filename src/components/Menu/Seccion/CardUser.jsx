@@ -1,39 +1,69 @@
-import { Avatar, Card, CardActionArea, CardContent, CardMedia, Typography } from "@mui/material"
+import {
+  Card,
+  CardActionArea,
+  CardContent,
+  CardHeader,
+  Avatar,
+  Typography,
+  Divider,
+  Box,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-export const CardUSer = ({ user }) => {
-    const navigate = useNavigate();
-    return (
-        <Card sx={{ maxWidth: 345 }}>
-            <CardActionArea onClick={() => {
-                navigate(`/main/profile/${user.username}`)
-            }}>
-                <div style={{ marginTop: '10px', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Avatar
-                        sx={{
-                            width: 100,
-                            height: 100,
-                            fontSize: 80,
-                            borderColor: 'black',
-                            border: 'solid'
-                        }}
-                        src={user.profileImageUrl}
-                    >
-                        {user.username?.substring(0, 1).toUpperCase()}
-                    </Avatar>
-                </div>
-                <CardContent>
-                    <Typography gutterBottom variant="h4" component="div">
-                        {user.username}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        quantity recetas : {user.recetasCount}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        quantity Likes : {user.totalReactions}
-                    </Typography>
-                </CardContent>
-            </CardActionArea>
-        </Card>
-    )
-}
+export const CardUser = ({ user }) => {
+  const navigate = useNavigate();
+
+  return (
+    <Card
+      sx={{
+        maxWidth: 360,
+        borderRadius: 4,
+        boxShadow: 4,
+        transition: "transform 0.3s",
+        "&:hover": {
+          transform: "scale(1.03)",
+        },
+      }}
+    >
+      <CardActionArea
+        onClick={() => navigate(`/main/profile/${user.username}`)}
+        sx={{ p: 2 }}
+      >
+        <Box display="flex" justifyContent="center" mb={2}>
+          <Avatar
+            src={user.profileImageUrl}
+            sx={{
+              width: 100,
+              height: 100,
+              fontSize: 48,
+              border: "3px solid black",
+              bgcolor: "primary.main",
+            }}
+          >
+            {user.username?.[0]?.toUpperCase()}
+          </Avatar>
+        </Box>
+
+        <CardHeader
+          title={
+            <Typography variant="h5" align="center" fontWeight="bold">
+              {user.username}
+            </Typography>
+          }
+          sx={{ p: 0 }}
+        />
+
+        <Divider sx={{ my: 2 }} />
+
+        <CardContent sx={{ textAlign: "center" }}>
+          <Typography variant="body1" color="text.primary" gutterBottom>
+            <strong>Recetas:</strong> {user.recetasCount}
+          </Typography>
+          <Typography variant="body1" color="text.primary">
+            <strong>Likes:</strong> {user.totalReactions}
+          </Typography>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  );
+};
