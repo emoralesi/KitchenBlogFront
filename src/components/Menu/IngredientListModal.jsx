@@ -9,8 +9,11 @@ import {
   ListItemText,
   IconButton,
   TextField,
+  Stack,
+  Divider,
 } from "@mui/material";
-import { Delete, Add } from "@mui/icons-material";
+import { Close, Delete, Add } from "@mui/icons-material";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 
 export const IngredientListModal = ({ data, open, setOpen }) => {
   const [recipes, setRecipes] = useState(
@@ -101,10 +104,13 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
     <Modal open={open} onClose={() => setOpen(false)}>
       <Box
         sx={{
-          width: "80vw",
-          height: "80vh",
+          width: "90vw",
+          maxWidth: 700,
+          maxHeight: "90vh",
           bgcolor: "background.paper",
-          p: 2,
+          p: 4,
+          borderRadius: 3,
+          boxShadow: 24,
           position: "absolute",
           top: "50%",
           left: "50%",
@@ -112,33 +118,59 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
           overflowY: "auto",
         }}
       >
-        <div style={{ width: "100%", display: "flex", justifyContent: "end" }}>
-          <Button
-            onClick={() => {
-              setOpen(false);
-            }}
-            size="small"
-          >
-            X
-          </Button>
-        </div>
+        {/* Botón de cierre */}
+        <IconButton
+          onClick={() => setOpen(false)}
+          sx={{ position: "absolute", top: 16, right: 16 }}
+        >
+          <Close />
+        </IconButton>
 
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
           Lista de Ingredientes
         </Typography>
-        {recipes.map((recipe) => (
-          <Box key={recipe._id} sx={{ mb: 3 }}>
-            <Typography variant="h6">{recipe.titulo}</Typography>
-            {recipe.grupoIngrediente.map((group) => (
-              <Box key={group._id} sx={{ mb: 2 }}>
-                {recipe.grupoIngrediente.length > 1 ? (
-                  <Typography variant="subtitle1" fontWeight="bold">
+
+        {/* Estado vacío */}
+        {recipes?.length === 0 && (
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            height="50vh"
+            textAlign="center"
+            px={2}
+          >
+            <Typography variant="h6" color="textSecondary" gutterBottom>
+              No has agregado ninguna receta.
+            </Typography>
+            <Typography variant="body1" color="textSecondary">
+              Haz clic en el icono <CheckBoxOutlineBlankIcon fontSize="large" />{" "}
+              de alguna receta para crear tu lista de compras.
+            </Typography>
+          </Box>
+        )}
+
+        {/* Lista de recetas */}
+        {recipes?.map((recipe) => (
+          <Box key={recipe._id} sx={{ mb: 4 }}>
+            <Typography variant="h6" color="primary.main" gutterBottom>
+              {recipe.titulo}
+            </Typography>
+
+            {recipe.grupoIngrediente.map((group, index) => (
+              <Box key={group._id} sx={{ mb: 3 }}>
+                {recipe.grupoIngrediente.length > 1 && (
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="medium"
+                    gutterBottom
+                  >
                     {group.nombreGrupo}
                   </Typography>
-                ) : (
-                  <></>
                 )}
-                <List>
+
+                <List dense>
                   {group.item.map((item) => (
                     <ListItem
                       key={item._id}
@@ -161,14 +193,17 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
                     </ListItem>
                   ))}
                 </List>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+
+                {/* Input para agregar nuevo ingrediente */}
+                <Stack direction="row" spacing={1} mt={1}>
                   <TextField
                     size="small"
                     label="Nuevo ingrediente"
-                    value={group.newItem} // Bind to group's newItem
+                    value={group.newItem}
                     onChange={(e) =>
                       handleNewItemChange(recipe._id, group._id, e.target.value)
                     }
+                    fullWidth
                   />
                   <Button
                     variant="contained"
@@ -177,19 +212,25 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
                   >
                     Agregar
                   </Button>
-                </Box>
+                </Stack>
+
+                {/* Separador entre grupos */}
+                {index < recipe.grupoIngrediente.length - 1 && (
+                  <Divider sx={{ mt: 3 }} />
+                )}
               </Box>
             ))}
           </Box>
         ))}
-        <div
-          style={{ display: "flex", justifyContent: "space-between", gap: 15 }}
+
+        {/* Acciones finales */}
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}
         >
           <Button
             onClick={() => setOpen(false)}
-            variant="contained"
+            variant="outlined"
             color="secondary"
-            sx={{ mt: 2 }}
           >
             Cerrar
           </Button>
@@ -197,11 +238,10 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
             onClick={() => setOpen(false)}
             variant="contained"
             color="success"
-            sx={{ mt: 2 }}
           >
             Enviar Lista Al Correo
           </Button>
-        </div>
+        </Box>
       </Box>
     </Modal>
   );

@@ -234,42 +234,57 @@ export const PerfilOwner = ({
         sx={{
           display: "grid",
           gap: "15px",
+          marginLeft: "10px",
+          marginRight: "10px",
+          marginBottom: "10px",
           gridTemplateColumns: {
-            xs: "1fr", // mobile: 1 item por fila
-            sm: "repeat(2, 1fr)", // pantallas medianas: 2 items por fila
-            md: "repeat(3, 1fr)", // pantallas grandes: 3 items por fila
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            lg: "repeat(3, 1fr)",
           },
         }}
       >
-        {misRecetas
-          ?.sort((a, b) => {
-            if (a.pined !== b.pined) {
-              return b.pined - a.pined;
-            }
-            return new Date(b.fechaReceta) - new Date(a.fechaReceta);
-          })
-          .map((card, index) => {
-            const isNew = index >= previousLength;
-            const animationIndex = isNew ? index - previousLength : 0;
-            return (
-              <Zoom
-                key={card._id}
-                in={true}
-                timeout={300}
-                style={{
-                  transitionDelay: isNew ? `${animationIndex * 100}ms` : "0ms",
+        {misRecetas?.map((card, index) => {
+          const isNew = index >= previousLength;
+          const animationIndex = isNew ? index - previousLength : 0;
+          return (
+            <Zoom
+              key={card._id}
+              in={true}
+              timeout={300}
+              style={{
+                transitionDelay: isNew ? `${animationIndex * 100}ms` : "0ms",
+              }}
+            >
+              <Box
+                sx={{
+                  position: "relative",
+                  overflow: "visible",
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  display: "flex",
+                  maxHeight: "70vh",
+                  flexDirection: "column",
+                  bgcolor: "background.paper",
                 }}
               >
+                {card?.pined && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: -10,
+                      right: 0,
+                      transform: "rotate(20deg)",
+                      zIndex: 10,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <PushPinIcon sx={{ fontSize: "25px" }} />
+                  </Box>
+                )}
                 <Box
                   sx={{
-                    p: 0,
-                    border: 1,
-                    position: "relative",
-                    borderRadius: 2,
-                    maxHeight: "54vh",
                     overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
                   }}
                 >
                   <Box
@@ -278,8 +293,184 @@ export const PerfilOwner = ({
                       height: isExpanded[card._id] ? "0%" : "50%",
                       transition: "ease-in-out 0.5s",
                       position: "relative",
+                      display: "flex",
+                      flexDirection: "column",
                     }}
                   >
+                    <Box
+                      sx={{
+                        px: 1,
+                        py: 1,
+                        display: "flex",
+                        justifyContent: "space-around",
+                        alignItems: "center",
+                        borderTop: "1px solid #eee",
+                        bgcolor: "background.default",
+                        height: isExpanded[card._id] ? "0%" : "10%",
+                        transition: "ease-in-out 0.5s",
+                      }}
+                    >
+                      <Box textAlign="center">
+                        <IconButton
+                          onClick={() => {
+                            handleBookmarkClick(
+                              card._id,
+                              !favouriteInfo
+                                ?.find((value) => value.idReceta === card._id)
+                                .usuarios_id_favourite.some(
+                                  (user) => user == getStorageUser().usuarioId
+                                )
+                            );
+
+                            const receta = favouriteInfo?.find(
+                              (value) => value.idReceta === card._id
+                            );
+
+                            const userExists =
+                              receta.usuarios_id_favourite.some(
+                                (value) => value == getStorageUser().usuarioId
+                              );
+
+                            let updatedUsuariosIdFavourite;
+
+                            if (userExists) {
+                              updatedUsuariosIdFavourite =
+                                receta.usuarios_id_favourite.filter(
+                                  (value) =>
+                                    value !== getStorageUser().usuarioId
+                                );
+                            } else {
+                              updatedUsuariosIdFavourite = [
+                                ...receta.usuarios_id_favourite,
+                                getStorageUser().usuarioId,
+                              ];
+                            }
+
+                            const updatedFavouriteInfo = favouriteInfo.map(
+                              (item) =>
+                                item.idReceta === card._id
+                                  ? {
+                                      ...item,
+                                      usuarios_id_favourite:
+                                        updatedUsuariosIdFavourite,
+                                    }
+                                  : item
+                            );
+
+                            setFavouriteInfo(updatedFavouriteInfo);
+                          }}
+                          sx={{ transition: "color 0.3s", padding: 0 }}
+                        >
+                          {idFavourites?.includes(card._id) ? (
+                            <BookmarkIcon
+                              fontSize="large"
+                              sx={{ color: "yellow" }}
+                            />
+                          ) : (
+                            <BookmarkBorderIcon fontSize="large" />
+                          )}
+                        </IconButton>
+                        <Typography variant="caption">
+                          {
+                            favouriteInfo?.find(
+                              (value) => value.idReceta == card._id
+                            )?.usuarios_id_favourite.length
+                          }
+                        </Typography>
+                      </Box>
+                      <Box textAlign="center">
+                        <IconButton
+                          onClick={() => {
+                            saveUpdateReactionReceta({
+                              data: {
+                                idReceta: card?._id,
+                                idUser: getStorageUser().usuarioId,
+                                estado: !reactionInfo
+                                  .find((value) => value.idReceta === card?._id)
+                                  .usuarios_id_reaction.some(
+                                    (value) =>
+                                      value === getStorageUser().usuarioId
+                                  ),
+                                type: TypeNotification.LikeToReceta,
+                              },
+                            });
+                            const receta = reactionInfo.find(
+                              (value) => value.idReceta === card?._id
+                            );
+
+                            const userExists = receta.usuarios_id_reaction.some(
+                              (value) => value === getStorageUser().usuarioId
+                            );
+
+                            let updatedUsuariosIdReaction;
+
+                            if (userExists) {
+                              updatedUsuariosIdReaction =
+                                receta.usuarios_id_reaction.filter(
+                                  (value) =>
+                                    value !== getStorageUser().usuarioId
+                                );
+                            } else {
+                              updatedUsuariosIdReaction = [
+                                ...receta.usuarios_id_reaction,
+                                getStorageUser().usuarioId,
+                              ];
+                            }
+
+                            const updatedReactionInfo = reactionInfo.map(
+                              (item) =>
+                                item.idReceta === card?._id
+                                  ? {
+                                      ...item,
+                                      usuarios_id_reaction:
+                                        updatedUsuariosIdReaction,
+                                    }
+                                  : item
+                            );
+
+                            setReactionInfo(updatedReactionInfo);
+                          }}
+                        >
+                          <FavoriteIcon
+                            sx={{
+                              color: reactionInfo
+                                ?.find((value) => value.idReceta === card?._id)
+                                .usuarios_id_reaction.some(
+                                  (value) => value == getStorageUser().usuarioId
+                                )
+                                ? "red"
+                                : "gray",
+                              transition: "color 0.5s",
+                            }}
+                          />
+                        </IconButton>
+                        <Typography variant="caption">
+                          {
+                            reactionInfo.find(
+                              (value) => value.idReceta === card?._id
+                            ).usuarios_id_reaction.length
+                          }
+                        </Typography>
+                      </Box>
+                      <Box textAlign="center">
+                        <IconButton
+                          onClick={() => {
+                            setIdReceta(card?._id);
+                            window.history.replaceState(
+                              "",
+                              "",
+                              `/main/p/${card._id}`
+                            );
+                            setOpenReceta(true);
+                          }}
+                        >
+                          <CommentIcon sx={{ color: "blue", width: "34px" }} />
+                        </IconButton>
+                        <Typography variant="caption">
+                          {card?.comments.length}
+                        </Typography>
+                      </Box>
+                    </Box>
                     <Button
                       onClick={() => {
                         setIdReceta(card?._id);
@@ -291,29 +482,27 @@ export const PerfilOwner = ({
                         setOpenReceta(true);
                       }}
                       sx={{
-                        width: "100%",
-                        height: "100%",
                         p: 0,
-                        position: "relative", // Necesario para posicionar el texto en el centro
-                        overflow: "hidden", // Asegura que el contenido extra no se salga del botón
+                        width: "100%",
+                        height: 200,
+                        position: "relative",
+                        overflow: "hidden",
                         "&:hover .overlay": {
-                          backgroundColor: "rgba(0, 0, 0, 0.5)", // Oscurece el contenido en hover
+                          backgroundColor: "rgba(0, 0, 0, 0.5)",
                         },
                         "&:hover .text": {
-                          opacity: 1, // Muestra el texto en hover
+                          opacity: 1,
                         },
                       }}
                     >
                       <img
+                        src={card.images[0]}
+                        alt="Imagen"
                         style={{
                           width: "100%",
                           height: "100%",
                           objectFit: "cover",
-                          borderRadius: "8px 8px 0px 0px",
                         }}
-                        srcSet={card ? card.images[0] : null}
-                        src={card ? card.images[0] : null}
-                        alt="Imagen"
                         loading="lazy"
                       />
 
@@ -329,7 +518,6 @@ export const PerfilOwner = ({
                           transition: "background-color 0.3s ease", // Suaviza la transición del color de fondo
                         }}
                       />
-
                       <Typography
                         className="text"
                         sx={{
@@ -338,218 +526,14 @@ export const PerfilOwner = ({
                           left: "50%",
                           transform: "translate(-50%, -50%)",
                           color: "white",
-                          opacity: 0, // Oculto por defecto
-                          transition: "opacity 0.3s ease", // Suaviza la transición de la opacidad
+                          opacity: 0,
+                          transition: "opacity 0.3s ease",
                           fontWeight: "bold",
                         }}
                       >
                         See more
                       </Typography>
                     </Button>
-                    {card?.pined ? (
-                      <div
-                        style={{
-                          position: "absolute",
-                          right: 0,
-                          top: -10,
-                          display: "flex",
-                          alignItems: "center",
-                          rotate: "20px",
-                        }}
-                      >
-                        <PushPinIcon sx={{ fontSize: "25px" }} />
-                      </div>
-                    ) : (
-                      <></>
-                    )}
-
-                    <div
-                      style={{
-                        position: "absolute",
-                        right: 2,
-                        top: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        backdropFilter: "blur(10px)",
-                        height: "100%",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                          <IconButton
-                            onClick={() => {
-                              handleBookmarkClick(
-                                card._id,
-                                !favouriteInfo
-                                  ?.find((value) => value.idReceta === card._id)
-                                  .usuarios_id_favourite.some(
-                                    (user) => user == getStorageUser().usuarioId
-                                  )
-                              );
-
-                              const receta = favouriteInfo?.find(
-                                (value) => value.idReceta === card._id
-                              );
-
-                              const userExists =
-                                receta.usuarios_id_favourite.some(
-                                  (value) => value == getStorageUser().usuarioId
-                                );
-
-                              let updatedUsuariosIdFavourite;
-
-                              if (userExists) {
-                                updatedUsuariosIdFavourite =
-                                  receta.usuarios_id_favourite.filter(
-                                    (value) =>
-                                      value !== getStorageUser().usuarioId
-                                  );
-                              } else {
-                                updatedUsuariosIdFavourite = [
-                                  ...receta.usuarios_id_favourite,
-                                  getStorageUser().usuarioId,
-                                ];
-                              }
-
-                              const updatedFavouriteInfo = favouriteInfo.map(
-                                (item) =>
-                                  item.idReceta === card._id
-                                    ? {
-                                        ...item,
-                                        usuarios_id_favourite:
-                                          updatedUsuariosIdFavourite,
-                                      }
-                                    : item
-                              );
-
-                              setFavouriteInfo(updatedFavouriteInfo);
-                            }}
-                            sx={{ transition: "color 0.3s", padding: 0 }}
-                          >
-                            {idFavourites?.includes(card._id) ? (
-                              <BookmarkIcon
-                                fontSize="large"
-                                sx={{ color: "yellow" }}
-                              />
-                            ) : (
-                              <BookmarkBorderIcon fontSize="large" />
-                            )}
-                          </IconButton>
-                          <p>
-                            {
-                              favouriteInfo?.find(
-                                (value) => value.idReceta === card._id
-                              ).usuarios_id_favourite?.length
-                            }
-                          </p>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                          <IconButton
-                            onClick={() => {
-                              saveUpdateReactionReceta({
-                                data: {
-                                  idReceta: card?._id,
-                                  idUser: getStorageUser().usuarioId,
-                                  estado: !reactionInfo
-                                    .find(
-                                      (value) => value.idReceta === card?._id
-                                    )
-                                    .usuarios_id_reaction.some(
-                                      (value) =>
-                                        value === getStorageUser().usuarioId
-                                    ),
-                                  type: TypeNotification.LikeToReceta,
-                                },
-                              });
-                              const receta = reactionInfo.find(
-                                (value) => value.idReceta === card?._id
-                              );
-
-                              const userExists =
-                                receta.usuarios_id_reaction.some(
-                                  (value) =>
-                                    value === getStorageUser().usuarioId
-                                );
-
-                              let updatedUsuariosIdReaction;
-
-                              if (userExists) {
-                                updatedUsuariosIdReaction =
-                                  receta.usuarios_id_reaction.filter(
-                                    (value) =>
-                                      value !== getStorageUser().usuarioId
-                                  );
-                              } else {
-                                updatedUsuariosIdReaction = [
-                                  ...receta.usuarios_id_reaction,
-                                  getStorageUser().usuarioId,
-                                ];
-                              }
-
-                              const updatedReactionInfo = reactionInfo.map(
-                                (item) =>
-                                  item.idReceta === card?._id
-                                    ? {
-                                        ...item,
-                                        usuarios_id_reaction:
-                                          updatedUsuariosIdReaction,
-                                      }
-                                    : item
-                              );
-
-                              setReactionInfo(updatedReactionInfo);
-                            }}
-                          >
-                            <FavoriteIcon
-                              sx={{
-                                color: reactionInfo
-                                  ?.find(
-                                    (value) => value.idReceta === card?._id
-                                  )
-                                  .usuarios_id_reaction.some(
-                                    (value) =>
-                                      value == getStorageUser().usuarioId
-                                  )
-                                  ? "red"
-                                  : "gray",
-                                transition: "color 0.5s",
-                              }}
-                            />
-                          </IconButton>
-                          <span>
-                            {
-                              reactionInfo?.find(
-                                (value) => value.idReceta === card?._id
-                              ).usuarios_id_reaction.length
-                            }
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                          <IconButton
-                            onClick={() => {
-                              setIdReceta(card?._id);
-                              window.history.replaceState(
-                                "",
-                                "",
-                                `/main/p/${card._id}`
-                              );
-                              setOpenReceta(true);
-                            }}
-                          >
-                            <CommentIcon
-                              sx={{ color: "blue", width: "34px" }}
-                            />
-                          </IconButton>
-                          <p>{card?.comments.length}</p>
-                        </div>
-                      </div>
-                    </div>
                     <div
                       style={{
                         position: "absolute",
@@ -731,178 +715,134 @@ export const PerfilOwner = ({
                         </MenuItem>
                       </Menu>
                     </div>
-                    <div
-                      style={{
+                    <Fab
+                      aria-label="add"
+                      onClick={() => {
+                        handleClickExpand(card?._id);
+                      }}
+                      sx={{
                         position: "absolute",
-                        top: "100%",
+                        bottom: -16,
                         left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        zIndex: 1, // Para asegurar que el Fab esté sobre los demás elementos
+                        transform: "translateX(-50%)",
+                        height: 30,
+                        width: 30,
+                        minHeight: "unset",
+                        backgroundColor: "white",
+                        color: "black",
+                        boxShadow: 1,
                       }}
                     >
-                      <Fab
-                        aria-label="add"
-                        onClick={() => {
-                          handleClickExpand(card?._id);
-                        }}
-                        sx={{
-                          height: "30px",
-                          width: "30px",
-                          minHeight: "unset",
-                          color: "black",
-                          boxShadow: "unset",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        {isExpanded[card?._id] ? (
-                          <RemoveCircleIcon />
-                        ) : (
-                          <AddIcon />
-                        )}
-                      </Fab>
-                    </div>
+                      {isExpanded[card?._id] ? (
+                        <RemoveCircleIcon />
+                      ) : (
+                        <AddIcon />
+                      )}
+                    </Fab>
                   </Box>
                   <Box
                     sx={{
-                      width: "100%",
-                      height: isExpanded[card._id] ? "100%" : "50%",
+                      px: 2,
+                      paddingTop: "10px",
+                      pb: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                      height: isExpanded[card._id] ? "100%" : "60%",
                       transition: "ease-in-out 0.5s",
-                      backgroundColor: "white", // Fondo blanco
-                      borderRadius: "0px 0px 8px 8px",
-                      overflow: isExpanded[card._id] ? "auto" : "none", // Centra el contenido horizontalmente
+                      backgroundColor: "white",
+                      overflow: isExpanded[card._id] ? "auto" : "none",
                       scrollbarWidth: "thin",
                       clipPath: "border-box",
-                      position: "relative",
                     }}
                   >
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex", // Usar flexbox para centrar el contenido
-                        flexDirection: "column",
-                        justifyContent: "center",
-                      }}
+                    <Typography variant="h6" fontWeight="bold">
+                      {card.titulo}
+                    </Typography>
+
+                    <Box display="flex" justifyContent="space-between">
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <AccessTimeIcon fontSize="small" />
+                        <Typography variant="body2">
+                          {card.hours > 0
+                            ? `${card.hours}h ${card.minutes}m`
+                            : `${card.minutes}m`}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2">
+                        {dateConvert(card.fechaReceta)}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      flexWrap="wrap"
                     >
-                      <ul
-                        style={{
-                          height: "100%",
-                          padding: "0px 10px 0px 10px",
-                          margin: 0,
-                          display: "flex",
-                          flexDirection: "column",
-                        }}
-                      >
-                        <h3>{card?.titulo}</h3>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            height: "15px",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <AccessTimeIcon />
-                            <p>
-                              {card?.hours > 0
-                                ? card?.hours + "h " + card?.minutes + "m"
-                                : card?.minutes + "M"}
-                            </p>
-                          </div>
-                          <p>{dateConvert(card?.fechaReceta)}</p>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <PersonIcon />
-                            <p>{card?.cantidadPersonas}</p>
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <AssignmentIcon />
-                            <p>{card?.dificultad[0].nombreDificultad}</p>
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <RestaurantIcon />
-                            <p>{card?.categoria[0].nombreCategoria}</p>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            width: "100%",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              marginBottom: "10px",
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            {card?.subCategoria
-                              ?.slice()
-                              .sort((a, b) =>
-                                a.nombreSubCategoria.localeCompare(
-                                  b.nombreSubCategoria
-                                )
-                              )
-                              .map((value) =>
-                                IconSvg(value.nombreSubCategoria)
-                              )}
-                          </div>
-                        </div>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <PersonIcon fontSize="small" />
+                        <Typography variant="body2">
+                          {card.cantidadPersonas}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <AssignmentIcon fontSize="small" />
+                        <Typography variant="body2">
+                          {card.dificultad[0].nombreDificultad}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <RestaurantIcon fontSize="small" />
+                        <Typography variant="body2">
+                          {card.categoria[0].nombreCategoria}
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                        <p>{dateConvert(card?.fechaReceta)}</p>
-                        <p>{card?.descripcion}</p>
+                    <Box display="flex" flexWrap="wrap" gap={1}>
+                      {card.subCategoria
+                        .slice()
+                        .sort((a, b) =>
+                          a.nombreSubCategoria.localeCompare(
+                            b.nombreSubCategoria
+                          )
+                        )
+                        .map((value) => IconSvg(value.nombreSubCategoria))}
+                    </Box>
 
-                        <h3>INGREDIENTS</h3>
-                        {card?.grupoIngrediente?.map((value) => (
-                          <div key={value.nombreGrupo}>
-                            <h4>{value.nombreGrupo}</h4>
-                            {value.item.map((value2, index) => (
-                              <p>{`${value2.valor} ${
-                                value2.medida.nombreMedida == "Quantity"
-                                  ? ""
-                                  : value2.medida.nombreMedida
-                              } ${value2.ingrediente.nombreIngrediente}`}</p>
+                    <Typography variant="body2" color="text.secondary">
+                      {card.descripcion}
+                    </Typography>
+
+                    {isExpanded[card._id] && (
+                      <>
+                        <Typography variant="subtitle2" fontWeight="bold">
+                          INGREDIENTS
+                        </Typography>
+                        {card.grupoIngrediente.map((grupo) => (
+                          <Box key={grupo.nombreGrupo} mt={1}>
+                            <Typography variant="body2" fontWeight="bold">
+                              {grupo.nombreGrupo}
+                            </Typography>
+                            {grupo.item.map((item, idx) => (
+                              <Typography key={idx} variant="body2">
+                                {`${item.valor} ${
+                                  item.medida.nombreMedida === "Quantity"
+                                    ? ""
+                                    : item.medida.nombreMedida
+                                } ${item.ingrediente.nombreIngrediente}`}
+                              </Typography>
                             ))}
-                          </div>
+                          </Box>
                         ))}
-                      </ul>
-                    </div>
+                      </>
+                    )}
                   </Box>
                 </Box>
-              </Zoom>
-            );
-          })}
+              </Box>
+            </Zoom>
+          );
+        })}
         {loadingNearScreen ? <SkeletonWave /> : <></>}
         {misRecetas.length > 8 ? (
           <div id="visor" ref={externalRef}></div>

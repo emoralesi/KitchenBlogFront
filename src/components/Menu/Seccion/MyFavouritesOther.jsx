@@ -173,10 +173,13 @@ export const FavouritesOther = ({
           sx={{
             display: "grid",
             gap: "15px",
+            marginLeft: "10px",
+            marginRight: "10px",
+            marginBottom: "10px",
             gridTemplateColumns: {
-              xs: "1fr", // mobile: 1 item por fila
-              sm: "repeat(2, 1fr)", // pantallas medianas: 2 items por fila
-              md: "repeat(3, 1fr)", // pantallas grandes: 3 items por fila
+              xs: "1fr",
+              sm: "repeat(2, 1fr)",
+              lg: "repeat(3, 1fr)",
             },
           }}
         >
@@ -198,14 +201,13 @@ export const FavouritesOther = ({
                 >
                   <Box
                     sx={{
-                      p: 0,
-                      border: 1,
-                      position: "relative",
                       borderRadius: 2,
-                      maxHeight: "54vh",
+                      boxShadow: 3,
                       overflow: "hidden",
                       display: "flex",
+                      maxHeight: "70vh",
                       flexDirection: "column",
+                      bgcolor: "background.paper",
                     }}
                   >
                     <Box
@@ -220,49 +222,194 @@ export const FavouritesOther = ({
                     >
                       <Box
                         sx={{
-                          height: isExpanded[card._id] ? 0 : "20%",
-                          opacity: isExpanded[card._id] ? 0 : 1,
-                          transition: "height 0.5s ease, opacity 0.5s ease",
-                          alignItems: "center",
-                          padding: isExpanded[card._id] ? 0 : "8px",
-                          backgroundColor: "white",
+                          px: 1,
+                          py: 1,
                           display: "flex",
-                          zIndex: 2,
-                          margin: "3px 0px 3px 0px",
+                          justifyContent: "space-around",
+                          alignItems: "center",
+                          borderTop: "1px solid #eee",
+                          bgcolor: "background.default",
+                          height: isExpanded[card._id] ? "0%" : "10%",
+                          transition: "ease-in-out 0.5s",
                         }}
                       >
-                        <Button
-                          onClick={() => {
-                            navigate(`/main/profile/${card.user[0].username}`);
-                          }}
-                          sx={{ padding: 0, marginRight: 1 }}
-                        >
-                          <Avatar
-                            sx={{
-                              width: 50,
-                              height: 50,
-                              marginRight: "10px",
-                              fontSize: 40,
+                        <Box textAlign="center">
+                          <IconButton
+                            onClick={() => {
+                              handleBookmarkClick(
+                                card._id,
+                                !favouriteInfo
+                                  .find((value) => value.idReceta == card._id)
+                                  .usuarios_id_favourite.some(
+                                    (user) => user === idUsuario
+                                  )
+                              );
+
+                              const receta = favouriteInfo.find(
+                                (value) => value.idReceta === card?._id
+                              );
+
+                              const userExists =
+                                receta.usuarios_id_favourite.some(
+                                  (value) =>
+                                    value === getStorageUser().usuarioId
+                                );
+
+                              let updatedUsuariosIdFavourite;
+
+                              if (userExists) {
+                                updatedUsuariosIdFavourite =
+                                  receta.usuarios_id_favourite.filter(
+                                    (value) =>
+                                      value !== getStorageUser().usuarioId
+                                  );
+                              } else {
+                                updatedUsuariosIdFavourite = [
+                                  ...receta.usuarios_id_favourite,
+                                  getStorageUser().usuarioId,
+                                ];
+                              }
+
+                              const updatedFavouriteInfo = favouriteInfo.map(
+                                (item) =>
+                                  item.idReceta === card?._id
+                                    ? {
+                                        ...item,
+                                        usuarios_id_favourite:
+                                          updatedUsuariosIdFavourite,
+                                      }
+                                    : item
+                              );
+
+                              setFavouriteInfo(updatedFavouriteInfo);
                             }}
-                            src={card.user[0].profileImageUrl}
+                            sx={{
+                              transition: "color 0.3s",
+                              padding: 0,
+                              width: "40px",
+                            }}
                           >
-                            {card.user[0].username
-                              ?.substring(0, 1)
-                              .toUpperCase()}
-                          </Avatar>
-                        </Button>
-                        <Typography
-                          sx={{
-                            fontWeight: "bold",
-                            height: isExpanded[card._id] ? 0 : "auto",
-                            opacity: isExpanded[card._id] ? 0 : 1,
-                            overflow: "hidden",
-                            transition:
-                              "opacity 0.5s ease-in-out, height 0.3s ease",
-                          }}
-                        >
-                          {card.user[0].username}
-                        </Typography>
+                            {idFavourites?.includes(card._id) ? (
+                              <BookmarkIcon
+                                fontSize="large"
+                                sx={{ color: "yellow" }}
+                              />
+                            ) : (
+                              <BookmarkBorderIcon fontSize="large" />
+                            )}
+                          </IconButton>
+                          <Typography variant="caption">
+                            {
+                              favouriteInfo?.find(
+                                (value) => value.idReceta == card._id
+                              )?.usuarios_id_favourite.length
+                            }
+                          </Typography>
+                        </Box>
+                        <Box textAlign="center">
+                          <IconButton
+                            onClick={() => {
+                              if (
+                                saveUpdateReactionReceta({
+                                  data: {
+                                    idReceta: card?._id,
+                                    idUser: getStorageUser().usuarioId,
+                                    estado: !reactionInfo
+                                      .find(
+                                        (value) => value.idReceta === card?._id
+                                      )
+                                      .usuarios_id_reaction.some(
+                                        (value) =>
+                                          value === getStorageUser().usuarioId
+                                      ),
+                                    type: TypeNotification.LikeToReceta,
+                                  },
+                                })
+                              ) {
+                                const receta = reactionInfo.find(
+                                  (value) => value.idReceta === card?._id
+                                );
+
+                                const userExists =
+                                  receta.usuarios_id_reaction.some(
+                                    (value) =>
+                                      value === getStorageUser().usuarioId
+                                  );
+
+                                let updatedUsuariosIdReaction;
+
+                                if (userExists) {
+                                  updatedUsuariosIdReaction =
+                                    receta.usuarios_id_reaction.filter(
+                                      (value) =>
+                                        value !== getStorageUser().usuarioId
+                                    );
+                                } else {
+                                  updatedUsuariosIdReaction = [
+                                    ...receta.usuarios_id_reaction,
+                                    getStorageUser().usuarioId,
+                                  ];
+                                }
+
+                                const updatedReactionInfo = reactionInfo.map(
+                                  (item) =>
+                                    item.idReceta === card?._id
+                                      ? {
+                                          ...item,
+                                          usuarios_id_reaction:
+                                            updatedUsuariosIdReaction,
+                                        }
+                                      : item
+                                );
+
+                                setReactionInfo(updatedReactionInfo);
+                              }
+                            }}
+                            sx={{ width: "40px" }}
+                          >
+                            <FavoriteIcon
+                              sx={{
+                                color: reactionInfo
+                                  .find((value) => value.idReceta === card?._id)
+                                  .usuarios_id_reaction.some(
+                                    (value) =>
+                                      value == getStorageUser().usuarioId
+                                  )
+                                  ? "red"
+                                  : "gray",
+                                transition: "color 0.5s",
+                              }}
+                            />
+                          </IconButton>
+                          <Typography variant="caption">
+                            {
+                              reactionInfo.find(
+                                (value) => value.idReceta === card?._id
+                              ).usuarios_id_reaction.length
+                            }
+                          </Typography>
+                        </Box>
+                        <Box textAlign="center">
+                          <IconButton
+                            onClick={() => {
+                              setIdReceta(card?._id);
+                              window.history.replaceState(
+                                "",
+                                "",
+                                `/main/p/${card._id}`
+                              );
+                              setOpenReceta(true);
+                            }}
+                            sx={{ width: "40px" }}
+                          >
+                            <CommentIcon
+                              sx={{ color: "blue", width: "30px" }}
+                            />
+                          </IconButton>
+                          <Typography variant="caption">
+                            {card?.comments.length}
+                          </Typography>
+                        </Box>
                       </Box>
                       <Button
                         onClick={() => {
@@ -275,10 +422,9 @@ export const FavouritesOther = ({
                           setOpenReceta(true);
                         }}
                         sx={{
-                          width: "calc(100% - 60px)",
-                          marginLeft: "5px",
-                          flexGrow: 1,
                           p: 0,
+                          width: "100%",
+                          height: 200,
                           position: "relative",
                           overflow: "hidden",
                           "&:hover .overlay": {
@@ -321,348 +467,185 @@ export const FavouritesOther = ({
                             left: "50%",
                             transform: "translate(-50%, -50%)",
                             color: "white",
-                            opacity: 0, // Oculto por defecto
-                            transition: "opacity 0.3s ease", // Suaviza la transición de la opacidad
+                            opacity: 0,
+                            transition: "opacity 0.3s ease",
                             fontWeight: "bold",
                           }}
                         >
                           See more
                         </Typography>
                       </Button>
-                      <div
-                        style={{
-                          position: "absolute",
-                          right: 2,
-                          top: 50,
-                          display: "grid",
-                          gridTemplateColumns: "auto auto",
-                          alignItems: "center",
-                          columnGap: "0px",
-                          rowGap: "10px",
-                          width: "60px",
+                      <Fab
+                        aria-label="add"
+                        onClick={() => {
+                          handleClickExpand(card?._id);
                         }}
-                      >
-                        <IconButton
-                          onClick={() => {
-                            handleBookmarkClick(
-                              card._id,
-                              !favouriteInfo
-                                .find((value) => value.idReceta == card._id)
-                                .usuarios_id_favourite.some(
-                                  (user) => user === idUsuario
-                                )
-                            );
-
-                            const receta = favouriteInfo.find(
-                              (value) => value.idReceta === card?._id
-                            );
-
-                            const userExists =
-                              receta.usuarios_id_favourite.some(
-                                (value) => value === getStorageUser().usuarioId
-                              );
-
-                            let updatedUsuariosIdFavourite;
-
-                            if (userExists) {
-                              updatedUsuariosIdFavourite =
-                                receta.usuarios_id_favourite.filter(
-                                  (value) =>
-                                    value !== getStorageUser().usuarioId
-                                );
-                            } else {
-                              updatedUsuariosIdFavourite = [
-                                ...receta.usuarios_id_favourite,
-                                getStorageUser().usuarioId,
-                              ];
-                            }
-
-                            const updatedFavouriteInfo = favouriteInfo.map(
-                              (item) =>
-                                item.idReceta === card?._id
-                                  ? {
-                                      ...item,
-                                      usuarios_id_favourite:
-                                        updatedUsuariosIdFavourite,
-                                    }
-                                  : item
-                            );
-
-                            setFavouriteInfo(updatedFavouriteInfo);
-                          }}
-                          sx={{
-                            transition: "color 0.3s",
-                            padding: 0,
-                            width: "40px",
-                          }}
-                        >
-                          {idFavourites?.includes(card._id) ? (
-                            <BookmarkIcon
-                              fontSize="large"
-                              sx={{ color: "yellow" }}
-                            />
-                          ) : (
-                            <BookmarkBorderIcon fontSize="large" />
-                          )}
-                        </IconButton>
-                        <p style={{ margin: 0, textAlign: "left" }}>
-                          {
-                            favouriteInfo?.find(
-                              (value) => value.idReceta == card._id
-                            )?.usuarios_id_favourite.length
-                          }
-                        </p>
-                        <IconButton
-                          onClick={() => {
-                            if (
-                              saveUpdateReactionReceta({
-                                data: {
-                                  idReceta: card?._id,
-                                  idUser: getStorageUser().usuarioId,
-                                  estado: !reactionInfo
-                                    .find(
-                                      (value) => value.idReceta === card?._id
-                                    )
-                                    .usuarios_id_reaction.some(
-                                      (value) =>
-                                        value === getStorageUser().usuarioId
-                                    ),
-                                  type: TypeNotification.LikeToReceta,
-                                },
-                              })
-                            ) {
-                              const receta = reactionInfo.find(
-                                (value) => value.idReceta === card?._id
-                              );
-
-                              const userExists =
-                                receta.usuarios_id_reaction.some(
-                                  (value) =>
-                                    value === getStorageUser().usuarioId
-                                );
-
-                              let updatedUsuariosIdReaction;
-
-                              if (userExists) {
-                                updatedUsuariosIdReaction =
-                                  receta.usuarios_id_reaction.filter(
-                                    (value) =>
-                                      value !== getStorageUser().usuarioId
-                                  );
-                              } else {
-                                updatedUsuariosIdReaction = [
-                                  ...receta.usuarios_id_reaction,
-                                  getStorageUser().usuarioId,
-                                ];
-                              }
-
-                              const updatedReactionInfo = reactionInfo.map(
-                                (item) =>
-                                  item.idReceta === card?._id
-                                    ? {
-                                        ...item,
-                                        usuarios_id_reaction:
-                                          updatedUsuariosIdReaction,
-                                      }
-                                    : item
-                              );
-
-                              setReactionInfo(updatedReactionInfo);
-                            }
-                          }}
-                          sx={{ width: "40px" }}
-                        >
-                          <FavoriteIcon
-                            sx={{
-                              color: reactionInfo
-                                .find((value) => value.idReceta === card?._id)
-                                .usuarios_id_reaction.some(
-                                  (value) => value == getStorageUser().usuarioId
-                                )
-                                ? "red"
-                                : "gray",
-                              transition: "color 0.5s",
-                            }}
-                          />
-                        </IconButton>
-                        <span>
-                          {
-                            reactionInfo.find(
-                              (value) => value.idReceta === card?._id
-                            ).usuarios_id_reaction.length
-                          }
-                        </span>
-                        <IconButton
-                          onClick={() => {
-                            setIdReceta(card?._id);
-                            window.history.replaceState(
-                              "",
-                              "",
-                              `/main/p/${card._id}`
-                            );
-                            setOpenReceta(true);
-                          }}
-                          sx={{ width: "40px" }}
-                        >
-                          <CommentIcon sx={{ color: "blue", width: "30px" }} />
-                        </IconButton>
-                        <p style={{ margin: 0, textAlign: "left" }}>
-                          {card?.comments.length}
-                        </p>
-                      </div>
-                      <div
-                        style={{
+                        sx={{
                           position: "absolute",
-                          top: "100%",
+                          bottom: -16,
                           left: "50%",
-                          transform: "translate(-50%, -50%)",
-                          zIndex: 1, // Para asegurar que el Fab esté sobre los demás elementos
+                          transform: "translateX(-50%)",
+                          height: 30,
+                          width: 30,
+                          minHeight: "unset",
+                          backgroundColor: "white",
+                          color: "black",
+                          boxShadow: 1,
                         }}
                       >
-                        <Fab
-                          aria-label="add"
-                          onClick={() => {
-                            handleClickExpand(card?._id);
-                          }}
-                          sx={{
-                            height: "30px",
-                            width: "30px",
-                            minHeight: "unset",
-                            color: "black",
-                            boxShadow: "unset",
-                            backgroundColor: "white",
-                          }}
-                        >
-                          {isExpanded[card?._id] ? (
-                            <RemoveCircleIcon />
-                          ) : (
-                            <AddIcon />
-                          )}
-                        </Fab>
-                      </div>
+                        {isExpanded[card?._id] ? (
+                          <RemoveCircleIcon />
+                        ) : (
+                          <AddIcon />
+                        )}
+                      </Fab>
                     </Box>
                     <Box
                       sx={{
-                        width: "100%",
-                        height: isExpanded[card._id] ? "100%" : "50%",
+                        px: 2,
+                        paddingTop: "10px",
+                        pb: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                        height: isExpanded[card._id] ? "100%" : "60%",
                         transition: "ease-in-out 0.5s",
-                        backgroundColor: "white", // Fondo blanco
-                        borderRadius: "0px 0px 8px 8px",
+                        backgroundColor: "white",
                         overflow: isExpanded[card._id] ? "auto" : "none",
                         scrollbarWidth: "thin",
                         clipPath: "border-box",
-                        position: "relative",
                       }}
                     >
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          display: "flex", // Usar flexbox para centrar el contenido
-                          flexDirection: "column",
-                          justifyContent: "center",
+                      <Box
+                        sx={{
+                          height: isExpanded[card._id] ? 0 : "20%",
+                          opacity: isExpanded[card._id] ? 0 : 1,
+                          transition: "height 0.5s ease, opacity 0.5s ease",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          display: "flex",
                         }}
                       >
-                        <ul
-                          style={{
-                            height: "100%",
-                            padding: "0px 10px 0px 10px",
-                            margin: 0,
-                            display: "flex",
-                            flexDirection: "column",
-                          }}
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          <h3>{card?.titulo}</h3>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              height: "15px",
+                          <Button
+                            onClick={() => {
+                              navigate(
+                                `/main/profile/${card.user[0].username}`
+                              );
+                            }}
+                            sx={{ padding: 0, marginRight: 1 }}
+                          >
+                            <Avatar
+                              sx={{
+                                width: 50,
+                                height: 50,
+                                marginRight: "10px",
+                                fontSize: 40,
+                              }}
+                              src={card.user[0].profileImageUrl}
+                            >
+                              {card.user[0].username
+                                ?.substring(0, 1)
+                                .toUpperCase()}
+                            </Avatar>
+                          </Button>
+                          <Typography
+                            sx={{
+                              fontWeight: "bold",
+                              height: isExpanded[card._id] ? 0 : "auto",
+                              opacity: isExpanded[card._id] ? 0 : 1,
+                              overflow: "hidden",
+                              transition:
+                                "opacity 0.5s ease-in-out, height 0.3s ease",
                             }}
                           >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              <AccessTimeIcon />
-                              <p>
-                                {card?.hours > 0
-                                  ? card?.hours + "h " + card?.minutes + "m"
-                                  : card?.minutes + "M"}
-                              </p>
-                            </div>
-                            <p>{dateConvert(card?.fechaReceta)}</p>
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              <PersonIcon />
-                              <p>{card?.cantidadPersonas}</p>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              <AssignmentIcon />
-                              <p>{card?.dificultad[0].nombreDificultad}</p>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              <RestaurantIcon />
-                              <p>{card?.categoria[0].nombreCategoria}</p>
-                            </div>
-                          </div>
+                            {card.user[0].username}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography variant="h6" fontWeight="bold">
+                        {card.titulo}
+                      </Typography>
 
-                          <div
-                            style={{ display: "flex", alignItems: "center" }}
-                          >
-                            {card?.subCategoria
-                              ?.slice()
-                              .sort((a, b) =>
-                                a.nombreSubCategoria.localeCompare(
-                                  b.nombreSubCategoria
-                                )
-                              )
-                              .map((value) =>
-                                IconSvg(value.nombreSubCategoria)
-                              )}
-                          </div>
-                          <p>{card?.descripcion}</p>
+                      <Box display="flex" justifyContent="space-between">
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <AccessTimeIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.hours > 0
+                              ? `${card.hours}h ${card.minutes}m`
+                              : `${card.minutes}m`}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2">
+                          {dateConvert(card.fechaReceta)}
+                        </Typography>
+                      </Box>
 
-                          <h3>INGREDIENTS</h3>
-                          {card?.grupoIngrediente?.map((value) => (
-                            <div key={value.nombreGrupo}>
-                              <h4>{value.nombreGrupo}</h4>
-                              {value.item.map((value2, index) => (
-                                <p>{`${value2.valor} ${
-                                  value2.medida.nombreMedida == "Quantity"
-                                    ? ""
-                                    : value2.medida.nombreMedida
-                                } ${value2.ingrediente.nombreIngrediente}`}</p>
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        flexWrap="wrap"
+                      >
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <PersonIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.cantidadPersonas}
+                          </Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <AssignmentIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.dificultad[0].nombreDificultad}
+                          </Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <RestaurantIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.categoria[0].nombreCategoria}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box display="flex" flexWrap="wrap" gap={1}>
+                        {card.subCategoria
+                          .slice()
+                          .sort((a, b) =>
+                            a.nombreSubCategoria.localeCompare(
+                              b.nombreSubCategoria
+                            )
+                          )
+                          .map((value) => IconSvg(value.nombreSubCategoria))}
+                      </Box>
+
+                      <Typography variant="body2" color="text.secondary">
+                        {card.descripcion}
+                      </Typography>
+
+                      {isExpanded[card._id] && (
+                        <>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            INGREDIENTS
+                          </Typography>
+                          {card.grupoIngrediente.map((grupo) => (
+                            <Box key={grupo.nombreGrupo} mt={1}>
+                              <Typography variant="body2" fontWeight="bold">
+                                {grupo.nombreGrupo}
+                              </Typography>
+                              {grupo.item.map((item, idx) => (
+                                <Typography key={idx} variant="body2">
+                                  {`${item.valor} ${
+                                    item.medida.nombreMedida === "Quantity"
+                                      ? ""
+                                      : item.medida.nombreMedida
+                                  } ${item.ingrediente.nombreIngrediente}`}
+                                </Typography>
                               ))}
-                            </div>
+                            </Box>
                           ))}
-                        </ul>
-                      </div>
+                        </>
+                      )}
                     </Box>
                   </Box>
                 </Zoom>

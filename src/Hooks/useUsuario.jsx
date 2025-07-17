@@ -9,7 +9,6 @@ import {
   obtenerIdUserByUsername,
   saveUpdateFavourite,
 } from "../services/UserService";
-import { simulateDelay } from "../utils/Delay";
 
 export const useUsuario = () => {
   const [usuariosAll, setUsuariosAll] = useState([]);
@@ -20,6 +19,7 @@ export const useUsuario = () => {
   const [reactionInfo, setReactionInfo] = useState(null);
   const [favouriteInfo, setFavouriteInfo] = useState(null);
   const [totalUsuariosDescubrir, setTotalUsuariosDescubrir] = useState(0);
+  const [cantidadFavoritos, setCantidadFavoritos] = useState(0);
 
   const navigate = useNavigate();
 
@@ -63,7 +63,7 @@ export const useUsuario = () => {
     try {
       console.log("mi body", body);
 
-      const result = await simulateDelay(getUsuariosToDescubrir(body));
+      const result = await getUsuariosToDescubrir(body);
       setUsuariosDescubrir(result?.usuarios);
       setTotalUsuariosDescubrir(result?.totalUsuarios);
       return result;
@@ -77,6 +77,7 @@ export const useUsuario = () => {
     try {
       const result = await getFavourites(data);
       setFavourites(result?.Favourites);
+      setCantidadFavoritos(result?.totalFavourite);
       setReactionInfo(
         result?.Favourites?.map((recipe) => {
           return {
@@ -153,5 +154,7 @@ export const useUsuario = () => {
     reactionInfo,
     setReactionInfo,
     totalUsuariosDescubrir,
+    setCantidadFavoritos,
+    cantidadFavoritos,
   };
 };

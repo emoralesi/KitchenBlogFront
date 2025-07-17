@@ -86,10 +86,15 @@ export const DescoveryRecipe = () => {
   const [categoria, setCategoria] = useState("");
   const [subCategoria, setSubCategoria] = useState([]);
   const [ingredientes, setIngredientes] = useState([]);
+  const [orderBy, setOrderBy] = useState({
+    orderBy: "relevante",
+    direction: "desc",
+  });
 
   const [loadingNearScreen, setLoadingNearScreen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchState, setSearchState] = useState(false);
+  const [firstLoading, setFirstLoading] = useState(true);
 
   const { ObtenerCategoria, categoriasAll } = useCategoria();
   const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
@@ -97,7 +102,7 @@ export const DescoveryRecipe = () => {
 
   const GetAllRecipes = async () => {
     setLoading(true);
-    ObtenerRecetasInfo({ data: { page, limit } })
+    await ObtenerRecetasInfo({ data: { page, limit, orderBy } })
       .then((res) => {
         setReactionInfo(
           res.Recetas?.map((recipe) => {
@@ -120,6 +125,7 @@ export const DescoveryRecipe = () => {
       })
       .finally(() => {
         setLoading(false);
+        setFirstLoading(false);
       });
   };
 
@@ -130,6 +136,41 @@ export const DescoveryRecipe = () => {
       setSubCategoria([...subCategoria, categoryId]);
     }
   };
+
+  const orderOptions = [
+    {
+      label: "Relevante ↑",
+      value: { orderBy: "relevante", direction: "asc" },
+    },
+    {
+      label: "Relevante ↓",
+      value: { orderBy: "relevante", direction: "desc" },
+    },
+    {
+      label: "Like ↑",
+      value: { orderBy: "cantidadLike", direction: "asc" },
+    },
+    {
+      label: "Like ↓",
+      value: { orderBy: "cantidadLike", direction: "desc" },
+    },
+    {
+      label: "Comentarios ↑",
+      value: { orderBy: "cantidadComentarios", direction: "asc" },
+    },
+    {
+      label: "Comnetarios ↓",
+      value: { orderBy: "cantidadComentarios", direction: "desc" },
+    },
+    {
+      label: "Guardados ↑",
+      value: { orderBy: "cantidadGuardados", direction: "asc" },
+    },
+    {
+      label: "Guardados ↓",
+      value: { orderBy: "cantidadGuardados", direction: "desc" },
+    },
+  ];
 
   const externalRef = useRef();
   const { isNearScreen } = useNearScreen({
@@ -154,6 +195,7 @@ export const DescoveryRecipe = () => {
               subCategoria: filterBy.subCategoria,
               ingredientes: filterBy.ingredientes,
             },
+            orderBy,
           },
         }).finally(() => {
           setLoadingNearScreen(false);
@@ -254,6 +296,7 @@ export const DescoveryRecipe = () => {
         page,
         limit,
         filter,
+        orderBy,
       },
     })
       .then((res) => {
@@ -324,6 +367,7 @@ export const DescoveryRecipe = () => {
                               subCategoria: filterBy.subCategoria,
                               ingredientes: filterBy.ingredientes,
                             },
+                            orderBy,
                           },
                         }).then((res) => {
                           setReactionInfo(
@@ -383,13 +427,14 @@ export const DescoveryRecipe = () => {
             </Grid>
             <Grid item xs={12} md={3}>
               <Grid container spacing={1}>
-                {filterSearch && (
-                  <Grid item xs={12}>
+                <Grid item xs={12} sx={{ height: "20px" }}>
+                  {filterSearch && (
                     <Typography variant="subtitle2" color="textSecondary">
                       Buscando por: <strong>{filterSearch}</strong>
                     </Typography>
-                  </Grid>
-                )}
+                  )}
+                </Grid>
+
                 <Grid item xs={12} md={6}>
                   <Button
                     variant="contained"
@@ -417,6 +462,7 @@ export const DescoveryRecipe = () => {
                                 subCategoria: filterBy.subCategoria,
                                 ingredientes: filterBy.ingredientes,
                               },
+                              orderBy,
                             },
                           })
                             .then((res) => {
@@ -439,7 +485,7 @@ export const DescoveryRecipe = () => {
                               setLoading(false);
                             });
                           setSearchState(true);
-                          setLimit(15);
+                          setLimit(9);
                           return;
                         }
                       }
@@ -465,6 +511,7 @@ export const DescoveryRecipe = () => {
                             subCategoria: filterBy.subCategoria,
                             ingredientes: filterBy.ingredientes,
                           },
+                          orderBy,
                         },
                       });
                       setSearchState(false);
@@ -478,6 +525,78 @@ export const DescoveryRecipe = () => {
               </Grid>
             </Grid>
           </Grid>
+          <Box
+            mx="auto"
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "flex-start",
+            }}
+          >
+            <FormControl
+              fullWidth
+              size="small"
+              className="min-w-[120px] bg-white rounded-xl shadow-sm"
+              sx={{
+                width: { lg: "20%", md: "25%", xs: "40%" },
+                marginBottom: "5px",
+              }}
+            >
+              <InputLabel id="orderby-label">Ordenar</InputLabel>
+              <Select
+                labelId="orderby-label"
+                value={`${orderBy.orderBy}_${orderBy.direction}`}
+                label="Ordenar"
+                onChange={(event) => {
+                  const [orderByField, direction] =
+                    event.target.value.split("_");
+                  setOrderBy({ orderBy: orderByField, direction });
+                  setLoading(true);
+                  ObtenerRecetasInfo({
+                    data: {
+                      page,
+                      limit,
+                      filter: {
+                        titulo: textSearch,
+                        categoria: filterBy.categoria,
+                        subCategoria: filterBy.subCategoria,
+                        ingredientes: filterBy.ingredientes,
+                      },
+                      orderBy: { orderBy: orderByField, direction },
+                    },
+                  })
+                    .then((res) => {
+                      setReactionInfo(
+                        res.Recetas?.map((recipe) => ({
+                          idReceta: recipe._id,
+                          usuarios_id_reaction: recipe.reactions.map(
+                            (reaction) => reaction.user_id
+                          ),
+                        }))
+                      );
+                      setFavouriteInfo(
+                        res.Recetas?.map((recipe) => ({
+                          idReceta: recipe._id,
+                          usuarios_id_favourite: recipe.favourite,
+                        }))
+                      );
+                    })
+                    .finally(() => {
+                      setLoading(false);
+                    });
+                }}
+              >
+                {orderOptions.map((option) => (
+                  <MenuItem
+                    key={`${option.value.orderBy}_${option.value.direction}`}
+                    value={`${option.value.orderBy}_${option.value.direction}`}
+                  >
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </div>
         <Accordion sx={{ width: "100%" }}>
           <AccordionSummary
@@ -597,6 +716,7 @@ export const DescoveryRecipe = () => {
                         filter: {
                           titulo: filterSearch,
                         },
+                        orderBy,
                       },
                     })
                       .then((res) => {
@@ -628,14 +748,38 @@ export const DescoveryRecipe = () => {
           </AccordionDetails>
         </Accordion>
       </Box>
+      {recetasInfo?.length == 0 && firstLoading == false ? (
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          height="50vh"
+          width="auto"
+          textAlign="center"
+          px={2}
+        >
+          <Typography variant="h5" color="textSecondary" gutterBottom>
+            No se encontraron recetas. <SearchIcon fontSize="large" />
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Cambia el filtro de busqueda para encontrar recetas.
+          </Typography>
+        </Box>
+      ) : (
+        <></>
+      )}
       <Box
         sx={{
           display: "grid",
           gap: "15px",
+          marginLeft: "10px",
+          marginRight: "10px",
+          marginBottom: "10px",
           gridTemplateColumns: {
-            xs: "1fr", // mobile: 1 item por fila
-            sm: "repeat(2, 1fr)", // pantallas medianas: 2 items por fila
-            md: "repeat(3, 1fr)", // pantallas grandes: 3 items por fila
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            lg: "repeat(3, 1fr)",
           },
         }}
       >
@@ -643,173 +787,55 @@ export const DescoveryRecipe = () => {
           <SkeletonWave />
         ) : (
           <>
-            {[...recetasInfo]
-              ?.sort((a, b) => {
-                return new Date(b.fechaReceta) - new Date(a.fechaReceta);
-              })
-              .map((card, index) => {
-                const isNew = index >= previousLength;
-                const animationIndex = isNew ? index - previousLength : 0;
-                return (
-                  <Zoom
-                    key={card._id}
-                    in={true}
-                    timeout={300}
-                    style={{
-                      transitionDelay: isNew
-                        ? `${animationIndex * 100}ms`
-                        : "0ms",
+            {[...recetasInfo]?.map((card, index) => {
+              const isNew = index >= previousLength;
+              const animationIndex = isNew ? index - previousLength : 0;
+              return (
+                <Zoom
+                  key={card._id}
+                  in={true}
+                  timeout={300}
+                  style={{
+                    transitionDelay: isNew
+                      ? `${animationIndex * 100}ms`
+                      : "0ms",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      borderRadius: 2,
+                      boxShadow: 3,
+                      overflow: "hidden",
+                      display: "flex",
+                      maxHeight: "70vh",
+                      flexDirection: "column",
+                      bgcolor: "background.paper",
                     }}
                   >
                     <Box
                       sx={{
-                        p: 0,
-                        border: 1,
+                        width: "100%",
+                        height: isExpanded[card._id] ? "0%" : "50%",
+                        transition: "ease-in-out 0.5s",
                         position: "relative",
-                        borderRadius: 2,
-                        maxHeight: "54vh",
-                        overflow: "hidden",
                         display: "flex",
                         flexDirection: "column",
                       }}
                     >
                       <Box
                         sx={{
-                          width: "100%",
-                          height: isExpanded[card._id] ? "0%" : "50%",
-                          transition: "ease-in-out 0.5s",
-                          position: "relative",
+                          px: 1,
+                          py: 1,
                           display: "flex",
-                          flexDirection: "column",
+                          justifyContent: "space-around",
+                          alignItems: "center",
+                          borderTop: "1px solid #eee",
+                          bgcolor: "background.default",
+                          height: isExpanded[card._id] ? "0%" : "10%",
+                          transition: "ease-in-out 0.5s",
                         }}
                       >
-                        <Box
-                          sx={{
-                            height: isExpanded[card._id] ? 0 : "20%",
-                            opacity: isExpanded[card._id] ? 0 : 1,
-                            transition: "height 0.5s ease, opacity 0.5s ease",
-                            alignItems: "center",
-                            padding: isExpanded[card._id] ? 0 : "8px",
-                            backgroundColor: "white",
-                            display: "flex",
-                            zIndex: 2,
-                            margin: "3px 0px 3px 0px",
-                          }}
-                        >
-                          <Button
-                            onClick={() => {
-                              navigate(
-                                `/main/profile/${card.user[0].username}`
-                              );
-                            }}
-                            sx={{ padding: 0, marginRight: 1 }}
-                          >
-                            <Avatar
-                              sx={{
-                                width: 50,
-                                height: 50,
-                                marginRight: "10px",
-                                fontSize: 40,
-                              }}
-                              src={card.user[0].profileImageUrl}
-                            >
-                              {card.user[0].username
-                                ?.substring(0, 1)
-                                .toUpperCase()}
-                            </Avatar>
-                          </Button>
-                          <Typography
-                            sx={{
-                              fontWeight: "bold",
-                              height: isExpanded[card._id] ? 0 : "auto",
-                              opacity: isExpanded[card._id] ? 0 : 1,
-                              overflow: "hidden",
-                              transition:
-                                "opacity 0.5s ease-in-out, height 0.3s ease",
-                            }}
-                          >
-                            {card.user[0].username}
-                          </Typography>
-                        </Box>
-                        <Button
-                          onClick={() => {
-                            setIdReceta(card?._id);
-                            window.history.replaceState(
-                              "",
-                              "",
-                              `/main/p/${card._id}`
-                            );
-                            setOpenReceta(true);
-                          }}
-                          sx={{
-                            width: "calc(100% - 60px)",
-                            marginLeft: "5px",
-                            flexGrow: 1,
-                            p: 0,
-                            position: "relative",
-                            overflow: "hidden",
-                            "&:hover .overlay": {
-                              backgroundColor: "rgba(0, 0, 0, 0.5)",
-                            },
-                            "&:hover .text": {
-                              opacity: 1,
-                            },
-                          }}
-                        >
-                          <img
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              borderRadius: "8px 8px 0px 0px",
-                            }}
-                            srcSet={card ? card.images[0] : null}
-                            src={card ? card.images[0] : null}
-                            alt="Imagen"
-                            loading="lazy"
-                          />
-                          <Box
-                            className="overlay"
-                            sx={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              backgroundColor: "rgba(0, 0, 0, 0)", // Transparente por defecto
-                              transition: "background-color 0.3s ease", // Suaviza la transición del color de fondo
-                            }}
-                          />
-
-                          <Typography
-                            className="text"
-                            sx={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              color: "white",
-                              opacity: 0, // Oculto por defecto
-                              transition: "opacity 0.3s ease", // Suaviza la transición de la opacidad
-                              fontWeight: "bold",
-                            }}
-                          >
-                            See more
-                          </Typography>
-                        </Button>
-                        <div
-                          style={{
-                            position: "absolute",
-                            right: 2,
-                            top: 50,
-                            display: "grid",
-                            gridTemplateColumns: "auto auto",
-                            alignItems: "center",
-                            columnGap: "0px",
-                            rowGap: "10px",
-                            width: "60px",
-                          }}
-                        >
+                        <Box textAlign="center">
                           <IconButton
                             onClick={() => {
                               handleBookmarkClick(
@@ -875,13 +901,15 @@ export const DescoveryRecipe = () => {
                               <BookmarkBorderIcon fontSize="large" />
                             )}
                           </IconButton>
-                          <p style={{ margin: 0, textAlign: "left" }}>
+                          <Typography variant="caption">
                             {
-                              favouriteInfo?.filter(
-                                (value) => value.idReceta === card._id
-                              )[0]?.usuarios_id_favourite.length
+                              favouriteInfo?.find(
+                                (value) => value.idReceta == card._id
+                              )?.usuarios_id_favourite.length
                             }
-                          </p>
+                          </Typography>
+                        </Box>
+                        <Box textAlign="center">
                           <IconButton
                             onClick={() => {
                               saveUpdateReactionReceta({
@@ -955,13 +983,15 @@ export const DescoveryRecipe = () => {
                               }}
                             />
                           </IconButton>
-                          <span>
+                          <Typography variant="caption">
                             {
-                              reactionInfo?.filter(
+                              reactionInfo.find(
                                 (value) => value.idReceta === card?._id
-                              )[0]?.usuarios_id_reaction.length
+                              ).usuarios_id_reaction.length
                             }
-                          </span>
+                          </Typography>
+                        </Box>
+                        <Box textAlign="center">
                           <IconButton
                             onClick={() => {
                               setIdReceta(card?._id);
@@ -978,174 +1008,249 @@ export const DescoveryRecipe = () => {
                               sx={{ color: "blue", width: "30px" }}
                             />
                           </IconButton>
-                          <p style={{ margin: 0, textAlign: "left" }}>
+                          <Typography variant="caption">
                             {card?.comments.length}
-                          </p>
-                        </div>
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "100%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            zIndex: 1, // Para asegurar que el Fab esté sobre los demás elementos
-                          }}
-                        >
-                          <Fab
-                            aria-label="add"
-                            onClick={() => {
-                              handleClickExpand(card?._id);
-                            }}
-                            sx={{
-                              height: "30px",
-                              width: "30px",
-                              minHeight: "unset",
-                              color: "black",
-                              boxShadow: "unset",
-                              backgroundColor: "white",
-                            }}
-                          >
-                            {isExpanded[card?._id] ? (
-                              <RemoveCircleIcon />
-                            ) : (
-                              <AddIcon />
-                            )}
-                          </Fab>
-                        </div>
+                          </Typography>
+                        </Box>
                       </Box>
-                      <Box
+                      <Button
+                        onClick={() => {
+                          setIdReceta(card?._id);
+                          window.history.replaceState(
+                            "",
+                            "",
+                            `/main/p/${card._id}`
+                          );
+                          setOpenReceta(true);
+                        }}
                         sx={{
+                          p: 0,
                           width: "100%",
-                          height: isExpanded[card._id] ? "100%" : "50%",
-                          transition: "ease-in-out 0.5s",
-                          backgroundColor: "white", // Fondo blanco
-                          borderRadius: "0px 0px 8px 8px",
-                          overflow: isExpanded[card._id] ? "auto" : "none",
-                          scrollbarWidth: "thin",
-                          clipPath: "border-box",
+                          height: 200,
                           position: "relative",
+                          overflow: "hidden",
+                          "&:hover .overlay": {
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                          },
+                          "&:hover .text": {
+                            opacity: 1,
+                          },
                         }}
                       >
-                        <div
+                        <img
+                          src={card.images[0]}
+                          alt="Imagen"
                           style={{
                             width: "100%",
                             height: "100%",
-                            display: "flex", // Usar flexbox para centrar el contenido
-                            flexDirection: "column",
-                            justifyContent: "center",
+                            objectFit: "cover",
+                          }}
+                          loading="lazy"
+                        />
+                        <Box
+                          className="overlay"
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            backgroundColor: "rgba(0, 0, 0, 0)", // Transparente por defecto
+                            transition: "background-color 0.3s ease", // Suaviza la transición del color de fondo
+                          }}
+                        />
+
+                        <Typography
+                          className="text"
+                          sx={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            color: "white",
+                            opacity: 0,
+                            transition: "opacity 0.3s ease",
+                            fontWeight: "bold",
                           }}
                         >
-                          <ul
-                            style={{
-                              height: "100%",
-                              padding: "0px 10px 0px 10px",
-                              margin: 0,
-                              display: "flex",
-                              flexDirection: "column",
+                          See more
+                        </Typography>
+                      </Button>
+                      <Fab
+                        aria-label="add"
+                        onClick={() => {
+                          handleClickExpand(card?._id);
+                        }}
+                        sx={{
+                          position: "absolute",
+                          bottom: -16,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          height: 30,
+                          width: 30,
+                          minHeight: "unset",
+                          backgroundColor: "white",
+                          color: "black",
+                          boxShadow: 1,
+                        }}
+                      >
+                        {isExpanded[card?._id] ? (
+                          <RemoveCircleIcon />
+                        ) : (
+                          <AddIcon />
+                        )}
+                      </Fab>
+                    </Box>
+                    <Box
+                      sx={{
+                        px: 2,
+                        paddingTop: "10px",
+                        pb: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                        height: isExpanded[card._id] ? "100%" : "60%",
+                        transition: "ease-in-out 0.5s",
+                        backgroundColor: "white",
+                        overflow: isExpanded[card._id] ? "auto" : "none",
+                        scrollbarWidth: "thin",
+                        clipPath: "border-box",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          height: isExpanded[card._id] ? 0 : "20%",
+                          opacity: isExpanded[card._id] ? 0 : 1,
+                          transition: "height 0.5s ease, opacity 0.5s ease",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          display: "flex",
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Button
+                            onClick={() => {
+                              navigate(
+                                `/main/profile/${card.user[0].username}`
+                              );
                             }}
                           >
-                            <h3>{card?.titulo}</h3>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                height: "15px",
+                            <Avatar
+                              sx={{
+                                width: 50,
+                                height: 50,
+                                fontSize: 40,
                               }}
+                              src={card.user[0].profileImageUrl}
                             >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <AccessTimeIcon />
-                                <p>
-                                  {card?.hours > 0
-                                    ? card?.hours + "h " + card?.minutes + "m"
-                                    : card?.minutes + "M"}
-                                </p>
-                              </div>
-                              <p>{dateConvert(card?.fechaReceta)}</p>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <PersonIcon />
-                                <p>{card?.cantidadPersonas}</p>
-                              </div>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <AssignmentIcon />
-                                <p>{card?.dificultad[0].nombreDificultad}</p>
-                              </div>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <RestaurantIcon />
-                                <p>{card?.categoria[0].nombreCategoria}</p>
-                              </div>
-                            </div>
-
-                            <div
-                              style={{ display: "flex", alignItems: "center" }}
-                            >
-                              {card?.subCategoria
-                                ?.slice()
-                                .sort((a, b) =>
-                                  a.nombreSubCategoria.localeCompare(
-                                    b.nombreSubCategoria
-                                  )
-                                )
-                                .map((value) =>
-                                  IconSvg(value.nombreSubCategoria)
-                                )}
-                            </div>
-
-                            <p>{dateConvert(card?.fechaReceta)}</p>
-                            <p>{card?.descripcion}</p>
-
-                            <h3>INGREDIENTS</h3>
-                            {card?.grupoIngrediente?.map((value) => (
-                              <div key={value.nombreGrupo}>
-                                <h4>{value.nombreGrupo}</h4>
-                                {value.item.map((value2, index) => (
-                                  <p>{`${value2.valor} ${
-                                    value2.medida.nombreMedida == "Quantity"
-                                      ? ""
-                                      : value2.medida.nombreMedida
-                                  } ${
-                                    value2.ingrediente.nombreIngrediente
-                                  }`}</p>
-                                ))}
-                              </div>
-                            ))}
-                          </ul>
-                        </div>
+                              {card.user[0].username
+                                ?.substring(0, 1)
+                                .toUpperCase()}
+                            </Avatar>
+                          </Button>
+                          <Typography
+                            sx={{
+                              fontWeight: "bold",
+                              height: isExpanded[card._id] ? 0 : "auto",
+                              opacity: isExpanded[card._id] ? 0 : 1,
+                              overflow: "hidden",
+                              transition:
+                                "opacity 0.5s ease-in-out, height 0.3s ease",
+                            }}
+                          >
+                            {card.user[0].username}
+                          </Typography>
+                        </Box>
                       </Box>
+                      <Typography variant="h6" fontWeight="bold">
+                        {card.titulo}
+                      </Typography>
+
+                      <Box display="flex" justifyContent="space-between">
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <AccessTimeIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.hours > 0
+                              ? `${card.hours}h ${card.minutes}m`
+                              : `${card.minutes}m`}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2">
+                          {dateConvert(card.fechaReceta)}
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        flexWrap="wrap"
+                      >
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <PersonIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.cantidadPersonas}
+                          </Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <AssignmentIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.dificultad[0].nombreDificultad}
+                          </Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <RestaurantIcon fontSize="small" />
+                          <Typography variant="body2">
+                            {card.categoria[0].nombreCategoria}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box display="flex" flexWrap="wrap" gap={1}>
+                        {card.subCategoria
+                          .slice()
+                          .sort((a, b) =>
+                            a.nombreSubCategoria.localeCompare(
+                              b.nombreSubCategoria
+                            )
+                          )
+                          .map((value) => IconSvg(value.nombreSubCategoria))}
+                      </Box>
+
+                      <Typography variant="body2" color="text.secondary">
+                        {card.descripcion}
+                      </Typography>
+
+                      {isExpanded[card._id] && (
+                        <>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            INGREDIENTS
+                          </Typography>
+                          {card.grupoIngrediente.map((grupo) => (
+                            <Box key={grupo.nombreGrupo} mt={1}>
+                              <Typography variant="body2" fontWeight="bold">
+                                {grupo.nombreGrupo}
+                              </Typography>
+                              {grupo.item.map((item, idx) => (
+                                <Typography key={idx} variant="body2">
+                                  {`${item.valor} ${
+                                    item.medida.nombreMedida === "Quantity"
+                                      ? ""
+                                      : item.medida.nombreMedida
+                                  } ${item.ingrediente.nombreIngrediente}`}
+                                </Typography>
+                              ))}
+                            </Box>
+                          ))}
+                        </>
+                      )}
                     </Box>
-                  </Zoom>
-                );
-              })}
+                  </Box>
+                </Zoom>
+              );
+            })}
             {loadingNearScreen ? <SkeletonWave /> : <></>}
-            {recetasInfo?.length == 0 ? <h4>Not Recetas Founded</h4> : <></>}
             {reactionInfo?.length > 8 ? (
               <div id="visor" ref={externalRef}></div>
             ) : (

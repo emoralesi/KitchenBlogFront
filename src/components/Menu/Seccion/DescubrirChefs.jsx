@@ -18,7 +18,6 @@ import debounce from "just-debounce-it";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useNearScreen from "../../../Hooks/useNearScreen";
 import { useUsuario } from "../../../Hooks/useUsuario";
-import { simulateDelay } from "../../../utils/Delay";
 import { CardUserSkeleton } from "../../../utils/SkeletonCardUser";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { CardUser } from "./CardUser";

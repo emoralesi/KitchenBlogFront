@@ -12,7 +12,6 @@ export default function MainContent() {
         sx={{
           width: "16.66%",
           height: "100vh",
-          backgroundColor: "cornsilk",
           borderRadius: "unset",
           position: "fixed",
           top: 0,

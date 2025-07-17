@@ -1,64 +1,111 @@
-import { Box, Grid, ImageList, ImageListItem } from "@mui/material";
+import { Grid, Box, Typography, Divider, Stack } from "@mui/material";
 import ExpandableText from "../../../utils/LongText";
 
 export const RecipeFirstPart = ({ detailsReceta }) => {
+  const transformCloudinaryUrl = (url) => {
+    return url.replace(
+      "/upload/",
+      "/upload/w_auto,dpr_auto,q_auto,f_auto,c_fill,ar_16:9/"
+    );
+  };
 
-    const transformCloudinaryUrl = (url, width, height) => {
-        // Inserta la transformación en la URL
-        return url.replace("/upload/", `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`);
-    };
+  return (
+    <Grid container spacing={4} sx={{ width: "100%" }}>
+      <Grid
+        item
+        xs={12}
+        md={6}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <Typography
+          variant="h4"
+          fontWeight={600}
+          gutterBottom
+          sx={{ width: "100%" }}
+        >
+          {detailsReceta.titulo}
+        </Typography>
 
-    return (
-        <Grid container sx={{ width: '100%', paddingLeft: '10px' }}>
-            <Grid item xs={12} sm={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'column', width: '100%', marginBottom: '20px' }}>
-                <Box sx={{ width: '100%' }} >
-                    <h1>{detailsReceta.titulo}</h1>
-                    <ImageList
-                        sx={{ width: '100%', height: 'auto', alignItems: 'center' }}
-                        cols={detailsReceta.images.length}
-                        gap={8}
-                    >
-                        {detailsReceta.images.map((image, index) => (
-                            <ImageListItem key={index} sx={{ justifyItems: 'center', width: '100%', alignItems: 'center' }}>
-                                <img
-                                    src={transformCloudinaryUrl(image, 300, 200)}
-                                    alt={`Image ${index}`}
-                                    loading="lazy"
-                                    style={{
-                                        width: '200px',
-                                        height: '200px',
-                                        objectFit: 'cover',
-                                    }}
-                                />
-                            </ImageListItem>
-                        ))}
-                    </ImageList>
-                    <div>
-                        <ExpandableText text={detailsReceta.descripcion} maxLength={150} />
-                    </div>
-                </Box>
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'column', width: '100%', marginBottom: '20px' }} >
-                <Box>
-                    <div>
-                        <h2>INGREDIENTS</h2>
-                    </div>
-                    <div>
-                        {
-                            detailsReceta.grupoIngrediente?.map((value) => (
-                                <div key={value.nombreGrupo}>
-                                    <h4>{value.nombreGrupo}</h4>
-                                    {value.item.map((value2, index) => (
-                                        <p>{`${value2.valor} ${value2.medida.nombreMedida == 'Quantity' ? '' : value2.medida.nombreMedida} ${value2.ingrediente.nombreIngrediente}`}</p>
-                                    ))}
-                                </div>
-                            ))
-                        }
-                    </div>
-                </Box>
-            </Grid>
-        </Grid>
-    )
-}
+        {detailsReceta.images?.length > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              overflowX: "auto",
+              gap: 2,
+              py: 1,
+              pr: 1,
+              "&::-webkit-scrollbar": {
+                height: 8,
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#ccc",
+                borderRadius: 4,
+              },
+            }}
+          >
+            {detailsReceta.images.map((image, index) => (
+              <Box
+                key={index}
+                component="img"
+                src={transformCloudinaryUrl(image)}
+                alt={`Imagen ${index + 1}`}
+                sx={{
+                  minWidth: 380,
+                  height: 300,
+                  borderRadius: 2,
+                  objectFit: "cover",
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </Box>
+        )}
+        <ExpandableText text={detailsReceta.descripcion} maxLength={150} />
+      </Grid>
+
+      <Grid
+        item
+        xs={12}
+        md={6}
+        sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+      >
+        <Typography variant="h5" fontWeight={500} gutterBottom>
+          Ingredientes
+        </Typography>
+
+        <Divider sx={{ mb: 1 }} />
+
+        <Stack spacing={2}>
+          {detailsReceta.grupoIngrediente?.map((grupo) => (
+            <Box key={grupo.nombreGrupo}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {grupo.nombreGrupo}
+              </Typography>
+              {grupo.item.map((item, idx) => (
+                <Typography
+                  key={idx}
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ ml: 1 }}
+                >
+                  •{" "}
+                  {`${item.valor} ${
+                    item.medida.nombreMedida === "Quantity"
+                      ? ""
+                      : item.medida.nombreMedida
+                  } ${item.ingrediente.nombreIngrediente}`}
+                </Typography>
+              ))}
+            </Box>
+          ))}
+        </Stack>
+      </Grid>
+    </Grid>
+  );
+};
 
 export default RecipeFirstPart;
