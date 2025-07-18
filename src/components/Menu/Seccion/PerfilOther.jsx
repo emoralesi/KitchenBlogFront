@@ -580,7 +580,7 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                             {grupo.item.map((item, idx) => (
                               <Typography key={idx} variant="body2">
                                 {`${item.valor} ${
-                                  item.medida.nombreMedida === "Quantity"
+                                  item.medida.nombreMedida === "Cantidad"
                                     ? ""
                                     : item.medida.nombreMedida
                                 } ${item.ingrediente.nombreIngrediente}`}

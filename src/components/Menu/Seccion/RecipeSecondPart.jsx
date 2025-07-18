@@ -13,7 +13,7 @@ export const RecipeSecondPart = ({ data }) => {
                         <div key={value.nombreGrupo}>
                             <h4>{value.nombreGrupo}</h4>
                             {value.item.map((value2, index) => (
-                                <p>{`${value2.valor} ${value2.medida.nombreMedida == 'Quantity' ? '' : value2.medida.nombreMedida} ${value2.ingrediente.nombreIngrediente}`}</p>
+                                <p>{`${value2.valor} ${value2.medida.nombreMedida == 'Cantidad' ? '' : value2.medida.nombreMedida} ${value2.ingrediente.nombreIngrediente}`}</p>
                             ))}
                         </div>
                     ))

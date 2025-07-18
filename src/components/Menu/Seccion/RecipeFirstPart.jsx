@@ -94,7 +94,7 @@ export const RecipeFirstPart = ({ detailsReceta }) => {
                 >
                   •{" "}
                   {`${item.valor} ${
-                    item.medida.nombreMedida === "Quantity"
+                    item.medida.nombreMedida === "Cantidad"
                       ? ""
                       : item.medida.nombreMedida
                   } ${item.ingrediente.nombreIngrediente}`}

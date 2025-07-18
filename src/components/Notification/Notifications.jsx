@@ -135,8 +135,7 @@ const NotificationBell = () => {
             <Typography variant="body2" color="text.secondary">
               Te avisaremos cuando alguien <strong>comente</strong>, dé
               <strong> like</strong> a una de tus recetas o haya{" "}
-              <strong>Respondido</strong>
-              algun comentario tuyo.
+              <strong>Respondido</strong> algun comentario tuyo.
             </Typography>
           </Box>
         ) : (
