@@ -14,9 +14,9 @@ export const Header = () => {
       style={{
         width: "100%",
         height: "100%",
-        // backgroundColor: "pink",
+        backgroundColor: "#b7d9fb",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end",
         justifyContent: "flex-end",
       }}
     >
@@ -29,7 +29,7 @@ export const Header = () => {
           color="inherit"
         >
           <Badge>
-            <ManageAccountsIcon />
+            <ManageAccountsIcon  sx={{ fontSize: "1.8rem" }}/>
           </Badge>
         </IconButton>
         <Popover

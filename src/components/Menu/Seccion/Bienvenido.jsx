@@ -1,332 +1,89 @@
-import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
-import { Avatar, IconButton, Modal, CircularProgress } from "@mui/material";
-import Box from "@mui/material/Box";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
-import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useUsuario } from "../../../Hooks/useUsuario";
-import { Unauthorized } from "../../../utils/401Unauthorized";
-import { getStorageUser } from "../../../utils/StorageUser";
-import { Favourites } from "./MyFavourites";
-import { PerfilOther } from "./PerfilOther";
-import { PerfilOwner } from "./PerfilOwner";
-import { FavouritesOther } from "./MyFavouritesOther";
-import { UserNotFound } from "./UserNotFound";
+import PersonIcon from "@mui/icons-material/Person";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
+import SearchIcon from "@mui/icons-material/Search";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
+
+const menuItems = [
+  {
+    icon: <PersonIcon fontSize="large" color="primary" />,
+    title: "Mi Perfil",
+    description:
+      "Accede a tu perfil personal. Aquí puedes ver tus recetas, crearlas, editarlas y gestionar tus publicaciones.",
+  },
+  {
+    icon: <SearchIcon fontSize="large" color="primary" />,
+    title: "Explorar Recetas",
+    description:
+      "Descubre recetas creadas por otros usuarios. Usa filtros para encontrar exactamente lo que estás buscando.",
+  },
+  {
+    icon: <RestaurantIcon fontSize="large" color="primary" />,
+    title: "Descubrir Chefs",
+    description:
+      "Busca y descubre a otros chefs. Visita sus perfiles para ver sus recetas y obtener inspiración.",
+  },
+  {
+    icon: <ShoppingCartIcon fontSize="large" color="primary" />,
+    title: "Shopping List",
+    description:
+      "Crea una lista de compras a partir de tus recetas favoritas. Personalízala según tus necesidades.",
+  },
+];
 
 export const Bienvenido = () => {
-  const username = "hannah"
-  const [value, setValue] = useState(0);
-
-  const [cantidadReceta, setCantidadReceta] = useState(null);
-  const [cantidadFavoritos, setCantidadFavoritos] = useState(null);
-  const [IdUser, setIdUser] = useState(null);
-  const [userImage, setUserImage] = useState(null);
-
-  const [openEditProfilePic, setOpenEditProfilePic] = useState(false);
-
-  const { ObtenerDataFavAndRec, getIdUserByUserName } = useUsuario();
-
-  const [userExists, setUserExists] = useState(true);
-  const [loading, setLoading] = useState(true);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  const handleClose = () => {
-    setOpenEditProfilePic(false);
-    setImage(null);
-  };
-
-  const [image, setImage] = useState(null);
-
-  const handleImageChange = (event) => {
-    setImage(event.target.files[0]);
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!image) {
-      console.error("No image selected");
-      return;
-    }
-
-    const extension = image.name.split(".").pop();
-
-    // Crear un nuevo archivo con el nombre deseado
-    const renamedImage = new File([image], `${IdUser}.${extension}`, {
-      type: image.type,
-    });
-
-    const formData = new FormData();
-    formData.append("profileImage", renamedImage);
-    formData.append("idUsuario", IdUser);
-    formData.append("folderName", "Profiles_images");
-
-    try {
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getStorageUser().token}`,
-        },
-        body: formData,
-      };
-
-      const response = await fetch(
-        `${import.meta.env.VITE_APP_API_URL}/upload-profile-image`,
-        requestOptions
-      )
-        .then((res) => {
-          Unauthorized(res.status);
-          return res;
-        })
-        .then((res) => {
-          return res;
-        });
-
-      // Puedes agregar lógica para actualizar la imagen del usuario si es necesario
-    } catch (error) {
-      console.error("Error al subir la imagen:", error);
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        var idUser = null;
-
-        if (
-          username.toLowerCase() === getStorageUser().username.toLowerCase()
-        ) {
-          idUser = getStorageUser().usuarioId;
-          setUserImage(getStorageUser().profileImageUrl);
-          setUserExists(true);
-        } else {
-          const Usuario = await getIdUserByUserName({ username: username });
-          if (!Usuario || !Usuario.userId) {
-            setUserExists(false);
-            return;
-          }
-          idUser = Usuario.userId;
-          setUserImage(Usuario.user.profileImageUrl);
-        }
-
-        setIdUser(idUser);
-
-        const result = await ObtenerDataFavAndRec({ idUser: idUser });
-
-        setCantidadReceta(result.recetaCount);
-        setCantidadFavoritos(result.favouriteCount);
-      } catch (error) {
-        console.error("Error fetching data", error);
-        setUserExists(false); // Asumiendo que un error puede indicar que el usuario no existe
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [username, getIdUserByUserName, ObtenerDataFavAndRec]);
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "80vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!userExists) {
-    return <UserNotFound />;
-  }
-
-  return (
-    <div style={{ height: "100%" }}>
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <div
-          style={{ width: "50%", display: "flex", justifyContent: "center" }}
-        >
-          <div
-            style={{ position: "relative" }}
-            onMouseEnter={() => {
-              if (IdUser === getStorageUser().usuarioId) {
-                const editButton = document.querySelector(".edit-icon-button");
-                if (editButton) editButton.style.display = "block";
-              }
-            }}
-            onMouseLeave={() => {
-              const editButton = document.querySelector(".edit-icon-button");
-              if (editButton) editButton.style.display = "none";
-            }}
-          >
-            <Avatar
-              sx={{
-                width: 100,
-                height: 100,
-                fontSize: 80,
-              }}
-              src={userImage}
-            >
-              {username?.substring(0, 1).toUpperCase()}
-            </Avatar>
-            <IconButton
-              className="edit-icon-button"
-              sx={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                display: "none",
-                "&:hover": {
-                  display: "block",
-                },
-              }}
-              onClick={() => {
-                setOpenEditProfilePic(true);
-              }}
-            >
-              <EditIcon />
-            </IconButton>
-          </div>
-        </div>
-        <div style={{ width: "50%" }}>
-          <div style={{ width: "100%" }}>
-            <h2>{username}</h2>
-          </div>
-          <p>{`Recepies : ${cantidadReceta}`}</p>
-          <p>{`Favourites: ${cantidadFavoritos}`}</p>
-        </div>
-      </div>
-      <Box sx={{ width: "100%" }}>
-        <Box sx={{ borderColor: "divider" }}>
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="basic tabs example"
-            sx={{
-              backgroundColor: "background.paper",
-              "& .MuiTabs-flexContainer": {
-                display: "flex",
-                justifyContent: "space-evenly",
-              },
-              minHeight: "unset",
-              height: "38px",
-            }}
-          >
-            <Tab label="Post" {...a11yProps(0)} />
-            <Tab label="Favourites" {...a11yProps(1)} />
-          </Tabs>
-        </Box>
-        <CustomTabPanel value={value} index={0}>
-          <PerfilOwner
-            setCantidadFavoritos={setCantidadFavoritos}
-            setCantidadReceta={setCantidadReceta}
-            cantidadReceta={cantidadReceta}
-          />
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={1}>
-          {cantidadFavoritos !== null && cantidadFavoritos !== undefined ? (
-            getStorageUser().username.toLowerCase() ===
-            username.toLowerCase() ? (
-              <Favourites
-                userName={username}
-                setCantidadFavoritos={setCantidadFavoritos}
-                cantidadFavoritos={cantidadFavoritos}
-              />
-            ) : (
-              <FavouritesOther
-                userName={username}
-                setCantidadFavoritos={setCantidadFavoritos}
-                cantidadFavoritos={cantidadFavoritos}
-              />
-            )
-          ) : null}
-        </CustomTabPanel>
-      </Box>
-      {openEditProfilePic && (
-        <Modal
-          open={openEditProfilePic}
-          closeAfterTransition
-          BackdropProps={{
-            timeout: 500,
-          }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Box
-            sx={{
-              width: { xs: "60vw", md: "60vw", lg: "60vw" },
-              height: { xs: "85vh", md: "85vh", lg: "85vh" },
-              bgcolor: "background.paper",
-              border: "2px solid #000",
-              boxShadow: 24,
-              p: 4,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <IconButton
-              onClick={handleClose}
-              sx={{ position: "absolute", top: 8, right: 8 }}
-            >
-              <CloseIcon />
-            </IconButton>
-            <div>
-              <form onSubmit={handleSubmit}>
-                <input type="file" onChange={handleImageChange} />
-                <button type="submit">Subir Imagen</button>
-              </form>
-            </div>
-          </Box>
-        </Modal>
-      )}
-    </div>
-  );
-};
-
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
-
   return (
     <Box
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
+      sx={{
+        overflowY: "auto",
+        height: "-webkit-fill-available",
+        backgroundColor: "#f9f9f9",
+        paddingLeft:'10px',
+        paddingRight:'10px',
+        paddingBottom:'10px',
+        paddingTop:'40px'
+      }}
     >
-      {value === index && (
-        <Box sx={{ padding: "10px", minHeight: "50vh" }}>{children}</Box>
-      )}
+      <Typography variant="h4" gutterBottom fontWeight={600}>
+        Bienvenido a tu Blog De Cocina
+      </Typography>
+      <Typography variant="body1" gutterBottom color="text.secondary" mb={4}>
+        Usa el menú lateral para navegar por la aplicación. Aquí tienes una
+        breve descripción de cada sección:
+      </Typography>
+
+      <Grid container spacing={3}>
+        {menuItems.map((item, index) => (
+          <Grid item xs={12} md={6} key={index}>
+            <Card
+              variant="outlined"
+              sx={{
+                height: "100%",
+                width: "95%",
+                borderRadius: 3,
+                boxShadow: 1,
+                transition: "transform 0.2s ease-in-out",
+                "&:hover": {
+                  transform: "scale(1.02)",
+                  boxShadow: 3,
+                },
+              }}
+            >
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  {item.icon}
+                  <Typography variant="h6" component="div" ml={2}>
+                    {item.title}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary">
+                  {item.description}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   );
-}
-
-CustomTabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
 };
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}

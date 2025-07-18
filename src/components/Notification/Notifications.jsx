@@ -87,7 +87,7 @@ const NotificationBell = () => {
     <div style={{ marginRight: "20px", marginTop: "10px" }}>
       <IconButton onClick={handleClick} color="inherit">
         <Badge badgeContent={totalUnread} color="error">
-          <NotificationsIcon />
+          <NotificationsIcon sx={{ fontSize: "1.8rem" }} />
         </Badge>
       </IconButton>
       <Popover

@@ -292,7 +292,7 @@ export const ShoppingList2 = () => {
                             fontWeight: "bold",
                           }}
                         >
-                          See more
+                          Ver Más
                         </Typography>
                       </Button>
                       <Fab

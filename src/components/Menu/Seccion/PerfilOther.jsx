@@ -466,7 +466,7 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                           fontWeight: "bold",
                         }}
                       >
-                        See more
+                        Ver Más
                       </Typography>
                     </Button>
                     <Fab
@@ -497,8 +497,7 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                   <Box
                     sx={{
                       px: 2,
-                      paddingTop: "10px",
-                      pb: 2,
+                      paddingTop: isExpanded[card._id] ? "0px" : "10px",
                       display: "flex",
                       flexDirection: "column",
                       gap: 1,

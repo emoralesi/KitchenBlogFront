@@ -62,12 +62,12 @@ export const PerfilOwner = ({
   const openMore = Boolean(anchorEl);
   const handleClickMore = (event, card) => {
     setAnchorEl(event.currentTarget);
-    setCurrentCard(card); // Establece el card actual
+    setCurrentCard(card);
   };
 
   const handleCloseMore = () => {
     setAnchorEl(null);
-    setCurrentCard(null); // Limpia el card actual
+    setCurrentCard(null);
   };
 
   const handleClickExpand = (cardId) => {
@@ -531,7 +531,7 @@ export const PerfilOwner = ({
                           fontWeight: "bold",
                         }}
                       >
-                        See more
+                        Ver Más
                       </Typography>
                     </Button>
                     <div
@@ -743,8 +743,7 @@ export const PerfilOwner = ({
                   <Box
                     sx={{
                       px: 2,
-                      paddingTop: "10px",
-                      pb: 2,
+                      paddingTop: isExpanded[card._id] ? "0px" : "10px",
                       display: "flex",
                       flexDirection: "column",
                       gap: 1,

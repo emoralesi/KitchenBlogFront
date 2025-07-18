@@ -476,7 +476,7 @@ export const Favourites = ({
                             fontWeight: "bold",
                           }}
                         >
-                          See more
+                          Ver Más
                         </Typography>
                       </Button>
                       <Fab

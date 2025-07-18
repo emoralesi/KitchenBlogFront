@@ -616,7 +616,7 @@ export const DescoveryRecipe = () => {
                     onChange={(e) => setCategoria(e.target.value)}
                   >
                     <MenuItem key={"emptyone"} value={""}>
-                      <p>NOT SELECTED</p>
+                      <p>SIN SELECCIONAR</p>
                     </MenuItem>
                     {categoriasAll.map((category) => (
                       <MenuItem key={category._id} value={category._id}>
@@ -1073,7 +1073,7 @@ export const DescoveryRecipe = () => {
                             fontWeight: "bold",
                           }}
                         >
-                          See more
+                          Ver Más
                         </Typography>
                       </Button>
                       <Fab
