@@ -42,6 +42,7 @@ export const Bienvenido = () => {
         paddingRight:'10px',
         paddingBottom:'10px',
         paddingTop:'40px'
+        
       }}
     >
       <Typography variant="h4" gutterBottom fontWeight={600}>
