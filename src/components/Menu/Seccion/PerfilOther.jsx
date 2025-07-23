@@ -577,15 +577,31 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                             <Typography variant="body2" fontWeight="bold">
                               {grupo.nombreGrupo}
                             </Typography>
-                            {grupo.item.map((item, idx) => (
-                              <Typography key={idx} variant="body2">
-                                {`${item.valor} ${
-                                  item.medida.nombreMedida === "Cantidad"
-                                    ? ""
-                                    : item.medida.nombreMedida
-                                } ${item.ingrediente.nombreIngrediente}`}
-                              </Typography>
-                            ))}
+                            {grupo.item.map((item, idx) => {
+                              const tienePresentacion =
+                                item.presentacion?.nombrePresentacion;
+                              const textoPresentacion = tienePresentacion
+                                ? ` (${tienePresentacion})`
+                                : "";
+
+                              const alternativas = item.alternativas?.length
+                                ? item.alternativas
+                                    .map((alt) => ` / ${alt.nombreIngrediente}`)
+                                    .join("")
+                                : "";
+
+                              return (
+                                <Typography key={idx} variant="body2">
+                                  {`${item.valor} ${
+                                    item.medida.nombreMedida === "Cantidad"
+                                      ? ""
+                                      : item.medida.nombreMedida
+                                  } ${
+                                    item.ingrediente.nombreIngrediente
+                                  }${textoPresentacion}${alternativas}`}
+                                </Typography>
+                              );
+                            })}
                           </Box>
                         ))}
                       </>

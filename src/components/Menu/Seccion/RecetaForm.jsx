@@ -1,6 +1,7 @@
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
+  Autocomplete,
   Box,
   Button,
   CircularProgress,
@@ -22,6 +23,7 @@ import { useCategoria } from "../../../Hooks/useCategoria";
 import { useDificultad } from "../../../Hooks/useDificultad";
 import { useIngrediente } from "../../../Hooks/useIngrediente";
 import { useMedida } from "../../../Hooks/useMedida";
+import { usePresentacion } from "../../../Hooks/usePresentacion";
 import { useReceta } from "../../../Hooks/useReceta";
 import { useSubCategoria } from "../../../Hooks/useSubCategoria";
 import { useUtencilios } from "../../../Hooks/useUtencilios";
@@ -49,7 +51,16 @@ export const RecetaForm = ({
   const [grupoIngrediente, setGrupoIngrediente] = useState([
     {
       nombreGrupo: "",
-      items: [{ id: 1, valor: 0, idIngrediente: "", idMedida: "" }],
+      items: [
+        {
+          id: 1,
+          valor: "",
+          idIngrediente: "",
+          idMedida: "",
+          idPresentacion: "",
+          alternativas: [],
+        },
+      ],
     },
   ]);
   const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: "" }]);
@@ -62,6 +73,7 @@ export const RecetaForm = ({
   const { guardarReceta } = useReceta();
 
   const { ObtenerCategoria, categoriasAll } = useCategoria();
+  const { ObtenerPresentacion, presentacionesAll } = usePresentacion();
   const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
   const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
   const { ObtenerDificultad, dificultadesAll } = useDificultad();
@@ -80,6 +92,20 @@ export const RecetaForm = ({
     width: 1,
   });
 
+  const handleAddAlternativa = (groupIndex, itemIndex) => {
+    const newGroups = [...grupoIngrediente];
+    newGroups[groupIndex].items[itemIndex].alternativas.push({
+      idIngrediente: "",
+    });
+    setGrupoIngrediente(newGroups);
+  };
+
+  const handleDeleteAlternativa = (groupIndex, itemIndex, altIndex) => {
+    const newGroups = [...grupoIngrediente];
+    newGroups[groupIndex].items[itemIndex].alternativas.splice(altIndex, 1);
+    setGrupoIngrediente(newGroups);
+  };
+
   useEffect(() => {
     const savedFormData = JSON.parse(localStorage.getItem("recetaFormData"));
     if (savedFormData) {
@@ -96,7 +122,16 @@ export const RecetaForm = ({
         savedFormData.grupoIngrediente || [
           {
             nombreGrupo: "",
-            items: [{ id: 1, valor: 0, idIngrediente: "", idMedida: "" }],
+            items: [
+              {
+                id: 1,
+                valor: "",
+                idIngrediente: "",
+                idMedida: "",
+                idPresentacion: "",
+                alternativas: [],
+              },
+            ],
           },
         ]
       );
@@ -109,6 +144,7 @@ export const RecetaForm = ({
     ObtenerDificultad();
     ObtenerMedida();
     ObtenerUntencilios();
+    ObtenerPresentacion();
   }, []);
 
   useEffect(() => {
@@ -182,7 +218,7 @@ export const RecetaForm = ({
       ...grupoIngrediente,
       {
         nombreGrupo: "",
-        items: [{ id: 1, valor: 0, idIngrediente: "", idMedida: "" }],
+        items: [{ id: 1, valor: "", idIngrediente: "", idMedida: "" }],
       },
     ]);
   };
@@ -200,9 +236,11 @@ export const RecetaForm = ({
     const newItemId = newGroups[groupIndex].items.length + 1;
     newGroups[groupIndex].items.push({
       id: newItemId,
-      valor: 0,
+      valor: "",
       idIngrediente: "",
       idMedida: "",
+      idPresentacion: "",
+      alternativas: [],
     });
     setGrupoIngrediente(newGroups);
   };
@@ -288,18 +326,35 @@ export const RecetaForm = ({
     }
 
     let ingredientesValidos = true;
+    let alternativasValidas = true;
+
     for (const grupo of grupoIngrediente) {
       if (grupo.items.length === 0) {
         ingredientesValidos = false;
         break;
       }
       for (const item of grupo.items) {
-        if (!(item.valor > 0) || !item.idIngrediente || !item.idMedida) {
+        if (!(item.valor !== "") || !item.idIngrediente || !item.idMedida) {
           ingredientesValidos = false;
           break;
         }
+        if (item.alternativas.length > 0) {
+          for (const alternativa of item.alternativas) {
+            if (!alternativa.idIngrediente) {
+              alternativasValidas = false;
+              break;
+            }
+          }
+        }
       }
       if (!ingredientesValidos) break;
+    }
+
+    if (!alternativasValidas) {
+      alert(
+        "Si agrega un Ingrediente Alternativo debe seleccionar uno, de lo contrario elimine el Ingrediente Alternativo."
+      );
+      return;
     }
 
     if (!ingredientesValidos) {
@@ -367,6 +422,8 @@ export const RecetaForm = ({
     }
 
     data.titulo = capitalizarTitulo(data.titulo);
+
+    console.log("asi quedo mi data", data);
 
     setLoading(true);
 
@@ -542,7 +599,7 @@ export const RecetaForm = ({
                     rows={4}
                     fullWidth
                     margin="normal"
-                    inputProps={{ maxLength: 250 }}
+                    inputProps={{ maxLength: 500 }}
                   />
                   <Typography
                     sx={{
@@ -553,7 +610,7 @@ export const RecetaForm = ({
                     variant="caption"
                     color="textSecondary"
                   >
-                    {description.length}/{250}
+                    {description.length}/{500}
                   </Typography>
                 </Box>
 
@@ -610,18 +667,34 @@ export const RecetaForm = ({
                   </Select>
                 </FormControl>
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Utencilios</InputLabel>
-                  <Select
+                  <Autocomplete
                     multiple
-                    value={utencilio}
-                    onChange={(e) => setUtencilio(e.target.value)}
-                  >
-                    {utenciliosAll?.map((utencilio) => (
-                      <MenuItem key={utencilio._id} value={utencilio._id}>
-                        {utencilio.nombreUtencilio}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                    options={utenciliosAll || []}
+                    getOptionLabel={(option) => option.nombreUtencilio}
+                    value={
+                      utenciliosAll?.filter((u) => utencilio.includes(u._id)) ||
+                      []
+                    }
+                    onChange={(e, newValues) => {
+                      // Extrae los IDs seleccionados
+                      const ids = newValues.map((u) => u._id);
+                      setUtencilio(ids);
+                    }}
+                    filterOptions={(options, state) => {
+                      const input = state.inputValue.trim().toLowerCase();
+                      // if (input.length < 1) return [];
+                      return options.filter((option) =>
+                        option.nombreUtencilio.toLowerCase().includes(input)
+                      );
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Utencilios"
+                        placeholder="Buscar..."
+                      />
+                    )}
+                  />
                 </FormControl>
                 <Box
                   sx={{
@@ -676,91 +749,232 @@ export const RecetaForm = ({
                       fullWidth
                       margin="normal"
                     />
+
                     {group.items.map((item, itemIndex) => (
                       <Box
                         key={item.id}
-                        sx={{ display: "flex", gap: 2, alignItems: "center" }}
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                          mb: 3,
+                        }}
                       >
-                        <TextField
-                          label="Valor"
-                          type="number"
-                          value={item.valor}
-                          onChange={(e) => {
-                            const newGroups = [...grupoIngrediente];
-                            newGroups[groupIndex].items[itemIndex].valor =
-                              parseFloat(e.target.value);
-                            setGrupoIngrediente(newGroups);
-                          }}
-                          fullWidth
-                          margin="normal"
-                        />
-                        <FormControl fullWidth margin="normal">
-                          <InputLabel>Medida</InputLabel>
-                          <Select
-                            value={item.idMedida}
+                        <Box
+                          sx={{ display: "flex", gap: 2, alignItems: "center" }}
+                        >
+                          <TextField
+                            label="Valor"
+                            type="text"
+                            value={item.valor}
                             onChange={(e) => {
-                              const newGroups = [...grupoIngrediente];
-                              newGroups[groupIndex].items[itemIndex].idMedida =
-                                e.target.value;
-                              setGrupoIngrediente(newGroups);
+                              const input = e.target.value;
+
+                              const regex = /^[0-9/]*$/;
+                              if (regex.test(input)) {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[itemIndex].valor =
+                                  input;
+                                setGrupoIngrediente(newGroups);
+                              }
                             }}
-                          >
-                            {medidasAll?.map((medida) => (
-                              <MenuItem key={medida._id} value={medida._id}>
-                                {medida.nombreMedida}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                          <InputLabel>Ingrediente</InputLabel>
-                          <Select
-                            value={item.idIngrediente}
-                            onChange={(e) => {
-                              const newGroups = [...grupoIngrediente];
-                              newGroups[groupIndex].items[
-                                itemIndex
-                              ].idIngrediente = e.target.value;
-                              setGrupoIngrediente(newGroups);
-                            }}
-                          >
-                            {ingredientesAll?.map((ingrediente) => (
-                              <MenuItem
-                                key={ingrediente._id}
-                                value={ingrediente._id}
+                            fullWidth
+                            margin="normal"
+                          />
+
+                          <FormControl fullWidth margin="normal">
+                            <Autocomplete
+                              options={medidasAll || []}
+                              getOptionLabel={(option) => option.nombreMedida}
+                              value={
+                                medidasAll?.find(
+                                  (m) => m._id === item.idMedida
+                                ) || null
+                              }
+                              onChange={(e, newValue) => {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[
+                                  itemIndex
+                                ].idMedida = newValue?._id || "";
+                                setGrupoIngrediente(newGroups);
+                              }}
+                              filterOptions={(options, state) => {
+                                const input = state.inputValue
+                                  .trim()
+                                  .toLowerCase();
+                                // if (input.length < 1) return [];
+                                return options.filter((option) =>
+                                  option.nombreMedida
+                                    .toLowerCase()
+                                    .includes(input)
+                                );
+                              }}
+                              renderInput={(params) => (
+                                <TextField {...params} label="Medida" />
+                              )}
+                            />
+                          </FormControl>
+
+                          <FormControl fullWidth margin="normal">
+                            <Autocomplete
+                              options={ingredientesAll || []}
+                              getOptionLabel={(option) =>
+                                option.nombreIngrediente
+                              }
+                              value={
+                                ingredientesAll?.find(
+                                  (ing) => ing._id === item.idIngrediente
+                                ) || null
+                              }
+                              onChange={(e, newValue) => {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[
+                                  itemIndex
+                                ].idIngrediente = newValue?._id || "";
+                                setGrupoIngrediente(newGroups);
+                              }}
+                              filterOptions={(options, state) => {
+                                const input = state.inputValue
+                                  .trim()
+                                  .toLowerCase();
+                                return options.filter((option) =>
+                                  option.nombreIngrediente
+                                    .toLowerCase()
+                                    .includes(input)
+                                );
+                              }}
+                              renderInput={(params) => (
+                                <TextField {...params} label="Ingrediente" />
+                              )}
+                            />
+                          </FormControl>
+
+                          <FormControl fullWidth margin="normal">
+                            <InputLabel>Presentación</InputLabel>
+                            <Select
+                              value={item.idPresentacion || ""}
+                              onChange={(e) => {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[
+                                  itemIndex
+                                ].idPresentacion = e.target.value;
+                                setGrupoIngrediente(newGroups);
+                              }}
+                            >
+                              {presentacionesAll?.map((pres) => (
+                                <MenuItem key={pres._id} value={pres._id}>
+                                  {pres.nombrePresentacion}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+
+                          {group.items.length > 1 && (
+                            <Button
+                              onClick={() =>
+                                handleDeleteItem(groupIndex, itemIndex)
+                              }
+                              variant="outlined"
+                              color="error"
+                            >
+                              Eliminar Item
+                            </Button>
+                          )}
+                        </Box>
+
+                        <Box sx={{ pl: 2 }}>
+                          {item.alternativas?.map((alt, altIndex) => (
+                            <Box
+                              key={altIndex}
+                              sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                                mt: 1,
+                              }}
+                            >
+                              <FormControl fullWidth>
+                                <Autocomplete
+                                  options={ingredientesAll || []}
+                                  getOptionLabel={(option) =>
+                                    option.nombreIngrediente
+                                  }
+                                  value={
+                                    ingredientesAll?.find(
+                                      (ing) => ing._id === alt.idIngrediente
+                                    ) || null
+                                  }
+                                  onChange={(e, newValue) => {
+                                    const newGroups = [...grupoIngrediente];
+                                    newGroups[groupIndex].items[
+                                      itemIndex
+                                    ].alternativas[altIndex].idIngrediente =
+                                      newValue?._id || "";
+                                    setGrupoIngrediente(newGroups);
+                                  }}
+                                  filterOptions={(options, state) => {
+                                    const input = state.inputValue
+                                      .trim()
+                                      .toLowerCase();
+                                    return options.filter((option) =>
+                                      option.nombreIngrediente
+                                        .toLowerCase()
+                                        .includes(input)
+                                    );
+                                  }}
+                                  renderInput={(params) => (
+                                    <TextField
+                                      {...params}
+                                      label="Alternativa Ingrediente"
+                                    />
+                                  )}
+                                />
+                              </FormControl>
+                              <Button
+                                onClick={() =>
+                                  handleDeleteAlternativa(
+                                    groupIndex,
+                                    itemIndex,
+                                    altIndex
+                                  )
+                                }
+                                variant="outlined"
+                                color="error"
                               >
-                                {ingrediente.nombreIngrediente}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        {group.items.length > 1 && (
+                                Eliminar
+                              </Button>
+                            </Box>
+                          ))}
+
                           <Button
                             onClick={() =>
-                              handleDeleteItem(groupIndex, itemIndex)
+                              handleAddAlternativa(groupIndex, itemIndex)
                             }
                             variant="outlined"
-                            color="error"
+                            sx={{ mt: 1 }}
                           >
-                            Eliminar Item
+                            Agregar Alternativa
                           </Button>
-                        )}
+                        </Box>
                       </Box>
                     ))}
+
                     {grupoIngrediente.length > 1 && (
                       <Button
                         onClick={() => handleDeleteGrupoIngrediente(groupIndex)}
                         variant="outlined"
                         color="error"
+                        sx={{ mt: 2 }}
                       >
-                        Eliminar Group
+                        Eliminar Grupo
                       </Button>
                     )}
                     <Button
                       onClick={() => handleAddItem(groupIndex)}
                       variant="contained"
+                      sx={{ mt: 2 }}
                     >
-                      Agergar Item
+                      Agregar Item
                     </Button>
                   </Box>
                 ))}
@@ -802,7 +1016,7 @@ export const RecetaForm = ({
                         rows={2}
                         fullWidth
                         margin="normal"
-                        inputProps={{ maxLength: 250 }}
+                        inputProps={{ maxLength: 500 }}
                       />
                       <Typography
                         sx={{
@@ -813,7 +1027,7 @@ export const RecetaForm = ({
                         variant="caption"
                         color="textSecondary"
                       >
-                        {step.descripcion.length}/{250}
+                        {step.descripcion.length}/{500}
                       </Typography>
                     </Box>
 

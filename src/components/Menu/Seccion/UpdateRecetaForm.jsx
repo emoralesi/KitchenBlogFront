@@ -84,7 +84,7 @@ export const UpdateRecetaForm = ({
       _id: grupo._id,
       items: grupo.item.map((item) => ({
         _id: item._id,
-        valor: item.valor, // Ajustar este valor según sea necesario
+        valor: item.valor,
         idIngrediente: item.ingrediente._id,
         idMedida: item.medida._id,
       })),
@@ -108,8 +108,7 @@ export const UpdateRecetaForm = ({
       const data = await getDetailsReceta({ recetaId });
       const datosConvertidos = convertirDatos(data);
 
-      setGrupoIngrediente(datosConvertidos); // Usar siempre la versión convertida
-
+      setGrupoIngrediente(datosConvertidos);
       setTitle(data.titulo);
       setDescription(data.descripcion);
       setHours(data.hours);
@@ -411,7 +410,7 @@ export const UpdateRecetaForm = ({
                   tabIndex={-1}
                   startIcon={<CloudUploadIcon />}
                 >
-                  Upload files
+                  Subir Imagenes
                   <VisuallyHiddenInput
                     type="file"
                     accept="image/*"
@@ -467,7 +466,7 @@ export const UpdateRecetaForm = ({
 
                 <Box sx={{ position: "relative" }}>
                   <TextField
-                    label="Title"
+                    label="Titulo"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     fullWidth
@@ -488,7 +487,7 @@ export const UpdateRecetaForm = ({
                 </Box>
                 <Box sx={{ position: "relative" }}>
                   <TextField
-                    label="Description"
+                    label="Descripcion"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     multiline
@@ -510,7 +509,7 @@ export const UpdateRecetaForm = ({
                   </Typography>
                 </Box>
                 <TextField
-                  label="Hours"
+                  label="Horas"
                   type="number"
                   value={hours}
                   onChange={(e) => setHours(parseInt(e.target.value))}
@@ -518,7 +517,7 @@ export const UpdateRecetaForm = ({
                   margin="normal"
                 />
                 <TextField
-                  label="Minutes"
+                  label="Minutos"
                   type="number"
                   value={minutes}
                   onChange={(e) => setMinutes(parseInt(e.target.value))}
@@ -526,7 +525,7 @@ export const UpdateRecetaForm = ({
                   margin="normal"
                 />
                 <TextField
-                  label="amount of people"
+                  label="Porciones"
                   type="number"
                   value={cantidadPersonas}
                   onChange={(e) =>
@@ -536,7 +535,7 @@ export const UpdateRecetaForm = ({
                   margin="normal"
                 />
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Difficulty</InputLabel>
+                  <InputLabel>Dificultad</InputLabel>
                   <Select
                     value={dificultad}
                     onChange={(e) => setDificultad(e.target.value)}
@@ -549,7 +548,7 @@ export const UpdateRecetaForm = ({
                   </Select>
                 </FormControl>
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Category</InputLabel>
+                  <InputLabel>Categoria</InputLabel>
                   <Select
                     value={categoria}
                     onChange={(e) => setCategoria(e.target.value)}
@@ -562,7 +561,7 @@ export const UpdateRecetaForm = ({
                   </Select>
                 </FormControl>
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Utensils</InputLabel>
+                  <InputLabel>Utencilios</InputLabel>
                   <Select
                     multiple
                     value={utencilio}
@@ -618,7 +617,7 @@ export const UpdateRecetaForm = ({
                     }}
                   >
                     <TextField
-                      label="Group Name"
+                      label="Nombre de grupo"
                       value={group.nombreGrupo}
                       onChange={(e) => {
                         const newGroups = [...grupoIngrediente];
@@ -634,7 +633,7 @@ export const UpdateRecetaForm = ({
                         sx={{ display: "flex", gap: 2, alignItems: "center" }}
                       >
                         <TextField
-                          label="Value"
+                          label="Valor"
                           type="number"
                           value={item.valor}
                           onChange={(e) => {
@@ -647,7 +646,7 @@ export const UpdateRecetaForm = ({
                           margin="normal"
                         />
                         <FormControl fullWidth margin="normal">
-                          <InputLabel>Measure</InputLabel>
+                          <InputLabel>Medida</InputLabel>
                           <Select
                             value={item.idMedida}
                             onChange={(e) => {
@@ -665,7 +664,7 @@ export const UpdateRecetaForm = ({
                           </Select>
                         </FormControl>
                         <FormControl fullWidth margin="normal">
-                          <InputLabel>Ingredient</InputLabel>
+                          <InputLabel>Ingrediente</InputLabel>
                           <Select
                             value={item.idIngrediente}
                             onChange={(e) => {
@@ -729,7 +728,7 @@ export const UpdateRecetaForm = ({
                     }}
                   >
                     <TextField
-                      label="Step Nuber"
+                      label="Paso numero"
                       type="number"
                       value={step.pasoNumero}
                       onChange={(e) => {
@@ -742,7 +741,7 @@ export const UpdateRecetaForm = ({
                     />
                     <Box sx={{ position: "relative" }}>
                       <TextField
-                        label="Description"
+                        label="Descripcion"
                         value={step.descripcion}
                         onChange={(e) => {
                           const newPasos = [...pasos];
