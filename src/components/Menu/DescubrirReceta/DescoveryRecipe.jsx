@@ -46,6 +46,7 @@ import IconSvg from "../../../utils/IconSvg";
 import { SkeletonWave } from "../../../utils/Skeleton";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from "../Others/DitailsReceta";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const DescoveryRecipe = () => {
   const navigate = useNavigate();
@@ -1036,15 +1037,17 @@ export const DescoveryRecipe = () => {
                           },
                         }}
                       >
-                        <img
-                          src={card.images[0]}
+                       <img
+                          src={getCloudinaryUrl(card.images[0], { width: 400 })}
                           alt="Imagen"
+                          loading="lazy"
+                          decoding="async"
                           style={{
                             width: "100%",
                             height: "100%",
                             objectFit: "cover",
+                            display: "block",
                           }}
-                          loading="lazy"
                         />
                         <Box
                           className="overlay"

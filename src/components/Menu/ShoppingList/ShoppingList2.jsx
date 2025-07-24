@@ -28,6 +28,7 @@ import { IngredientListModal } from "./IngredientListModal";
 import useNearScreen from "../../../Hooks/useNearScreen";
 import debounce from "just-debounce-it";
 import { SkeletonWave } from "../../../utils/Skeleton";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const ShoppingList2 = () => {
   const externalRef = useRef();
@@ -258,14 +259,16 @@ export const ShoppingList2 = () => {
                         }}
                       >
                         <img
-                          src={card.images[0]}
+                          src={getCloudinaryUrl(card.images[0], { width: 400 })}
                           alt="Imagen"
+                          loading="lazy"
+                          decoding="async"
                           style={{
                             width: "100%",
                             height: "100%",
                             objectFit: "cover",
+                            display: "block",
                           }}
-                          loading="lazy"
                         />
                         <Box
                           className="overlay"

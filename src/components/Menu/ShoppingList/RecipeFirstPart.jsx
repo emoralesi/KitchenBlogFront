@@ -1,14 +1,8 @@
 import { Grid, Box, Typography, Divider, Stack } from "@mui/material";
 import ExpandableText from "../../../utils/LongText";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const RecipeFirstPart = ({ detailsReceta }) => {
-  const transformCloudinaryUrl = (url) => {
-    return url.replace(
-      "/upload/",
-      "/upload/w_auto,dpr_auto,q_auto,f_auto,c_fill,ar_16:9/"
-    );
-  };
-
   return (
     <Grid container spacing={4} sx={{ width: "100%" }}>
       <Grid
@@ -51,14 +45,15 @@ export const RecipeFirstPart = ({ detailsReceta }) => {
               <Box
                 key={index}
                 component="img"
-                src={transformCloudinaryUrl(image)}
-                alt={`Imagen ${index + 1}`}
-                sx={{
-                  minWidth: 380,
-                  height: 300,
-                  borderRadius: 2,
+                src={getCloudinaryUrl(image)}
+                alt="Imagen"
+                loading="lazy"
+                decoding="async"
+                style={{
+                  width: "500px",
+                  height: "400px",
                   objectFit: "cover",
-                  flexShrink: 0,
+                  display: "block",
                 }}
               />
             ))}
@@ -109,7 +104,9 @@ export const RecipeFirstPart = ({ detailsReceta }) => {
                       item.medida.nombreMedida === "Cantidad"
                         ? ""
                         : item.medida.nombreMedida
-                    } ${item.ingrediente.nombreIngrediente}${textoPresentacion}${alternativas}`}
+                    } ${
+                      item.ingrediente.nombreIngrediente
+                    }${textoPresentacion}${alternativas}`}
                   </Typography>
                 );
               })}

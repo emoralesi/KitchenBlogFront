@@ -31,6 +31,7 @@ import IconSvg from "../../../utils/IconSvg";
 import { SkeletonWave } from "../../../utils/Skeleton";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from "../Others/DitailsReceta";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const Favourites = ({
   userName,
@@ -61,12 +62,12 @@ export const Favourites = ({
   const [idUsuario, setIdUsuario] = useState(null);
   const [isExpanded, setIsExpanded] = useState({});
   const [previousLength, setPreviousLength] = useState(0);
-  
+
   const [loadingNearScreen, setLoadingNearScreen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(9);
-  
+
   const handleBookmarkClick = async (id, action) => {
     await SaveUpdateMyFavourites({
       body: { idUser: idUsuario, idReceta: id, estado: action },
@@ -79,7 +80,7 @@ export const Favourites = ({
       ? setCantidadFavoritos((prevCantidad) => prevCantidad + 1)
       : setCantidadFavoritos((prevCantidad) => prevCantidad - 1);
   };
-  
+
   const handleClickExpand = (cardId) => {
     setIsExpanded((prev) => ({
       ...prev,
@@ -441,14 +442,16 @@ export const Favourites = ({
                         }}
                       >
                         <img
-                          src={card.images[0]}
+                          src={getCloudinaryUrl(card.images[0], { width: 400 })}
                           alt="Imagen"
+                          loading="lazy"
+                          decoding="async"
                           style={{
                             width: "100%",
                             height: "100%",
                             objectFit: "cover",
+                            display: "block",
                           }}
-                          loading="lazy"
                         />
                         <Box
                           className="overlay"

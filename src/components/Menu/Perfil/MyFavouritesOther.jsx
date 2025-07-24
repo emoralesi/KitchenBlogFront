@@ -31,6 +31,7 @@ import debounce from "just-debounce-it";
 import IconSvg from "../../../utils/IconSvg";
 import { useNavigate } from "react-router-dom";
 import { SkeletonWave } from "../../../utils/Skeleton";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const FavouritesOther = ({
   userName,
@@ -85,7 +86,7 @@ export const FavouritesOther = ({
     }, 250),
     [favourites]
   );
-  
+
   const handleBookmarkClick = async (id, action) => {
     await SaveUpdateMyFavourites({
       body: { idUser: idUsuario, idReceta: id, estado: action },
@@ -436,16 +437,16 @@ export const FavouritesOther = ({
                         }}
                       >
                         <img
+                          src={getCloudinaryUrl(card.images[0], { width: 400 })}
+                          alt="Imagen"
+                          loading="lazy"
+                          decoding="async"
                           style={{
                             width: "100%",
                             height: "100%",
                             objectFit: "cover",
-                            borderRadius: "8px 8px 0px 0px",
+                            display: "block",
                           }}
-                          srcSet={card ? card.images[0] : null}
-                          src={card ? card.images[0] : null}
-                          alt="Imagen"
-                          loading="lazy"
                         />
                         <Box
                           className="overlay"

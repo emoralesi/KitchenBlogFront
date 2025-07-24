@@ -19,6 +19,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useComment } from "../../../Hooks/useComment";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { TypeNotification } from "../../../utils/enumTypeNoti";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const RecipeThirdPart = ({
   detailsReceta,
@@ -232,7 +233,9 @@ export const RecipeThirdPart = ({
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Avatar
                         sx={{ bgcolor: "primary.main" }}
-                        src={comment.user.profileImageUrl}
+                        src={getCloudinaryUrl(comment.user.profileImageUrl, {
+                          width: 400,
+                        })}
                       >
                         {comment.user.username.charAt(0).toUpperCase()}
                       </Avatar>
@@ -292,7 +295,12 @@ export const RecipeThirdPart = ({
                             >
                               <Avatar
                                 sx={{ bgcolor: "primary.main" }}
-                                src={answer.user.profileImageUrl}
+                                src={getCloudinaryUrl(
+                                  answer.user.profileImageUrl,
+                                  {
+                                    width: 400,
+                                  }
+                                )}
                               >
                                 {answer.user.username.charAt(0).toUpperCase()}
                               </Avatar>

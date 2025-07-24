@@ -9,6 +9,7 @@ import {
   Box,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const CardUser = ({ user }) => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export const CardUser = ({ user }) => {
       >
         <Box display="flex" justifyContent="center" mb={2}>
           <Avatar
-            src={user.profileImageUrl}
+            src={getCloudinaryUrl(user.profileImageUrl, { width: 400 })}
             sx={{
               width: 100,
               height: 100,

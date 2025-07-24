@@ -23,6 +23,7 @@ import { PerfilOwner } from "./PerfilOwner";
 import { FavouritesOther } from "./MyFavouritesOther";
 import { UserNotFound } from "../Others/UserNotFound";
 import { enqueueSnackbar } from "notistack";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const Perfiles = () => {
   let { username } = useParams();
@@ -215,13 +216,20 @@ export const Perfiles = () => {
               if (editButton) editButton.style.display = "none";
             }}
           >
+            {console.log("mi userImage", userImage)}
+            {console.log(
+              "convertido",
+              getCloudinaryUrl(userImage, { width: 400 })
+            )}
             <Avatar
               sx={{
                 width: 100,
                 height: 100,
                 fontSize: 80,
               }}
-              src={userImage}
+              src={
+                userImage ? getCloudinaryUrl(userImage, { width: 400 }) : null
+              }
             >
               {username?.substring(0, 1).toUpperCase()}
             </Avatar>
