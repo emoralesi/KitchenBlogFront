@@ -6,6 +6,7 @@
   "scripts": {
     "dev:local": "vite --mode development-local",
     "dev:development": "vite --mode development --host",
+    "dev:production": "vite --mode production --host",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
