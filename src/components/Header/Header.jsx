@@ -2,12 +2,15 @@ import { Badge, Button, IconButton, List, Popover } from "@mui/material";
 import NotificationBell from "../Notification/Notifications";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
   const id = open ? "notification-popover" : undefined;
+
+  const navigate = useNavigate();
 
   return (
     <div
@@ -52,7 +55,7 @@ export const Header = () => {
             onClick={() => {
               setAnchorEl(null);
               localStorage.clear();
-              window.location.href = "/login";
+              navigate("/login");
             }}
           >
             Log Out
