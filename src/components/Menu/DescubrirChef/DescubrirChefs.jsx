@@ -23,18 +23,21 @@ import { getStorageUser } from "../../../utils/StorageUser";
 import { CardUser } from "./CardUser";
 
 export const DescubrirChefs = () => {
+  const externalRef = useRef();
+
   const {
     ObtenerUsuariosDescubrir,
     usuariosDescubrir,
     totalUsuariosDescubrir,
   } = useUsuario();
+
   const [showClearIcon, setShowClearIcon] = useState("none");
   const [textSearch, setTextSearch] = useState("");
   const [errorSearch, setErrorSearch] = useState(false);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(9);
+
   const [filterSearch, setFilterSearch] = useState(null);
   const [searchState, setSearchState] = useState(false);
+
   const [loadingFirst, setLoadingFirst] = useState(false);
   const [loadingNearScreen, setLoadingNearScreen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,6 +45,8 @@ export const DescubrirChefs = () => {
     orderBy: "relevante",
     direction: "desc",
   });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(9);
 
   const orderOptions = [
     {
@@ -102,7 +107,6 @@ export const DescubrirChefs = () => {
     }
   }
 
-  const externalRef = useRef();
   const { isNearScreen } = useNearScreen({
     externalRef: usuariosDescubrir?.length == 0 ? null : externalRef,
     once: false,

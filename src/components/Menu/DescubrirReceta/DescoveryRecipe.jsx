@@ -45,7 +45,7 @@ import { TypeNotification } from "../../../utils/enumTypeNoti";
 import IconSvg from "../../../utils/IconSvg";
 import { SkeletonWave } from "../../../utils/Skeleton";
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from "./DitailsReceta";
+import { DetailsReceta } from "../Others/DitailsReceta";
 
 export const DescoveryRecipe = () => {
   const navigate = useNavigate();
@@ -60,9 +60,6 @@ export const DescoveryRecipe = () => {
     setReactionInfo,
     setFavouriteInfo,
   } = useReceta();
-  const [openReceta, setOpenReceta] = useState(false);
-  const [idReceta, setIdReceta] = useState(null);
-  const [idUser, setIdUser] = useState(null);
   const {
     getIdUserByUserName,
     ObtenerIdFavourites,
@@ -70,35 +67,37 @@ export const DescoveryRecipe = () => {
     idFavourites,
     setIdFavourites,
   } = useUsuario();
+  const { ObtenerCategoria, categoriasAll } = useCategoria();
+  const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
+  const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+
+  const [openReceta, setOpenReceta] = useState(false);
+  const [idReceta, setIdReceta] = useState(null);
+  const [idUser, setIdUser] = useState(null);
   const [isExpanded, setIsExpanded] = useState({});
   const [textSearch, setTextSearch] = useState("");
+  const [errorSearch, setErrorSearch] = useState(false);
+  const [filterSearch, setFilterSearch] = useState(null);
+  const [previousLength, setPreviousLength] = useState(0);
+  const [categoria, setCategoria] = useState("");
+  const [subCategoria, setSubCategoria] = useState([]);
+  const [ingredientes, setIngredientes] = useState([]);
+  const [searchState, setSearchState] = useState(false);
+
   const [filterBy, setFilterBy] = useState({
     categoria: "",
     subCategoria: "",
     ingredientes: [],
   });
-
-  const [errorSearch, setErrorSearch] = useState(false);
-  const [filterSearch, setFilterSearch] = useState(null);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(9);
-  const [previousLength, setPreviousLength] = useState(0);
-  const [categoria, setCategoria] = useState("");
-  const [subCategoria, setSubCategoria] = useState([]);
-  const [ingredientes, setIngredientes] = useState([]);
   const [orderBy, setOrderBy] = useState({
     orderBy: "relevante",
     direction: "desc",
   });
-
   const [loadingNearScreen, setLoadingNearScreen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [searchState, setSearchState] = useState(false);
   const [firstLoading, setFirstLoading] = useState(true);
-
-  const { ObtenerCategoria, categoriasAll } = useCategoria();
-  const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
-  const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(9);
 
   const GetAllRecipes = async () => {
     setLoading(true);
@@ -628,7 +627,7 @@ export const DescoveryRecipe = () => {
               </Grid>
               <Grid item md={6} xs={12}>
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Ingredients</InputLabel>
+                  <InputLabel>Ingredientes</InputLabel>
                   <Select
                     multiple
                     value={ingredientes}
@@ -1055,8 +1054,8 @@ export const DescoveryRecipe = () => {
                             left: 0,
                             width: "100%",
                             height: "100%",
-                            backgroundColor: "rgba(0, 0, 0, 0)", // Transparente por defecto
-                            transition: "background-color 0.3s ease", // Suaviza la transición del color de fondo
+                            backgroundColor: "rgba(0, 0, 0, 0)",
+                            transition: "background-color 0.3s ease",
                           }}
                         />
 
@@ -1225,7 +1224,7 @@ export const DescoveryRecipe = () => {
                       {isExpanded[card._id] && (
                         <>
                           <Typography variant="subtitle2" fontWeight="bold">
-                            INGREDIENTS
+                            INGREDIENTES
                           </Typography>
                           {card.grupoIngrediente.map((grupo) => (
                             <Box key={grupo.nombreGrupo} mt={1}>

@@ -1,13 +1,19 @@
 import CloseIcon from "@mui/icons-material/Close";
-import { Box, CircularProgress, IconButton, Typography, Zoom } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  Typography,
+  Zoom,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { useComment } from "../../../Hooks/useComment";
 import { useReceta } from "../../../Hooks/useReceta";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { RecetaNotFound } from "./RecetaNotFound";
-import RecipeFirstPart from "./RecipeFirstPart";
-import RecipeThirdPart from "./RecipeThirdPart";
+import RecipeFirstPart from "../ShoppingList/RecipeFirstPart";
+import RecipeThirdPart from "../ShoppingList/RecipeThirdPart";
 
 export const DetailsReceta = ({
   isFull,
@@ -18,16 +24,11 @@ export const DetailsReceta = ({
   origen,
   username,
 }) => {
-  const [visibleComments, setVisibleComments] = useState(3);
-  const [visibleAnswers, setVisibleAnswers] = useState({});
-  const [commentParent, setCommentParent] = useState("");
-  const [responseContent, setResponseContent] = useState({});
-  const [reactions, setReactions] = useState({});
-  const { guardarComment } = useComment();
   const { detailsReceta, getDetailsReceta, saveUpdateReactionReceta } =
     useReceta();
+
+  const [reactions, setReactions] = useState({});
   const [recetaReactions, setRecetaReactions] = useState([]);
-  const { SaveUpdateCommentReaction } = useComment();
   const [recipeExists, setRecipeExists] = useState(true);
   const [loading, setLoading] = useState(true);
 

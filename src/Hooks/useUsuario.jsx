@@ -24,9 +24,7 @@ export const useUsuario = () => {
   const navigate = useNavigate();
 
   const handleLogOut = async () => {
-    // Eliminar los datos de sesión almacenados en localStorage
     await localStorage.removeItem("UserLogged");
-    // Redirigir al componente de inicio de sesión
     navigate("/login");
   };
 

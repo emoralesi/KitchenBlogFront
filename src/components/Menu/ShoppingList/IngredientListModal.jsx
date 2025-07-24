@@ -21,12 +21,31 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
       ...recipe,
       grupoIngrediente: recipe.grupoIngrediente.map((group) => ({
         ...group,
-        newItem: "", // Add a newItem property to each group
-        item: group.item.map((item) => ({
-          // Add fullIngredient to existing items
-          ...item,
-          fullIngredient: `${item.valor} ${item.medida.nombreMedida} - ${item.ingrediente.nombreIngrediente}`,
-        })),
+        newItem: "",
+        item: group.item.map((item) => {
+          const tienePresentacion =
+            item.presentacion?.nombrePresentacion ||
+            item.presentacion?.nombrePresentacion;
+          const textoPresentacion = tienePresentacion
+            ? ` (${tienePresentacion})`
+            : "";
+
+          const alternativas = item.alternativas?.length
+            ? item.alternativas
+                .map((alt) => ` / ${alt.nombreIngrediente}`)
+                .join("")
+            : "";
+
+          const medida =
+            item.medida.nombreMedida === "Cantidad"
+              ? ""
+              : item.medida.nombreMedida;
+
+          return {
+            ...item,
+            fullIngredient: `${item.valor} ${medida} ${item.ingrediente.nombreIngrediente}${textoPresentacion}${alternativas}`,
+          };
+        }),
       })),
     }))
   );
@@ -68,7 +87,7 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
                 group._id === groupId
                   ? {
                       ...group,
-                      newItem: value, // Update the newItem for this group
+                      newItem: value,
                     }
                   : group
               ),
@@ -118,7 +137,6 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
           overflowY: "auto",
         }}
       >
-        {/* Botón de cierre */}
         <IconButton
           onClick={() => setOpen(false)}
           sx={{ position: "absolute", top: 16, right: 16 }}
@@ -130,7 +148,6 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
           Lista de Ingredientes
         </Typography>
 
-        {/* Estado vacío */}
         {recipes?.length === 0 && (
           <Box
             display="flex"
@@ -151,7 +168,6 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
           </Box>
         )}
 
-        {/* Lista de recetas */}
         {recipes?.map((recipe) => (
           <Box key={recipe._id} sx={{ mb: 4 }}>
             <Typography variant="h6" color="primary.main" gutterBottom>
@@ -194,7 +210,6 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
                   ))}
                 </List>
 
-                {/* Input para agregar nuevo ingrediente */}
                 <Stack direction="row" spacing={1} mt={1}>
                   <TextField
                     size="small"
@@ -214,7 +229,6 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
                   </Button>
                 </Stack>
 
-                {/* Separador entre grupos */}
                 {index < recipe.grupoIngrediente.length - 1 && (
                   <Divider sx={{ mt: 3 }} />
                 )}
@@ -223,7 +237,6 @@ export const IngredientListModal = ({ data, open, setOpen }) => {
           </Box>
         ))}
 
-        {/* Acciones finales */}
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}
         >

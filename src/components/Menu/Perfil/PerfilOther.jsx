@@ -29,10 +29,11 @@ import { TypeNotification } from "../../../utils/enumTypeNoti";
 import IconSvg from "../../../utils/IconSvg";
 import { SkeletonWave } from "../../../utils/Skeleton";
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from "./DitailsReceta";
+import { DetailsReceta } from "../Others/DitailsReceta";
 
 export const PerfilOther = ({ userName, cantidadReceta }) => {
-  const [openForm, setOpenForm] = useState(false);
+  const externalRef = useRef();
+
   const {
     getUserAndReceta,
     misRecetas,
@@ -41,9 +42,6 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
     favouriteInfo,
     setReactionInfo,
   } = useReceta();
-  const [openReceta, setOpenReceta] = useState(false);
-  const [idReceta, setIdReceta] = useState(null);
-  const [idUser, setIdUser] = useState(null);
   const {
     getIdUserByUserName,
     ObtenerIdFavourites,
@@ -51,6 +49,11 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
     idFavourites,
     setIdFavourites,
   } = useUsuario();
+
+  const [openForm, setOpenForm] = useState(false);
+  const [openReceta, setOpenReceta] = useState(false);
+  const [idReceta, setIdReceta] = useState(null);
+  const [idUser, setIdUser] = useState(null);
   const [isExpanded, setIsExpanded] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(9);
@@ -59,7 +62,6 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
   const [loadingNearScreen, setLoadingNearScreen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const externalRef = useRef();
   const { isNearScreen } = useNearScreen({
     externalRef: cantidadReceta == 0 ? null : externalRef,
     once: false,
@@ -81,6 +83,28 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
     }, 250),
     [misRecetas]
   );
+
+  const handleBookmarkClick = async (id, action) => {
+    var result = [];
+    await SaveUpdateMyFavourites({
+      body: {
+        idUser: getStorageUser().usuarioId,
+        idReceta: id,
+        estado: action,
+      },
+    });
+    action
+      ? (result = [...idFavourites, id])
+      : (result = idFavourites.filter((favourite) => favourite != id));
+    setIdFavourites(result);
+  };
+
+  const handleClickExpand = (cardId) => {
+    setIsExpanded((prev) => ({
+      ...prev,
+      [cardId]: !prev[cardId],
+    }));
+  };
 
   useEffect(
     function () {
@@ -110,28 +134,6 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
       setLoading(false);
     });
   }, [userName]);
-
-  const handleBookmarkClick = async (id, action) => {
-    var result = [];
-    await SaveUpdateMyFavourites({
-      body: {
-        idUser: getStorageUser().usuarioId,
-        idReceta: id,
-        estado: action,
-      },
-    });
-    action
-      ? (result = [...idFavourites, id])
-      : (result = idFavourites.filter((favourite) => favourite != id));
-    setIdFavourites(result);
-  };
-
-  const handleClickExpand = (cardId) => {
-    setIsExpanded((prev) => ({
-      ...prev,
-      [cardId]: !prev[cardId],
-    }));
-  };
 
   return (
     <Box>
@@ -449,8 +451,8 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                           left: 0,
                           width: "100%",
                           height: "100%",
-                          backgroundColor: "rgba(0, 0, 0, 0)", // Transparente por defecto
-                          transition: "background-color 0.3s ease", // Suaviza la transición del color de fondo
+                          backgroundColor: "rgba(0, 0, 0, 0)",
+                          transition: "background-color 0.3s ease",
                         }}
                       />
                       <Typography
@@ -570,7 +572,7 @@ export const PerfilOther = ({ userName, cantidadReceta }) => {
                     {isExpanded[card._id] && (
                       <>
                         <Typography variant="subtitle2" fontWeight="bold">
-                          INGREDIENTS
+                          INGREDIENTES
                         </Typography>
                         {card.grupoIngrediente.map((grupo) => (
                           <Box key={grupo.nombreGrupo} mt={1}>

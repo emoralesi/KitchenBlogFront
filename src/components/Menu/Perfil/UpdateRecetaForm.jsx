@@ -1,6 +1,7 @@
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
+  Autocomplete,
   Box,
   Button,
   CircularProgress,
@@ -23,9 +24,10 @@ import { useDificultad } from "../../../Hooks/useDificultad";
 import { useIngrediente } from "../../../Hooks/useIngrediente";
 import { useMedida } from "../../../Hooks/useMedida";
 import { useReceta } from "../../../Hooks/useReceta";
-import { useSubCategoria } from "../../../Hooks/useSubCategoria";
 import { useUtencilios } from "../../../Hooks/useUtencilios";
 import { getStorageUser } from "../../../utils/StorageUser";
+import { useSubCategoria } from "../../../Hooks/useSubCategoria";
+import { usePresentacion } from "../../../Hooks/usePresentacion";
 
 export const UpdateRecetaForm = ({
   open,
@@ -37,6 +39,15 @@ export const UpdateRecetaForm = ({
   setReactionInfo,
   setFavouriteInfo,
 }) => {
+  const { getDetailsReceta, detailsReceta, actualizarReceta } = useReceta();
+  const { ObtenerCategoria, categoriasAll } = useCategoria();
+  const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
+  const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+  const { ObtenerDificultad, dificultadesAll } = useDificultad();
+  const { ObtenerPresentacion, presentacionesAll } = usePresentacion();
+  const { ObtenerMedida, medidasAll } = useMedida();
+  const { ObtenerUntencilios, utenciliosAll } = useUtencilios();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [hours, setHours] = useState(0);
@@ -49,22 +60,23 @@ export const UpdateRecetaForm = ({
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState([]);
   const [imagesRecipe, setImagesRecipe] = useState([]);
-  const [grupoIngrediente, setGrupoIngrediente] = useState([
-    { nombreGrupo: "", items: [{ valor: 0, idIngrediente: "", idMedida: "" }] },
-  ]);
   const [pasos, setPasos] = useState([
     { pasoNumero: 1, descripcion: "", images: [] },
   ]);
-
-  const handleClose = () => setOpen(false);
-  const { getDetailsReceta, detailsReceta, actualizarReceta } = useReceta();
-
-  const { ObtenerCategoria, categoriasAll } = useCategoria();
-  const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
-  const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
-  const { ObtenerDificultad, dificultadesAll } = useDificultad();
-  const { ObtenerMedida, medidasAll } = useMedida();
-  const { ObtenerUntencilios, utenciliosAll } = useUtencilios();
+  const [grupoIngrediente, setGrupoIngrediente] = useState([
+    {
+      nombreGrupo: "",
+      items: [
+        {
+          valor: 0,
+          idIngrediente: "",
+          idMedida: "",
+          idPresentacion: "",
+          alternativas: [],
+        },
+      ],
+    },
+  ]);
 
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
@@ -78,6 +90,8 @@ export const UpdateRecetaForm = ({
     width: 1,
   });
 
+  const handleClose = () => setOpen(false);
+
   const convertirDatos = (data) => {
     return data.grupoIngrediente.map((grupo) => ({
       nombreGrupo: grupo.nombreGrupo,
@@ -87,44 +101,32 @@ export const UpdateRecetaForm = ({
         valor: item.valor,
         idIngrediente: item.ingrediente._id,
         idMedida: item.medida._id,
+        idPresentacion: item?.presentacion?._id,
+        alternativas: item?.alternativas?.map((alt) => ({
+          idIngrediente: alt._id,
+        })),
       })),
     }));
+  };
+
+  const handleAddAlternativa = (groupIndex, itemIndex) => {
+    const newGroups = [...grupoIngrediente];
+    newGroups[groupIndex].items[itemIndex].alternativas.push({
+      idIngrediente: "",
+    });
+    setGrupoIngrediente(newGroups);
+  };
+
+  const handleDeleteAlternativa = (groupIndex, itemIndex, altIndex) => {
+    const newGroups = [...grupoIngrediente];
+    newGroups[groupIndex].items[itemIndex].alternativas.splice(altIndex, 1);
+    setGrupoIngrediente(newGroups);
   };
 
   const handleDeleteImage = (index) => {
     setImagesRecipe((prevImages) => prevImages.filter((_, i) => i !== index));
     setImageUrl((prevUrls) => prevUrls.filter((_, i) => i !== index));
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await ObtenerCategoria();
-      await ObtenerSubCategorias();
-      await ObtenerIngrediente();
-      await ObtenerDificultad();
-      await ObtenerMedida();
-      await ObtenerUntencilios();
-
-      const data = await getDetailsReceta({ recetaId });
-      const datosConvertidos = convertirDatos(data);
-
-      setGrupoIngrediente(datosConvertidos);
-      setTitle(data.titulo);
-      setDescription(data.descripcion);
-      setHours(data.hours);
-      setMinutes(data.minutes);
-      setCantidadPersonas(data.cantidadPersonas);
-      setDificultad(data.dificultad);
-      setCategoria(data.categoria);
-      setUtencilio(data.utencilio);
-      setImagesRecipe(data.images);
-      setImageUrl(data.images);
-      setSubCategoria(data.subCategoria);
-      setPasos(data.pasos);
-    };
-
-    fetchData();
-  }, [recetaId]);
 
   const handleAddGrupoIngrediente = () => {
     setGrupoIngrediente([
@@ -296,18 +298,38 @@ export const UpdateRecetaForm = ({
     }
 
     let ingredientesValidos = true;
+    let alternativasValidas = true;
+
     for (const grupo of grupoIngrediente) {
       if (grupo.items.length === 0) {
         ingredientesValidos = false;
         break;
       }
+
+      console.log("mi item", grupo.items);
+
       for (const item of grupo.items) {
-        if (!(item.valor > 0) || !item.idIngrediente || !item.idMedida) {
+        if (!(item.valor !== "") || !item.idIngrediente || !item.idMedida) {
           ingredientesValidos = false;
           break;
         }
+        if (item.alternativas.length > 0) {
+          for (const alternativa of item.alternativas) {
+            if (!alternativa.idIngrediente) {
+              alternativasValidas = false;
+              break;
+            }
+          }
+        }
       }
       if (!ingredientesValidos) break;
+    }
+
+    if (!alternativasValidas) {
+      alert(
+        "Si agrega un Ingrediente Alternativo debe seleccionar uno, de lo contrario elimine el Ingrediente Alternativo."
+      );
+      return;
     }
 
     if (!ingredientesValidos) {
@@ -356,6 +378,37 @@ export const UpdateRecetaForm = ({
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await ObtenerCategoria();
+      await ObtenerSubCategorias();
+      await ObtenerIngrediente();
+      await ObtenerDificultad();
+      await ObtenerMedida();
+      await ObtenerUntencilios();
+      await ObtenerPresentacion();
+
+      const data = await getDetailsReceta({ recetaId });
+      const datosConvertidos = convertirDatos(data);
+
+      setGrupoIngrediente(datosConvertidos);
+      setTitle(data.titulo);
+      setDescription(data.descripcion);
+      setHours(data.hours);
+      setMinutes(data.minutes);
+      setCantidadPersonas(data.cantidadPersonas);
+      setDificultad(data.dificultad);
+      setCategoria(data.categoria);
+      setUtencilio(data.utencilio);
+      setImagesRecipe(data.images);
+      setImageUrl(data.images);
+      setSubCategoria(data.subCategoria);
+      setPasos(data.pasos);
+    };
+
+    fetchData();
+  }, [recetaId]);
 
   return (
     <Modal
@@ -445,15 +498,15 @@ export const UpdateRecetaForm = ({
                           }}
                         />
                         <IconButton
-                          onClick={() => handleDeleteImage(index)} // Add your delete logic here
+                          onClick={() => handleDeleteImage(index)}
                           sx={{
                             position: "absolute",
                             top: 8,
                             right: 8,
-                            color: "white", // Or any color you prefer
-                            backgroundColor: "rgba(0, 0, 0, 0.5)", // Optional background
+                            color: "white",
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
                             "&:hover": {
-                              backgroundColor: "rgba(0, 0, 0, 0.7)", // Darker on hover
+                              backgroundColor: "rgba(0, 0, 0, 0.7)",
                             },
                           }}
                         >
@@ -471,7 +524,7 @@ export const UpdateRecetaForm = ({
                     onChange={(e) => setTitle(e.target.value)}
                     fullWidth
                     margin="normal"
-                    inputProps={{ maxLength: 55 }}
+                    inputProps={{ maxLength: 50 }}
                   />
                   <Typography
                     sx={{
@@ -494,7 +547,7 @@ export const UpdateRecetaForm = ({
                     rows={4}
                     fullWidth
                     margin="normal"
-                    inputProps={{ maxLength: 250 }}
+                    inputProps={{ maxLength: 500 }}
                   />
                   <Typography
                     sx={{
@@ -505,7 +558,7 @@ export const UpdateRecetaForm = ({
                     variant="caption"
                     color="textSecondary"
                   >
-                    {description.length}/{250}
+                    {description.length}/{500}
                   </Typography>
                 </Box>
                 <TextField
@@ -561,18 +614,32 @@ export const UpdateRecetaForm = ({
                   </Select>
                 </FormControl>
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Utencilios</InputLabel>
-                  <Select
+                  <Autocomplete
                     multiple
-                    value={utencilio}
-                    onChange={(e) => setUtencilio(e.target.value)}
-                  >
-                    {utenciliosAll?.map((utencilio) => (
-                      <MenuItem key={utencilio._id} value={utencilio._id}>
-                        {utencilio.nombreUtencilio}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                    options={utenciliosAll || []}
+                    getOptionLabel={(option) => option.nombreUtencilio}
+                    value={
+                      utenciliosAll?.filter((u) => utencilio.includes(u._id)) ||
+                      []
+                    }
+                    onChange={(e, newValues) => {
+                      const ids = newValues.map((u) => u._id);
+                      setUtencilio(ids);
+                    }}
+                    filterOptions={(options, state) => {
+                      const input = state.inputValue.trim().toLowerCase();
+                      return options.filter((option) =>
+                        option.nombreUtencilio.toLowerCase().includes(input)
+                      );
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Utencilios"
+                        placeholder="Buscar..."
+                      />
+                    )}
+                  />
                 </FormControl>
                 <Box
                   sx={{
@@ -607,7 +674,7 @@ export const UpdateRecetaForm = ({
                     </Button>
                   ))}
                 </Box>
-                {grupoIngrediente?.map((group, groupIndex) => (
+                {grupoIngrediente.map((group, groupIndex) => (
                   <Box
                     key={groupIndex}
                     sx={{
@@ -617,7 +684,7 @@ export const UpdateRecetaForm = ({
                     }}
                   >
                     <TextField
-                      label="Nombre de grupo"
+                      label="Nombre Grupo"
                       value={group.nombreGrupo}
                       onChange={(e) => {
                         const newGroups = [...grupoIngrediente];
@@ -627,96 +694,238 @@ export const UpdateRecetaForm = ({
                       fullWidth
                       margin="normal"
                     />
-                    {group.items?.map((item, itemIndex) => (
+                    {group.items.map((item, itemIndex) => (
                       <Box
                         key={item.id}
-                        sx={{ display: "flex", gap: 2, alignItems: "center" }}
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                          mb: 3,
+                        }}
                       >
-                        <TextField
-                          label="Valor"
-                          type="number"
-                          value={item.valor}
-                          onChange={(e) => {
-                            const newGroups = [...grupoIngrediente];
-                            newGroups[groupIndex].items[itemIndex].valor =
-                              parseFloat(e.target.value);
-                            setGrupoIngrediente(newGroups);
-                          }}
-                          fullWidth
-                          margin="normal"
-                        />
-                        <FormControl fullWidth margin="normal">
-                          <InputLabel>Medida</InputLabel>
-                          <Select
-                            value={item.idMedida}
+                        <Box
+                          sx={{ display: "flex", gap: 2, alignItems: "center" }}
+                        >
+                          <TextField
+                            label="Valor"
+                            type="text"
+                            value={item.valor}
                             onChange={(e) => {
-                              const newGroups = [...grupoIngrediente];
-                              newGroups[groupIndex].items[itemIndex].idMedida =
-                                e.target.value;
-                              setGrupoIngrediente(newGroups);
+                              const input = e.target.value;
+
+                              const regex = /^[0-9/]*$/;
+                              if (regex.test(input)) {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[itemIndex].valor =
+                                  input;
+                                setGrupoIngrediente(newGroups);
+                              }
                             }}
-                          >
-                            {medidasAll?.map((medida) => (
-                              <MenuItem key={medida._id} value={medida._id}>
-                                {medida.nombreMedida}
+                            fullWidth
+                            margin="normal"
+                          />
+
+                          <FormControl fullWidth margin="normal">
+                            <Autocomplete
+                              options={medidasAll || []}
+                              getOptionLabel={(option) => option.nombreMedida}
+                              value={
+                                medidasAll?.find(
+                                  (m) => m._id === item.idMedida
+                                ) || null
+                              }
+                              onChange={(e, newValue) => {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[
+                                  itemIndex
+                                ].idMedida = newValue?._id || "";
+                                setGrupoIngrediente(newGroups);
+                              }}
+                              filterOptions={(options, state) => {
+                                const input = state.inputValue
+                                  .trim()
+                                  .toLowerCase();
+                                return options.filter((option) =>
+                                  option.nombreMedida
+                                    .toLowerCase()
+                                    .includes(input)
+                                );
+                              }}
+                              renderInput={(params) => (
+                                <TextField {...params} label="Medida" />
+                              )}
+                            />
+                          </FormControl>
+
+                          <FormControl fullWidth margin="normal">
+                            <Autocomplete
+                              options={ingredientesAll || []}
+                              getOptionLabel={(option) =>
+                                option.nombreIngrediente
+                              }
+                              value={
+                                ingredientesAll?.find(
+                                  (ing) => ing._id === item.idIngrediente
+                                ) || null
+                              }
+                              onChange={(e, newValue) => {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[
+                                  itemIndex
+                                ].idIngrediente = newValue?._id || "";
+                                setGrupoIngrediente(newGroups);
+                              }}
+                              filterOptions={(options, state) => {
+                                const input = state.inputValue
+                                  .trim()
+                                  .toLowerCase();
+                                return options.filter((option) =>
+                                  option.nombreIngrediente
+                                    .toLowerCase()
+                                    .includes(input)
+                                );
+                              }}
+                              renderInput={(params) => (
+                                <TextField {...params} label="Ingrediente" />
+                              )}
+                            />
+                          </FormControl>
+
+                          <FormControl fullWidth margin="normal">
+                            <InputLabel>Presentación</InputLabel>
+                            <Select
+                              value={item.idPresentacion || ""}
+                              onChange={(e) => {
+                                const newGroups = [...grupoIngrediente];
+                                newGroups[groupIndex].items[
+                                  itemIndex
+                                ].idPresentacion = e.target.value;
+                                setGrupoIngrediente(newGroups);
+                              }}
+                            >
+                              <MenuItem value="">
+                                <em>Sin presentación</em>
                               </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                          <InputLabel>Ingrediente</InputLabel>
-                          <Select
-                            value={item.idIngrediente}
-                            onChange={(e) => {
-                              const newGroups = [...grupoIngrediente];
-                              newGroups[groupIndex].items[
-                                itemIndex
-                              ].idIngrediente = e.target.value;
-                              setGrupoIngrediente(newGroups);
-                            }}
-                          >
-                            {ingredientesAll?.map((ingrediente) => (
-                              <MenuItem
-                                key={ingrediente._id}
-                                value={ingrediente._id}
+                              {presentacionesAll?.map((pres) => (
+                                <MenuItem key={pres._id} value={pres._id}>
+                                  {pres.nombrePresentacion}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+
+                          {group.items.length > 1 && (
+                            <Button
+                              onClick={() =>
+                                handleDeleteItem(groupIndex, itemIndex)
+                              }
+                              variant="outlined"
+                              color="error"
+                            >
+                              Eliminar Item
+                            </Button>
+                          )}
+                        </Box>
+
+                        <Box sx={{ pl: 2 }}>
+                          {item.alternativas?.map((alt, altIndex) => (
+                            <Box
+                              key={altIndex}
+                              sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                                mt: 1,
+                              }}
+                            >
+                              <FormControl fullWidth>
+                                <Autocomplete
+                                  options={ingredientesAll || []}
+                                  getOptionLabel={(option) =>
+                                    option.nombreIngrediente
+                                  }
+                                  value={
+                                    ingredientesAll?.find(
+                                      (ing) => ing._id === alt.idIngrediente
+                                    ) || null
+                                  }
+                                  onChange={(e, newValue) => {
+                                    const newGroups = [...grupoIngrediente];
+                                    newGroups[groupIndex].items[
+                                      itemIndex
+                                    ].alternativas[altIndex].idIngrediente =
+                                      newValue?._id || "";
+                                    setGrupoIngrediente(newGroups);
+                                  }}
+                                  filterOptions={(options, state) => {
+                                    const input = state.inputValue
+                                      .trim()
+                                      .toLowerCase();
+                                    return options.filter((option) =>
+                                      option.nombreIngrediente
+                                        .toLowerCase()
+                                        .includes(input)
+                                    );
+                                  }}
+                                  renderInput={(params) => (
+                                    <TextField
+                                      {...params}
+                                      label="Alternativa Ingrediente"
+                                    />
+                                  )}
+                                />
+                              </FormControl>
+                              <Button
+                                onClick={() =>
+                                  handleDeleteAlternativa(
+                                    groupIndex,
+                                    itemIndex,
+                                    altIndex
+                                  )
+                                }
+                                variant="outlined"
+                                color="error"
                               >
-                                {ingrediente.nombreIngrediente}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        {group.items.length > 1 && (
+                                Eliminar
+                              </Button>
+                            </Box>
+                          ))}
+
                           <Button
                             onClick={() =>
-                              handleDeleteItem(groupIndex, itemIndex)
+                              handleAddAlternativa(groupIndex, itemIndex)
                             }
                             variant="outlined"
-                            color="error"
+                            sx={{ mt: 1 }}
                           >
-                            Delete Item
+                            Agregar Alternativa
                           </Button>
-                        )}
+                        </Box>
                       </Box>
                     ))}
+
                     {grupoIngrediente.length > 1 && (
                       <Button
                         onClick={() => handleDeleteGrupoIngrediente(groupIndex)}
                         variant="outlined"
                         color="error"
+                        sx={{ mt: 2 }}
                       >
-                        Delete Group
+                        Eliminar Grupo
                       </Button>
                     )}
                     <Button
                       onClick={() => handleAddItem(groupIndex)}
                       variant="contained"
+                      sx={{ mt: 2 }}
                     >
-                      Add Item
+                      Agregar Ingrediente
                     </Button>
                   </Box>
                 ))}
                 <Button onClick={handleAddGrupoIngrediente} variant="contained">
-                  Add Ingredient Group
+                  Agregar Grupo De Ingredientes
                 </Button>
                 {pasos?.map((step, index) => (
                   <Box
@@ -752,7 +961,7 @@ export const UpdateRecetaForm = ({
                         rows={2}
                         fullWidth
                         margin="normal"
-                        inputProps={{ maxLength: 250 }}
+                        inputProps={{ maxLength: 500 }}
                       />
                       <Typography
                         sx={{
@@ -763,7 +972,7 @@ export const UpdateRecetaForm = ({
                         variant="caption"
                         color="textSecondary"
                       >
-                        {step.descripcion.length}/{250}
+                        {step.descripcion.length}/{500}
                       </Typography>
                     </Box>
                     {pasos.length > 1 && (
@@ -772,7 +981,7 @@ export const UpdateRecetaForm = ({
                         variant="outlined"
                         color="error"
                       >
-                        Delete Paso
+                        Eliminar Paso
                       </Button>
                     )}
                   </Box>
@@ -781,10 +990,10 @@ export const UpdateRecetaForm = ({
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <Button onClick={handleAddPaso} variant="contained">
-                    Add Step
+                    Agregar Paso
                   </Button>
                   <Button type="submit" variant="contained" color="warning">
-                    Update Recipe
+                    Actualizar Receta
                   </Button>
                 </div>
               </form>

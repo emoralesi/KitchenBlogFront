@@ -21,22 +21,22 @@ import { Favourites } from "./MyFavourites";
 import { PerfilOther } from "./PerfilOther";
 import { PerfilOwner } from "./PerfilOwner";
 import { FavouritesOther } from "./MyFavouritesOther";
-import { UserNotFound } from "./UserNotFound";
+import { UserNotFound } from "../Others/UserNotFound";
 import { enqueueSnackbar } from "notistack";
 
 export const Perfiles = () => {
   let { username } = useParams();
-  const [value, setValue] = useState(0);
 
+  const { ObtenerDataFavAndRec, getIdUserByUserName } = useUsuario();
+
+  const [value, setValue] = useState(0);
   const [cantidadReceta, setCantidadReceta] = useState(null);
   const [cantidadFavoritos, setCantidadFavoritos] = useState(null);
   const [IdUser, setIdUser] = useState(null);
   const [userImage, setUserImage] = useState(null);
   const [loadingModalSubmit, setLoadingModalSubmit] = useState(false);
-
   const [openEditProfilePic, setOpenEditProfilePic] = useState(false);
-
-  const { ObtenerDataFavAndRec, getIdUserByUserName } = useUsuario();
+  const [image, setImage] = useState(null);
 
   const [userExists, setUserExists] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -49,8 +49,6 @@ export const Perfiles = () => {
     setOpenEditProfilePic(false);
     setImage(null);
   };
-
-  const [image, setImage] = useState(null);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -105,7 +103,6 @@ export const Perfiles = () => {
 
     const extension = image.name.split(".").pop();
 
-    // Crear un nuevo archivo con el nombre deseado
     const renamedImage = new File([image], `${IdUser}.${extension}`, {
       type: image.type,
     });
@@ -182,7 +179,7 @@ export const Perfiles = () => {
         setCantidadFavoritos(result.favouriteCount);
       } catch (error) {
         console.error("Error fetching data", error);
-        setUserExists(false); // Asumiendo que un error puede indicar que el usuario no existe
+        setUserExists(false);
       } finally {
         setLoading(false);
       }
@@ -195,8 +192,8 @@ export const Perfiles = () => {
   }
 
   return (
-    <div style={{ height: "100%", marginTop: "10px" }}>
-      <div style={{ display: "flex", alignItems: "center" }}>
+    <div style={{ marginTop: "10px" }}>
+      <div style={{ display: "flex", height: "90px", alignItems: "center" }}>
         <div
           style={{
             width: "50%",

@@ -1,6 +1,6 @@
 import { Box, Paper } from "@mui/material";
 import { Outlet } from "react-router-dom";
-import { Header } from "../Menu/Header";
+import { Header } from "../Header/Header";
 import SideMenu from "../SideBar/SideMenu";
 import "../../styles/container.css";
 

@@ -1,68 +1,56 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AddIcon from "@mui/icons-material/Add";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
-import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import CommentIcon from "@mui/icons-material/Comment";
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import PersonIcon from "@mui/icons-material/Person";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
+import BookmarkBorderIcon from "@mui/icons-material/Bookmark";
+
 import {
   Avatar,
   Box,
   Button,
-  CircularProgress,
   Fab,
-  IconButton,
   Modal,
   Typography,
   Zoom,
+  CircularProgress,
+  Checkbox,
 } from "@mui/material";
-import debounce from "just-debounce-it";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import useNearScreen from "../../../Hooks/useNearScreen";
 import { useReceta } from "../../../Hooks/useReceta";
 import { useUsuario } from "../../../Hooks/useUsuario";
 import { dateConvert } from "../../../utils/dateConvert";
-import { TypeNotification } from "../../../utils/enumTypeNoti";
 import IconSvg from "../../../utils/IconSvg";
-import { SkeletonWave } from "../../../utils/Skeleton";
 import { getStorageUser } from "../../../utils/StorageUser";
-import { DetailsReceta } from "./DitailsReceta";
+import { DetailsReceta } from "../Others/DitailsReceta";
+import { IngredientListModal } from "./IngredientListModal";
+import useNearScreen from "../../../Hooks/useNearScreen";
+import debounce from "just-debounce-it";
+import { SkeletonWave } from "../../../utils/Skeleton";
 
-export const Favourites = ({
-  userName,
-  setCantidadFavoritos,
-  cantidadFavoritos,
-}) => {
-  const navigate = useNavigate();
+export const ShoppingList2 = () => {
+  const externalRef = useRef();
 
+  const { ObtenerFavourites, favourites, cantidadFavoritos } = useUsuario();
   const {
-    ObtenerFavourites,
-    getIdUserByUserName,
-    favourites,
-    idFavourites,
-    SaveUpdateMyFavourites,
-    ObtenerIdFavourites,
-    favouriteInfo,
-    reactionInfo,
-    setReactionInfo,
-  } = useUsuario();
-  const { saveUpdateReactionReceta } = useReceta();
+    ObtenerRecetasInfo,
+    recetasInfo,
+    cantidadReceta,
+    saveUpdateReactionReceta,
+  } = useReceta();
+
   const [openReceta, setOpenReceta] = useState(false);
   const [idReceta, setIdReceta] = useState(null);
-  const [idUsuario, setIdUsuario] = useState(null);
   const [isExpanded, setIsExpanded] = useState({});
+  const [idSelected, setidSelected] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(9);
+  const [openIngredientList, setOpenIngredientList] = useState(false);
   const [previousLength, setPreviousLength] = useState(0);
-
-  const [loadingNearScreen, setLoadingNearScreen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingNearScreen, setLoadingNearScreen] = useState(false);
 
-  const externalRef = useRef();
   const { isNearScreen } = useNearScreen({
     externalRef: cantidadFavoritos == 0 ? null : externalRef,
     once: false,
@@ -94,6 +82,13 @@ export const Favourites = ({
     [favourites]
   );
 
+  const handleClickExpand = (cardId) => {
+    setIsExpanded((prev) => ({
+      ...prev,
+      [cardId]: !prev[cardId],
+    }));
+  };
+
   useEffect(
     function () {
       if (isNearScreen && !loading) {
@@ -104,45 +99,51 @@ export const Favourites = ({
   );
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIdUsuario(getStorageUser().usuarioId);
-        await ObtenerFavourites({
-          data: { data: { idUser: getStorageUser().usuarioId, page, limit } },
-        });
-        await ObtenerIdFavourites({ idUser: getStorageUser().usuarioId });
-      } catch (error) {
-        console.error("Error fetching data", error);
-      }
-    };
-
-    fetchData().finally(() => {
+    ObtenerFavourites({
+      data: { data: { idUser: getStorageUser().usuarioId, page, limit } },
+    }).finally(() => {
       setLoading(false);
     });
-  }, [userName]);
-
-  const handleBookmarkClick = async (id, action) => {
-    await SaveUpdateMyFavourites({
-      body: { idUser: idUsuario, idReceta: id, estado: action },
-    });
-    await ObtenerIdFavourites({ idUser: idUsuario });
-    await ObtenerFavourites({
-      data: { data: { idUser: idUsuario, page, limit } },
-    });
-    action
-      ? setCantidadFavoritos((prevCantidad) => prevCantidad + 1)
-      : setCantidadFavoritos((prevCantidad) => prevCantidad - 1);
-  };
-
-  const handleClickExpand = (cardId) => {
-    setIsExpanded((prev) => ({
-      ...prev,
-      [cardId]: !prev[cardId],
-    }));
-  };
+  }, []);
 
   return (
     <Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          px: 2,
+          py: 1,
+          flexDirection: "column",
+          gap: 1,
+        }}
+      >
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{
+            fontSize: {
+              xs: "1.8rem",
+              sm: "2rem",
+              md: "2.5rem",
+            },
+            color: "text.primary",
+          }}
+        >
+          Crea tu shopping list
+        </Typography>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ maxWidth: "600px" }}
+        >
+          Selecciona una o varias recetas para generar una lista de compra con
+          los ingredientes necesarios.
+        </Typography>
+      </Box>
+
       {loading ? (
         <Box
           sx={{
@@ -156,7 +157,6 @@ export const Favourites = ({
       ) : (
         <></>
       )}
-
       {favourites?.filter((value) => value._id).length == 0 &&
       loading == false ? (
         <Box
@@ -174,7 +174,8 @@ export const Favourites = ({
           </Typography>
           <Typography variant="body1" color="textSecondary">
             Haz clic en el icono <BookmarkBorderIcon fontSize="large" /> de
-            alguna receta para agregarla a favoritos.
+            alguna receta para agregarla a favoritos y asi poden crear tu
+            shopping list.
           </Typography>
         </Box>
       ) : (
@@ -232,191 +233,6 @@ export const Favourites = ({
                         flexDirection: "column",
                       }}
                     >
-                      <Box
-                        sx={{
-                          px: 1,
-                          py: 1,
-                          display: "flex",
-                          justifyContent: "space-around",
-                          alignItems: "center",
-                          borderTop: "1px solid #eee",
-                          bgcolor: "background.default",
-                          height: isExpanded[card._id] ? "0%" : "10%",
-                          transition: "ease-in-out 0.5s",
-                        }}
-                      >
-                        <Box textAlign="center">
-                          <IconButton
-                            onClick={() => {
-                              handleBookmarkClick(
-                                card._id,
-                                !favouriteInfo
-                                  .find((value) => value.idReceta == card._id)
-                                  .usuarios_id_favourite.some(
-                                    (user) => user === idUsuario
-                                  )
-                              );
-
-                              const receta = favouriteInfo.find(
-                                (value) => value.idReceta === card?._id
-                              );
-
-                              const userExists =
-                                receta.usuarios_id_favourite.some(
-                                  (value) =>
-                                    value === getStorageUser().usuarioId
-                                );
-
-                              let updatedUsuariosIdFavourite;
-
-                              if (userExists) {
-                                updatedUsuariosIdFavourite =
-                                  receta.usuarios_id_favourite.filter(
-                                    (value) =>
-                                      value !== getStorageUser().usuarioId
-                                  );
-                              } else {
-                                updatedUsuariosIdFavourite = [
-                                  ...receta.usuarios_id_favourite,
-                                  getStorageUser().usuarioId,
-                                ];
-                              }
-
-                              const updatedFavouriteInfo = favouriteInfo.map(
-                                (item) =>
-                                  item.idReceta === card?._id
-                                    ? {
-                                        ...item,
-                                        usuarios_id_favourite:
-                                          updatedUsuariosIdFavourite,
-                                      }
-                                    : item
-                              );
-
-                              setFavouriteInfo(updatedFavouriteInfo);
-                            }}
-                            sx={{
-                              transition: "color 0.3s",
-                              padding: 0,
-                              width: "40px",
-                            }}
-                          >
-                            {idFavourites?.includes(card._id) ? (
-                              <BookmarkIcon
-                                fontSize="large"
-                                sx={{ color: "yellow" }}
-                              />
-                            ) : (
-                              <BookmarkBorderIcon fontSize="large" />
-                            )}
-                          </IconButton>
-                          <Typography variant="caption">
-                            {
-                              favouriteInfo?.find(
-                                (value) => value.idReceta == card._id
-                              )?.usuarios_id_favourite.length
-                            }
-                          </Typography>
-                        </Box>
-                        <Box textAlign="center">
-                          <IconButton
-                            onClick={() => {
-                              if (
-                                saveUpdateReactionReceta({
-                                  data: {
-                                    idReceta: card?._id,
-                                    idUser: idUsuario,
-                                    estado: !reactionInfo
-                                      .find(
-                                        (value) => value.idReceta === card?._id
-                                      )
-                                      .usuarios_id_reaction.some(
-                                        (value) => value === idUsuario
-                                      ),
-                                    type: TypeNotification.LikeToReceta,
-                                  },
-                                })
-                              ) {
-                                const receta = reactionInfo.find(
-                                  (value) => value.idReceta === card?._id
-                                );
-
-                                const userExists =
-                                  receta.usuarios_id_reaction.some(
-                                    (value) => value === idUsuario
-                                  );
-
-                                let updatedUsuariosIdReaction;
-
-                                if (userExists) {
-                                  updatedUsuariosIdReaction =
-                                    receta.usuarios_id_reaction.filter(
-                                      (value) => value !== idUsuario
-                                    );
-                                } else {
-                                  updatedUsuariosIdReaction = [
-                                    ...receta.usuarios_id_reaction,
-                                    idUsuario,
-                                  ];
-                                }
-
-                                const updatedReactionInfo = reactionInfo.map(
-                                  (item) =>
-                                    item.idReceta === card?._id
-                                      ? {
-                                          ...item,
-                                          usuarios_id_reaction:
-                                            updatedUsuariosIdReaction,
-                                        }
-                                      : item
-                                );
-
-                                setReactionInfo(updatedReactionInfo);
-                              }
-                            }}
-                            sx={{ width: "40px" }}
-                          >
-                            <FavoriteIcon
-                              sx={{
-                                color: reactionInfo
-                                  .find((v) => v.idReceta === card?._id)
-                                  ?.usuarios_id_reaction.includes(idUsuario)
-                                  ? "red"
-                                  : "gray",
-                                transition: "color 0.5s",
-                              }}
-                            />
-                          </IconButton>
-                          <Typography variant="caption">
-                            {
-                              reactionInfo.find(
-                                (value) => value.idReceta === card?._id
-                              ).usuarios_id_reaction.length
-                            }
-                          </Typography>
-                        </Box>
-                        <Box textAlign="center">
-                          <IconButton
-                            onClick={() => {
-                              setIdReceta(card?._id);
-                              window.history.replaceState(
-                                "",
-                                "",
-                                `/main/p/${card._id}`
-                              );
-                              setOpenReceta(true);
-                            }}
-                            sx={{ width: "40px" }}
-                          >
-                            <CommentIcon
-                              sx={{ color: "blue", width: "30px" }}
-                            />
-                          </IconButton>
-                          <Typography variant="caption">
-                            {card?.comments.length}
-                          </Typography>
-                        </Box>
-                      </Box>
                       <Button
                         onClick={() => {
                           setIdReceta(card?._id);
@@ -481,9 +297,7 @@ export const Favourites = ({
                       </Button>
                       <Fab
                         aria-label="add"
-                        onClick={() => {
-                          handleClickExpand(card?._id);
-                        }}
+                        onClick={() => handleClickExpand(card?._id)}
                         sx={{
                           position: "absolute",
                           bottom: -16,
@@ -497,7 +311,7 @@ export const Favourites = ({
                           boxShadow: 1,
                         }}
                       >
-                        {isExpanded[card?._id] ? (
+                        {isExpanded[card._id] ? (
                           <RemoveCircleIcon />
                         ) : (
                           <AddIcon />
@@ -566,6 +380,19 @@ export const Favourites = ({
                             {card.user[0].username}
                           </Typography>
                         </Box>
+                        <Checkbox
+                          color="success"
+                          checked={idSelected.includes(card._id)}
+                          onChange={(e) => {
+                            const result = e.target.checked
+                              ? [...idSelected, card._id]
+                              : idSelected.filter(
+                                  (favourite) => favourite !== card._id
+                                );
+
+                            setidSelected(result);
+                          }}
+                        />
                       </Box>
                       <Typography variant="h6" fontWeight="bold">
                         {card.titulo}
@@ -628,7 +455,7 @@ export const Favourites = ({
                       {isExpanded[card._id] && (
                         <>
                           <Typography variant="subtitle2" fontWeight="bold">
-                            INGREDIENTS
+                            INGREDIENTES
                           </Typography>
                           {card.grupoIngrediente.map((grupo) => (
                             <Box key={grupo.nombreGrupo} mt={1}>
@@ -637,6 +464,7 @@ export const Favourites = ({
                               </Typography>
                               {grupo.item.map((item, idx) => {
                                 const tienePresentacion =
+                                  item.presentacion?.nombrePresentacion ||
                                   item.presentacion?.nombrePresentacion;
                                 const textoPresentacion = tienePresentacion
                                   ? ` (${tienePresentacion})`
@@ -679,7 +507,7 @@ export const Favourites = ({
           )}
         </Box>
       ) : (
-        <h1>No se ecnontraron Favoritos</h1>
+        <></>
       )}
       {openReceta ? (
         <Modal
@@ -696,13 +524,39 @@ export const Favourites = ({
         >
           <DetailsReceta
             isFull={false}
-            isFromProfile={false}
-            origen={"myFavourites"}
+            isFromProfile={true}
             idReceta={idReceta}
             setOpen={setOpenReceta}
-            idUser={idUsuario}
+            idUser={getStorageUser().usuarioId}
+            username={getStorageUser().username}
           />
         </Modal>
+      ) : (
+        <></>
+      )}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+        }}
+      >
+        <Button
+          onClick={() => {
+            setOpenIngredientList(true);
+          }}
+          color="success"
+          variant="contained"
+        >
+          Generate list
+        </Button>
+      </div>
+      {openIngredientList ? (
+        <IngredientListModal
+          data={favourites.filter((recipe) => idSelected.includes(recipe._id))}
+          open={openIngredientList}
+          setOpen={setOpenIngredientList}
+        />
       ) : (
         <></>
       )}

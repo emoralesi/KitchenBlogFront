@@ -39,6 +39,15 @@ export const RecetaForm = ({
   page,
   limit,
 }) => {
+  const { guardarReceta } = useReceta();
+  const { ObtenerCategoria, categoriasAll } = useCategoria();
+  const { ObtenerPresentacion, presentacionesAll } = usePresentacion();
+  const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
+  const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
+  const { ObtenerDificultad, dificultadesAll } = useDificultad();
+  const { ObtenerMedida, medidasAll } = useMedida();
+  const { ObtenerUntencilios, utenciliosAll } = useUtencilios();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [hours, setHours] = useState(0);
@@ -48,6 +57,11 @@ export const RecetaForm = ({
   const [categoria, setCategoria] = useState("");
   const [utencilio, setUtencilio] = useState([]);
   const [subCategoria, setSubCategoria] = useState([]);
+  const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: "" }]);
+  const [imagesRecipe, setImagesRecipe] = useState([]);
+  const [imagesSteps, setImagesSteps] = useState([]);
+  const [imageUrl, setImageUrl] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [grupoIngrediente, setGrupoIngrediente] = useState([
     {
       nombreGrupo: "",
@@ -63,22 +77,6 @@ export const RecetaForm = ({
       ],
     },
   ]);
-  const [pasos, setPasos] = useState([{ pasoNumero: 1, descripcion: "" }]);
-  const [imagesRecipe, setImagesRecipe] = useState([]);
-  const [imagesSteps, setImagesSteps] = useState([]);
-  const [imageUrl, setImageUrl] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const handleClose = () => setOpen(false);
-  const { guardarReceta } = useReceta();
-
-  const { ObtenerCategoria, categoriasAll } = useCategoria();
-  const { ObtenerPresentacion, presentacionesAll } = usePresentacion();
-  const { ObtenerSubCategorias, subCategoriasAll } = useSubCategoria();
-  const { ObtenerIngrediente, ingredientesAll } = useIngrediente();
-  const { ObtenerDificultad, dificultadesAll } = useDificultad();
-  const { ObtenerMedida, medidasAll } = useMedida();
-  const { ObtenerUntencilios, utenciliosAll } = useUtencilios();
 
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
@@ -91,6 +89,8 @@ export const RecetaForm = ({
     whiteSpace: "nowrap",
     width: 1,
   });
+
+  const handleClose = () => setOpen(false);
 
   const handleAddAlternativa = (groupIndex, itemIndex) => {
     const newGroups = [...grupoIngrediente];
@@ -105,80 +105,6 @@ export const RecetaForm = ({
     newGroups[groupIndex].items[itemIndex].alternativas.splice(altIndex, 1);
     setGrupoIngrediente(newGroups);
   };
-
-  useEffect(() => {
-    const savedFormData = JSON.parse(localStorage.getItem("recetaFormData"));
-    if (savedFormData) {
-      setTitle(savedFormData.title || "");
-      setDescription(savedFormData.description || "");
-      setHours(savedFormData.hours || 0);
-      setMinutes(savedFormData.minutes || 0);
-      setCantidadPersonas(savedFormData.cantidadPersonas || 0);
-      setDificultad(savedFormData.dificultad || "");
-      setCategoria(savedFormData.categoria || "");
-      setUtencilio(savedFormData.utencilio || []);
-      setSubCategoria(savedFormData.subCategoria || []);
-      setGrupoIngrediente(
-        savedFormData.grupoIngrediente || [
-          {
-            nombreGrupo: "",
-            items: [
-              {
-                id: 1,
-                valor: "",
-                idIngrediente: "",
-                idMedida: "",
-                idPresentacion: "",
-                alternativas: [],
-              },
-            ],
-          },
-        ]
-      );
-      setPasos(savedFormData.pasos || [{ pasoNumero: 1, descripcion: "" }]);
-    }
-
-    ObtenerCategoria();
-    ObtenerSubCategorias();
-    ObtenerIngrediente();
-    ObtenerDificultad();
-    ObtenerMedida();
-    ObtenerUntencilios();
-    ObtenerPresentacion();
-  }, []);
-
-  useEffect(() => {
-    const formData = {
-      title,
-      description,
-      hours,
-      minutes,
-      cantidadPersonas,
-      dificultad,
-      categoria,
-      grupoIngrediente,
-      utencilio,
-      subCategoria,
-      pasos,
-      imagesRecipe,
-      imagesSteps,
-    };
-    localStorage.setItem("recetaFormData", JSON.stringify(formData));
-  }, [
-    title,
-    description,
-    hours,
-    minutes,
-    cantidadPersonas,
-    dificultad,
-    categoria,
-    grupoIngrediente,
-    utencilio,
-    subCategoria,
-    pasos,
-    imagesRecipe,
-    imagesSteps,
-  ]);
 
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -463,6 +389,80 @@ export const RecetaForm = ({
     }
   };
 
+  useEffect(() => {
+    const savedFormData = JSON.parse(localStorage.getItem("recetaFormData"));
+    if (savedFormData) {
+      setTitle(savedFormData.title || "");
+      setDescription(savedFormData.description || "");
+      setHours(savedFormData.hours || 0);
+      setMinutes(savedFormData.minutes || 0);
+      setCantidadPersonas(savedFormData.cantidadPersonas || 0);
+      setDificultad(savedFormData.dificultad || "");
+      setCategoria(savedFormData.categoria || "");
+      setUtencilio(savedFormData.utencilio || []);
+      setSubCategoria(savedFormData.subCategoria || []);
+      setGrupoIngrediente(
+        savedFormData.grupoIngrediente || [
+          {
+            nombreGrupo: "",
+            items: [
+              {
+                id: 1,
+                valor: "",
+                idIngrediente: "",
+                idMedida: "",
+                idPresentacion: "",
+                alternativas: [],
+              },
+            ],
+          },
+        ]
+      );
+      setPasos(savedFormData.pasos || [{ pasoNumero: 1, descripcion: "" }]);
+    }
+
+    ObtenerCategoria();
+    ObtenerSubCategorias();
+    ObtenerIngrediente();
+    ObtenerDificultad();
+    ObtenerMedida();
+    ObtenerUntencilios();
+    ObtenerPresentacion();
+  }, []);
+
+  useEffect(() => {
+    const formData = {
+      title,
+      description,
+      hours,
+      minutes,
+      cantidadPersonas,
+      dificultad,
+      categoria,
+      grupoIngrediente,
+      utencilio,
+      subCategoria,
+      pasos,
+      imagesRecipe,
+      imagesSteps,
+    };
+    localStorage.setItem("recetaFormData", JSON.stringify(formData));
+  }, [
+    title,
+    description,
+    hours,
+    minutes,
+    cantidadPersonas,
+    dificultad,
+    categoria,
+    grupoIngrediente,
+    utencilio,
+    subCategoria,
+    pasos,
+    imagesRecipe,
+    imagesSteps,
+  ]);
+
   return (
     <Modal
       open={open}
@@ -676,13 +676,11 @@ export const RecetaForm = ({
                       []
                     }
                     onChange={(e, newValues) => {
-                      // Extrae los IDs seleccionados
                       const ids = newValues.map((u) => u._id);
                       setUtencilio(ids);
                     }}
                     filterOptions={(options, state) => {
                       const input = state.inputValue.trim().toLowerCase();
-                      // if (input.length < 1) return [];
                       return options.filter((option) =>
                         option.nombreUtencilio.toLowerCase().includes(input)
                       );
@@ -802,7 +800,6 @@ export const RecetaForm = ({
                                 const input = state.inputValue
                                   .trim()
                                   .toLowerCase();
-                                // if (input.length < 1) return [];
                                 return options.filter((option) =>
                                   option.nombreMedida
                                     .toLowerCase()
@@ -861,6 +858,9 @@ export const RecetaForm = ({
                                 setGrupoIngrediente(newGroups);
                               }}
                             >
+                              <MenuItem value="">
+                                <em>Sin presentación</em>
+                              </MenuItem>
                               {presentacionesAll?.map((pres) => (
                                 <MenuItem key={pres._id} value={pres._id}>
                                   {pres.nombrePresentacion}
@@ -974,7 +974,7 @@ export const RecetaForm = ({
                       variant="contained"
                       sx={{ mt: 2 }}
                     >
-                      Agregar Item
+                      Agregar Ingrediente
                     </Button>
                   </Box>
                 ))}

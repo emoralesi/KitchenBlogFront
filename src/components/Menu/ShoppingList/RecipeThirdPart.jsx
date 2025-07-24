@@ -30,11 +30,12 @@ export const RecipeThirdPart = ({
   getDetailsReceta,
   saveUpdateReactionReceta,
 }) => {
+  const { SaveUpdateCommentReaction, guardarComment } = useComment();
+
   const [visibleComments, setVisibleComments] = useState(3);
   const [visibleAnswers, setVisibleAnswers] = useState({});
   const [commentParent, setCommentParent] = useState("");
   const [responseContent, setResponseContent] = useState({});
-  const { SaveUpdateCommentReaction, guardarComment } = useComment();
 
   const handleShowMoreComments = () => {
     setVisibleComments((prev) => prev + 3);
@@ -127,7 +128,6 @@ export const RecipeThirdPart = ({
 
   return (
     <Grid container spacing={4}>
-      {/* PASOS */}
       <Grid item xs={12} md={6}>
         <Accordion defaultExpanded sx={{ boxShadow: 1 }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -155,10 +155,8 @@ export const RecipeThirdPart = ({
         </Accordion>
       </Grid>
 
-      {/* COMENTARIOS */}
       <Grid item xs={12} md={6}>
         <Box sx={{ px: 2 }}>
-          {/* Header + Like receta */}
           <Box
             display="flex"
             justifyContent="space-between"
@@ -218,7 +216,6 @@ export const RecipeThirdPart = ({
             </Button>
           </Stack>
 
-          {/* Lista de comentarios */}
           <Stack spacing={3}>
             {detailsReceta.comments
               ?.slice()
@@ -272,7 +269,6 @@ export const RecipeThirdPart = ({
                     {comment.content}
                   </Typography>
 
-                  {/* Respuestas */}
                   <Stack spacing={1} mt={2} pl={2}>
                     {comment.responses
                       .slice()
@@ -344,7 +340,6 @@ export const RecipeThirdPart = ({
                       </Button>
                     )}
 
-                    {/* Input para responder */}
                     <Stack direction="row" spacing={1} mt={1}>
                       <TextField
                         fullWidth

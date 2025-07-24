@@ -5,7 +5,7 @@ export const RecipeSecondPart = ({ data }) => {
     return (
         <Box>
             <div>
-                <h2>INGREDIENTS</h2>
+                <h2>INGREDIENTES</h2>
             </div>
             <div>
                 {

@@ -8,17 +8,14 @@ import {
 } from "react-router-dom";
 import UserForm from "./components/Login-Register/UserForm";
 import MainContent from "./components/Menu/Main";
-import { Testing1 } from "./components/Menu/Seccion//Testing1";
-import { Testing2 } from "./components/Menu/Seccion//Testing2";
-import { Bienvenido } from "./components/Menu/Seccion/Bienvenido";
-import { DescubrirChefs } from "./components/Menu/Seccion/DescubrirChefs";
-import { FullPageReceta } from "./components/Menu/Seccion/FullPageReceta";
-import { Perfiles } from "./components/Menu/Seccion/Perfiles";
+import { Bienvenido } from "./components/Menu/Bienvenido/Bienvenido";
+import { DescubrirChefs } from "./components/Menu/DescubrirChef/DescubrirChefs";
+import { FullPageReceta } from "./components/Menu/Others/FullPageReceta";
+import { Perfiles } from "./components/Menu/Perfil/Perfiles";
 import SessionGuard from "./components/SessionGuard/SessionGuard";
-import { Favourites } from "./components/Menu/Seccion/MyFavourites";
-import { ShoppingList2 } from "./components/Menu/ShoppingList2";
-import { ImageContent } from "./components/Menu/Seccion/EmailContent";
-import { DescoveryRecipe } from "./components/Menu/Seccion/DescoveryRecipe";
+import { ShoppingList2 } from "./components/Menu/ShoppingList/ShoppingList2";
+import { ImageContent } from "./components/Menu/Others/EmailContent";
+import { DescoveryRecipe } from "./components/Menu/DescubrirReceta/DescoveryRecipe";
 
 function App() {
   const ProtectedRoute = ({ element: Element, ...rest }) => {
