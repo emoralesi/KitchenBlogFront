@@ -55,7 +55,7 @@ export const Header = () => {
             onClick={() => {
               setAnchorEl(null);
               localStorage.clear();
-              navigate("/login");
+               window.location.href = "/login";
             }}
           >
             Log Out
