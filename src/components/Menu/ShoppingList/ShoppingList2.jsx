@@ -363,7 +363,10 @@ export const ShoppingList2 = () => {
                                 height: 50,
                                 fontSize: 40,
                               }}
-                              src={card.user[0].profileImageUrl}
+                              src={getCloudinaryUrl(
+                                card.user[0].profileImageUrl,
+                                { width: 50 }
+                              )}
                             >
                               {card.user[0].username
                                 ?.substring(0, 1)
