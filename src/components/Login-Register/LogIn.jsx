@@ -1,4 +1,10 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginUsuario } from "../../services/UserService";
@@ -7,11 +13,13 @@ import { enqueueSnackbar } from "notistack";
 export default function LogIn({ handleCreateNewClick }) {
   const [userEmail, setUserEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const result = await LoginUsuario({ userEmail, password });
 
@@ -28,6 +36,8 @@ export default function LogIn({ handleCreateNewClick }) {
         variant: "error",
       });
     }
+
+    setLoading(false);
   };
 
   return (
@@ -91,7 +101,8 @@ export default function LogIn({ handleCreateNewClick }) {
           fullWidth
           onClick={handleSubmit}
           sx={{
-           background: "linear-gradient(to right, #7ec4e3, #56a5d8, #368ac9, #1f6fae)",
+            background:
+              "linear-gradient(to right, #7ec4e3, #56a5d8, #368ac9, #1f6fae)",
             mt: 1,
           }}
         >
@@ -103,6 +114,24 @@ export default function LogIn({ handleCreateNewClick }) {
             ¿Olvidaste tu contraseña?
           </a>
         </Typography>
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 1000,
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : null}
 
         <Box
           sx={{

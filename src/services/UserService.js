@@ -38,7 +38,8 @@ export async function LoginUsuario(req) {
 export async function RegisterUsuario(req) {
   try {
     let data = {
-      email: req.emailUsuario,
+      email: req.email,
+      username: req.username,
       password: req.password,
     };
     const requestOptions = {

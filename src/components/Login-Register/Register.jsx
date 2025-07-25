@@ -1,10 +1,88 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { enqueueSnackbar } from "notistack";
+import { RegisterUsuario } from "../../services/UserService";
 
 export default function Register({ handleCreateNewClick }) {
+  const navigate = useNavigate();
+
+  const [newEmail, setNewEmail] = useState("");
   const [newUsername, setNewUserName] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newConfirmPassword, setNewConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const handleCreateAccount = async () => {
+    setFieldErrors({});
+
+    if (newPassword !== newConfirmPassword) {
+      enqueueSnackbar("Las contraseñas no coinciden", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await RegisterUsuario({
+        email: newEmail.trim(),
+        username: newUsername.trim(),
+        password: newPassword,
+      });
+
+      console.log("mi response", response);
+
+      if (response.status === "ok") {
+        enqueueSnackbar(response.message || "Usuario registrado con éxito", {
+          variant: "success",
+        });
+
+        handleCreateNewClick();
+        navigate("/login");
+
+        setNewEmail("");
+        setNewUserName("");
+        setNewPassword("");
+        setNewConfirmPassword("");
+      } else if (response.status === "warning") {
+        if (response.errors) {
+          const errors = {};
+          response.errors.forEach((err) => {
+            console.log("mi err",err);
+            
+            errors[err.path] = err.msg;
+            console.log(errors);
+            
+          });
+          setFieldErrors(errors);
+        } else {
+          enqueueSnackbar(response.message || "Error de validación", {
+            variant: "warning",
+          });
+        }
+      } else {
+        enqueueSnackbar("Error inesperado en el registro", {
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      enqueueSnackbar("Error al conectar con el servidor", {
+        variant: "error",
+      });
+      console.error("Error en el registro:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -21,7 +99,6 @@ export default function Register({ handleCreateNewClick }) {
           width: "70%",
           display: "flex",
           alignItems: "center",
-          alignContent: "center",
           justifyContent: "space-evenly",
           flexDirection: "column",
         }}
@@ -45,32 +122,63 @@ export default function Register({ handleCreateNewClick }) {
         </Typography>
 
         <TextField
-          id="outlined-basic"
-          label="Nuevo usuario"
+          label="Correo Electrónico"
+          variant="outlined"
+          fullWidth
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+          error={!!fieldErrors.email}
+          helperText={fieldErrors.email}
+          sx={{ mb: 1 }}
+        />
+
+        <TextField
+          label="Nombre de usuario"
           variant="outlined"
           fullWidth
           value={newUsername}
           onChange={(e) => setNewUserName(e.target.value)}
+          error={!!fieldErrors.username}
+          helperText={fieldErrors.username}
+          sx={{ mb: 1 }}
         />
 
         <TextField
-          id="outlined-password-input"
           label="Nueva contraseña"
           type="password"
           fullWidth
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
+          error={!!fieldErrors.password}
+          helperText={fieldErrors.password}
+          sx={{ mb: 1 }}
+        />
+
+        <TextField
+          label="Confirmar contraseña"
+          type="password"
+          fullWidth
+          value={newConfirmPassword}
+          onChange={(e) => setNewConfirmPassword(e.target.value)}
+          sx={{ mb: 2 }}
         />
 
         <Button
           variant="contained"
+          onClick={handleCreateAccount}
           fullWidth
+          disabled={loading}
           sx={{
-            background: "linear-gradient(to right, #7ec4e3, #56a5d8, #368ac9, #1f6fae)",
+            background:
+              "linear-gradient(to right, #7ec4e3, #56a5d8, #368ac9, #1f6fae)",
             mt: 1,
           }}
         >
-          CREAR CUENTA
+          {loading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            "CREAR CUENTA"
+          )}
         </Button>
 
         <Box

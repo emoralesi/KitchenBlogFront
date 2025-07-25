@@ -74,7 +74,8 @@ export default function UserForm({ formType }) {
         >
           <Box
             sx={{
-             background: "linear-gradient(to right, #7ec4e3, #56a5d8, #368ac9, #1f6fae)",
+              background:
+                "linear-gradient(to right, #7ec4e3, #56a5d8, #368ac9, #1f6fae)",
               height: "100%",
               display: "flex",
               justifyContent: "center",
@@ -147,6 +148,30 @@ export default function UserForm({ formType }) {
                 >
                   <GitHubIcon fontSize="large" />
                 </IconButton>
+              </Box>
+
+              <Box
+                sx={{
+                  mt: 4,
+                  p: 2,
+                  borderRadius: 2,
+                  border: "2px dashed rgba(255, 255, 255, 0.7)",
+                  color: "#FFFFFF",
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{ fontSize: { xs: "0.95rem", md: "1rem" } }}
+                >
+                  ¿No quieres crear una cuenta? Utiliza la siguiente para probar
+                  el sitio web:
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  <strong>Email:</strong> usuarioprueba@test.com
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Contraseña:</strong> usuarioprueba
+                </Typography>
               </Box>
             </Box>
           </Box>
