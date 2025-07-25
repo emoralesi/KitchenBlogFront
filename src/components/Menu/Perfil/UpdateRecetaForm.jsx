@@ -28,6 +28,7 @@ import { useUtencilios } from "../../../Hooks/useUtencilios";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { useSubCategoria } from "../../../Hooks/useSubCategoria";
 import { usePresentacion } from "../../../Hooks/usePresentacion";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const UpdateRecetaForm = ({
   open,
@@ -381,6 +382,7 @@ export const UpdateRecetaForm = ({
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       await ObtenerCategoria();
       await ObtenerSubCategorias();
       await ObtenerIngrediente();
@@ -401,10 +403,11 @@ export const UpdateRecetaForm = ({
       setDificultad(data.dificultad);
       setCategoria(data.categoria);
       setUtencilio(data.utencilio);
-      setImagesRecipe(data.images);
+      setImagesRecipe(getCloudinaryUrl(data.images));
       setImageUrl(data.images);
       setSubCategoria(data.subCategoria);
       setPasos(data.pasos);
+      setLoading(false);
     };
 
     fetchData();
@@ -487,7 +490,7 @@ export const UpdateRecetaForm = ({
                     >
                       <div style={{ position: "relative", height: "220px" }}>
                         <img
-                          src={transformCloudinaryUrl(image, 300, 200)}
+                          src={getCloudinaryUrl(image, { with: 400 })}
                           alt={`Image ${index}`}
                           loading="lazy"
                           style={{

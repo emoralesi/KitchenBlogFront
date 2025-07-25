@@ -15,6 +15,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Autocomplete,
   Avatar,
   Box,
   Button,
@@ -321,22 +322,10 @@ export const DescoveryRecipe = () => {
   };
 
   return (
-    <Box
-      sx={{
-        height: "100%",
-        marginTop: "10px",
-        marginRight: "10px",
-        marginLeft: "10px",
-      }}
-    >
-      <Box sx={{ height: "auto", width: "100%", marginBottom: "20px" }}>
+    <Box sx={{ m: 2 }}>
+      <Box sx={{ width: "100%", mb: 3 }}>
         <div id="app" style={{ width: "100%", height: "100%" }}>
-          <Grid
-            container
-            spacing={2}
-            alignItems="center"
-            sx={{ marginBottom: "20px", marginTop: "10px" }}
-          >
+          <Grid container spacing={2} alignItems="center" sx={{ my: 2 }}>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <TextField
@@ -348,21 +337,18 @@ export const DescoveryRecipe = () => {
                   onChange={handleChange}
                   onKeyDown={debounce((ev) => {
                     if (ev.key === "Enter") {
-                      if (textSearch.length >= 0 && textSearch.length < 3) {
+                      if (textSearch.length < 3) {
                         setErrorSearch(true);
                         return;
                       } else {
-                        if (errorSearch) {
-                          setErrorSearch(false);
-                        }
+                        if (errorSearch) setErrorSearch(false);
                         setFilterSearch(textSearch);
-
                         ObtenerRecetasInfo({
                           data: {
                             page,
                             limit,
                             filter: {
-                              titulo: filterSearch,
+                              titulo: textSearch,
                               categoria: filterBy.categoria,
                               subCategoria: filterBy.subCategoria,
                               ingredientes: filterBy.ingredientes,
@@ -371,28 +357,22 @@ export const DescoveryRecipe = () => {
                           },
                         }).then((res) => {
                           setReactionInfo(
-                            res.Recetas?.map((recipe) => {
-                              return {
-                                idReceta: recipe._id,
-                                usuarios_id_reaction: recipe.reactions.map(
-                                  (reaction) => reaction.user_id
-                                ),
-                              };
-                            })
+                            res.Recetas?.map((recipe) => ({
+                              idReceta: recipe._id,
+                              usuarios_id_reaction: recipe.reactions.map(
+                                (reaction) => reaction.user_id
+                              ),
+                            }))
                           );
-
                           setFavouriteInfo(
-                            res.Recetas?.map((recipe) => {
-                              return {
-                                idReceta: recipe._id,
-                                usuarios_id_favourite: recipe.favourite,
-                              };
-                            })
+                            res.Recetas?.map((recipe) => ({
+                              idReceta: recipe._id,
+                              usuarios_id_favourite: recipe.favourite,
+                            }))
                           );
                         });
                         setSearchState(true);
                         setLimit(15);
-                        return;
                       }
                     }
                   }, 800)}
@@ -403,8 +383,8 @@ export const DescoveryRecipe = () => {
                         onClick={() => {
                           if (textSearch.length < 3) {
                             setErrorSearch(true);
-                          } else {
-                            errorSearch ? setErrorSearch(false) : null;
+                          } else if (errorSearch) {
+                            setErrorSearch(false);
                           }
                         }}
                         position="start"
@@ -412,12 +392,8 @@ export const DescoveryRecipe = () => {
                         <SearchIcon />
                       </IconButton>
                     ),
-                    endAdornment: (
-                      <IconButton
-                        position="end"
-                        style={{ display: showClearIcon }}
-                        onClick={handleClick}
-                      >
+                    endAdornment: showClearIcon && (
+                      <IconButton position="end" onClick={handleClick}>
                         <ClearIcon />
                       </IconButton>
                     ),
@@ -425,6 +401,7 @@ export const DescoveryRecipe = () => {
                 />
               </FormControl>
             </Grid>
+
             <Grid item xs={12} md={3}>
               <Grid container spacing={1}>
                 <Grid item xs={12} sx={{ height: "20px" }}>
@@ -434,7 +411,6 @@ export const DescoveryRecipe = () => {
                     </Typography>
                   )}
                 </Grid>
-
                 <Grid item xs={12} md={6}>
                   <Button
                     variant="contained"
@@ -442,52 +418,41 @@ export const DescoveryRecipe = () => {
                       if (textSearch.length < 3) {
                         setErrorSearch(true);
                       } else {
-                        errorSearch ? setErrorSearch(false) : null;
-                        if (textSearch.length > 0 && textSearch.length < 3) {
-                          setErrorSearch(true);
-                          return;
-                        } else {
-                          if (errorSearch) {
-                            setErrorSearch(false);
-                          }
-                          setFilterSearch(textSearch);
-                          setLoading(true);
-                          ObtenerRecetasInfo({
-                            data: {
-                              page,
-                              limit,
-                              filter: {
-                                titulo: textSearch,
-                                categoria: filterBy.categoria,
-                                subCategoria: filterBy.subCategoria,
-                                ingredientes: filterBy.ingredientes,
-                              },
-                              orderBy,
+                        if (errorSearch) setErrorSearch(false);
+                        setFilterSearch(textSearch);
+                        setLoading(true);
+                        ObtenerRecetasInfo({
+                          data: {
+                            page,
+                            limit,
+                            filter: {
+                              titulo: textSearch,
+                              categoria: filterBy.categoria,
+                              subCategoria: filterBy.subCategoria,
+                              ingredientes: filterBy.ingredientes,
                             },
+                            orderBy,
+                          },
+                        })
+                          .then((res) => {
+                            setReactionInfo(
+                              res.Recetas?.map((recipe) => ({
+                                idReceta: recipe._id,
+                                usuarios_id_reaction: recipe.reactions.map(
+                                  (reaction) => reaction.user_id
+                                ),
+                              }))
+                            );
+                            setFavouriteInfo(
+                              res.Recetas?.map((recipe) => ({
+                                idReceta: recipe._id,
+                                usuarios_id_favourite: recipe.favourite,
+                              }))
+                            );
                           })
-                            .then((res) => {
-                              setReactionInfo(
-                                res.Recetas?.map((recipe) => ({
-                                  idReceta: recipe._id,
-                                  usuarios_id_reaction: recipe.reactions.map(
-                                    (reaction) => reaction.user_id
-                                  ),
-                                }))
-                              );
-                              setFavouriteInfo(
-                                res.Recetas?.map((recipe) => ({
-                                  idReceta: recipe._id,
-                                  usuarios_id_favourite: recipe.favourite,
-                                }))
-                              );
-                            })
-                            .finally(() => {
-                              setLoading(false);
-                            });
-                          setSearchState(true);
-                          setLimit(9);
-                          return;
-                        }
+                          .finally(() => setLoading(false));
+                        setSearchState(true);
+                        setLimit(9);
                       }
                     }}
                     fullWidth
@@ -499,8 +464,7 @@ export const DescoveryRecipe = () => {
                   <Button
                     variant="outlined"
                     disabled={!searchState}
-                    onClick={async () => {
-                      //await GetAllRecipes();
+                    onClick={() => {
                       ObtenerRecetasInfo({
                         data: {
                           page,
@@ -628,18 +592,30 @@ export const DescoveryRecipe = () => {
               </Grid>
               <Grid item md={6} xs={12}>
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Ingredientes</InputLabel>
-                  <Select
+                  <Autocomplete
                     multiple
-                    value={ingredientes}
-                    onChange={(e) => setIngredientes(e.target.value)}
-                  >
-                    {ingredientesAll?.map((ingrediente) => (
-                      <MenuItem key={ingrediente._id} value={ingrediente._id}>
-                        {ingrediente.nombreIngrediente}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                    options={ingredientesAll || []}
+                    getOptionLabel={(option) => option.nombreIngrediente}
+                    value={
+                      ingredientesAll?.filter((ing) =>
+                        ingredientes.includes(ing._id)
+                      ) || []
+                    }
+                    onChange={(_, newValue) => {
+                      setIngredientes(newValue.map((item) => item._id));
+                    }}
+                    isOptionEqualToValue={(option, value) =>
+                      option._id === value._id
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Ingredientes"
+                        placeholder="Buscar ingredientes"
+                        margin="normal"
+                      />
+                    )}
+                  />
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
@@ -689,14 +665,6 @@ export const DescoveryRecipe = () => {
                 </Button>
                 <Button
                   onClick={() => {
-                    if (
-                      subCategoria?.length == 0 &&
-                      categoria == "" &&
-                      ingredientes?.length == 0
-                    ) {
-                      return;
-                    }
-
                     setCategoria("");
                     setSubCategoria([]);
                     setIngredientes([]);
@@ -1037,7 +1005,7 @@ export const DescoveryRecipe = () => {
                           },
                         }}
                       >
-                       <img
+                        <img
                           src={getCloudinaryUrl(card.images[0], { width: 400 })}
                           alt="Imagen"
                           loading="lazy"
@@ -1145,7 +1113,10 @@ export const DescoveryRecipe = () => {
                                 height: 50,
                                 fontSize: 40,
                               }}
-                              src={card.user[0].profileImageUrl}
+                              src={getCloudinaryUrl(
+                                card.user[0].profileImageUrl,
+                                { with: 50, height: 50 }
+                              )}
                             >
                               {card.user[0].username
                                 ?.substring(0, 1)
