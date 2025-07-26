@@ -81,13 +81,13 @@ export default function LogIn({ handleCreateNewClick }) {
         <Typography
           variant="h3"
           fontWeight="bold"
-          sx={{ height: "300px", width: "700px" }}
+          sx={{ height: "220px", width: "700px" }}
           gutterBottom
         >
           <img
             src={logo}
             alt="Kitchen Blog Logo"
-            style={{ height: "300px", width: "700px" }}
+            style={{ height: "250px", width: "700px" }}
           />
         </Typography>
 
@@ -112,6 +112,7 @@ export default function LogIn({ handleCreateNewClick }) {
           fullWidth
           value={userEmail}
           onChange={(e) => setUserEmail(e.target.value)}
+          sx={{ marginBottom: "10px" }}
         />
 
         <TextField

@@ -197,7 +197,7 @@ export const PerfilOwner = ({
         aria-label="add"
         sx={{
           position: "fixed",
-          bottom: 25,
+          bottom: { xs: "100px", md: "20px" },
           right: 25,
           width: "60px",
           height: "60px",

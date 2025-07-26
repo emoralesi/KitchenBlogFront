@@ -6,7 +6,13 @@ import "../../styles/container.css";
 
 export default function MainContent() {
   return (
-    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, height: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+        height: "100vh",
+      }}
+    >
       <Paper
         elevation={3}
         sx={{
@@ -30,7 +36,7 @@ export default function MainContent() {
           width: { xs: "100%", md: "80%" },
           display: "flex",
           flexDirection: "column",
-          height: "100vh",
+          height: { xs: "calc(100vh - 80px)", md: "100vh" },
         }}
       >
         <Box>

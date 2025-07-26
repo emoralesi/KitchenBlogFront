@@ -131,13 +131,13 @@ export default function Register({ handleCreateNewClick }) {
         <Typography
           variant="h3"
           fontWeight="bold"
-          sx={{ height: "300px", width: "700px" }}
+          sx={{ height: "220px", width: "700px" }}
           gutterBottom
         >
           <img
             src={logo}
             alt="Kitchen Blog Logo"
-            style={{ height: "300px", width: "700px" }}
+            style={{ height: "250px", width: "700px" }}
           />
         </Typography>
 
@@ -222,6 +222,7 @@ export default function Register({ handleCreateNewClick }) {
             alignItems: "center",
             width: "80%",
             mt: 2,
+            mb:2
           }}
         >
           <Typography variant="body2" sx={{ color: "#555" }}>

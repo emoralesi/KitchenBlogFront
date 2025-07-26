@@ -540,10 +540,10 @@ export const ShoppingList2 = () => {
       ) : (
         <></>
       )}
-      <div
-        style={{
+      <Box
+        sx={{
           position: "fixed",
-          bottom: "20px",
+          bottom: { xs: "100px", md: "20px" },
           right: "20px",
         }}
       >
@@ -554,9 +554,9 @@ export const ShoppingList2 = () => {
           color="success"
           variant="contained"
         >
-          Generate list
+          Generar Lista
         </Button>
-      </div>
+      </Box>
       {openIngredientList ? (
         <IngredientListModal
           data={favourites.filter((recipe) => idSelected.includes(recipe._id))}
