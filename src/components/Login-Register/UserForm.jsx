@@ -6,6 +6,8 @@ import {
   Link,
   Typography,
   IconButton,
+  Tooltip,
+  Snackbar,
 } from "@mui/material";
 import { useState } from "react";
 import LogIn from "./LogIn";
@@ -13,22 +15,25 @@ import Register from "./Register";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LanguageIcon from "@mui/icons-material/Language";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
 export default function UserForm({ formType }) {
   const [isLoginForm, setIsLoginForm] = useState(formType);
+  const [copied, setCopied] = useState(false);
 
   const handleCreateNewClick = () => {
     setIsLoginForm(!isLoginForm);
   };
 
-  const handleLogin = () => {
-    // Lógica de inicio de sesión aquí
-  };
 
-  const handleCreateAccount = () => {
-    // Lógica para crear una cuenta aquí
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch (err) {
+      console.error("Error al copiar:", err);
+    }
   };
-
   return (
     <Box
       sx={{
@@ -166,13 +171,44 @@ export default function UserForm({ formType }) {
                   ¿No quieres crear una cuenta? Utiliza la siguiente para probar
                   el sitio web:
                 </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  <strong>Email:</strong> usuarioprueba@test.com
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Contraseña:</strong> usuarioprueba
-                </Typography>
+
+                <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                  <Typography variant="body2">
+                    <strong>Email:</strong> usuarioprueba@test.com
+                  </Typography>
+                  <Tooltip title="Copiar email">
+                    <IconButton
+                      onClick={() => handleCopy("usuarioprueba@test.com")}
+                      size="small"
+                      sx={{ color: "#fff", ml: 1 }}
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Typography variant="body2">
+                    <strong>Contraseña:</strong> usuarioprueba
+                  </Typography>
+                  <Tooltip title="Copiar contraseña">
+                    <IconButton
+                      onClick={() => handleCopy("usuarioprueba")}
+                      size="small"
+                      sx={{ color: "#fff", ml: 1 }}
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               </Box>
+
+              <Snackbar
+                open={copied}
+                autoHideDuration={2000}
+                onClose={() => setCopied(false)}
+                message="Copiado al portapapeles"
+              />
             </Box>
           </Box>
         </Grid>

@@ -1,29 +1,55 @@
-import { List } from "@mui/material";
-import React, { useEffect, useState } from 'react';
-import '../../styles/nav.css';
+import { Box, List } from "@mui/material";
+import React from "react";
+import "../../styles/nav.css";
 import { CustomizedListItem } from "./CustomizedListItem";
-import menuData from '../../../menu.json';
+import menuData from "../../../menu.json";
+import logo from "../../assets/kitchen_blog_logo_centered.svg";
 
 export default function SideMenu() {
+  return (
+    <Box
+      sx={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: { xs: "row", md: "column" },
+        alignItems: "center",
+        justifyContent: { xs: "space-around", md: "flex-start" },
+        paddingY: { md: 2 },
+        backgroundColor: "#f0f0f0",
+      }}
+    >
+      {/* Logo en la parte superior */}
+      <Box
+        sx={{
+          display: { xs: "none", md: "flex" },
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 2,
+        }}
+      >
+        <img
+          src={logo}
+          alt="Kitchen Blog Logo"
+          style={{ width: "220px", height: "100px"}}
+        />
+      </Box>
 
-    const [dataMenu, setDataMenu] = useState(menuData.menus)
-
-    return (
-        <div style={{ height: 'calc(100vh - 100px)' }}>
-            <List sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-around',
-                height: '100%',
-                alignItems: 'center',
-                padding: 0
-            }}>
-                {dataMenu.map((doc, index) => {
-                    return (
-                        <CustomizedListItem key={index} doc={doc} />
-                    )
-                })}
-            </List>
-        </div >
-    )
+      <List
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "row", md: "column" },
+          justifyContent: "space-around",
+          alignItems: "center",
+          width: "100%",
+          height: "100%",
+          padding: 0,
+        }}
+      >
+        {menuData.menus.map((doc, index) => (
+          <CustomizedListItem key={index} doc={doc} />
+        ))}
+      </List>
+    </Box>
+  );
 }

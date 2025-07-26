@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginUsuario } from "../../services/UserService";
 import { enqueueSnackbar } from "notistack";
+import logo from "../../assets/kitchen_blog_logo_centered.svg";
 
 export default function LogIn({ handleCreateNewClick }) {
   const [userEmail, setUserEmail] = useState("");
@@ -25,15 +26,32 @@ export default function LogIn({ handleCreateNewClick }) {
 
     if (result.status == "ok") {
       localStorage.setItem("UserLogged", JSON.stringify(result));
-      enqueueSnackbar("Inicio de sesion correcto", { variant: "success" });
+      enqueueSnackbar("Inicio de sesion correcto", {
+        variant: "success",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
+      });
       navigate("/main/bienvenido");
     } else if (result.status == "notOK") {
       enqueueSnackbar("Nombre de usuario y/o contraseña incorrecta", {
         variant: "warning",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
     } else {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
     }
 
@@ -60,8 +78,17 @@ export default function LogIn({ handleCreateNewClick }) {
           flexDirection: "column",
         }}
       >
-        <Typography variant="h3" fontWeight="bold" gutterBottom>
-          LOGO
+        <Typography
+          variant="h3"
+          fontWeight="bold"
+          sx={{ height: "300px", width: "700px" }}
+          gutterBottom
+        >
+          <img
+            src={logo}
+            alt="Kitchen Blog Logo"
+            style={{ height: "300px", width: "700px" }}
+          />
         </Typography>
 
         <Typography

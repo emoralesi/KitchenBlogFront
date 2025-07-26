@@ -1,10 +1,11 @@
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import {
   Collapse,
-  Container,
   Divider,
   ListItem,
   ListItemText,
+  Box,
+  Tooltip,
 } from "@mui/material";
 import { useState } from "react";
 import { ListChild } from "./ListChild";
@@ -18,8 +19,8 @@ export const CustomizedListItem = ({ doc }) => {
 
   const handleClick = () => {
     setOpen(!open);
-    if (doc.submenus.length == 0) {
-      if (doc.linkTo == "/main/profile/") {
+    if (doc.submenus.length === 0) {
+      if (doc.linkTo === "/main/profile/") {
         navigate(`${doc.linkTo}${getStorageUser().username}`, {
           preventScrollReset: true,
         });
@@ -30,51 +31,59 @@ export const CustomizedListItem = ({ doc }) => {
   };
 
   return (
-    <div style={{ padding: 0, width: "100%" }}>
-      <div>
-        <ListItem
-          button
-          key={doc.id_menu}
-          onClick={handleClick}
-          sx={{ paddingLeft:'20px' }}
-        >
-          <Container
+    <Box sx={{ width: "100%", flex: 1 }}>
+      <ListItem
+        button
+        key={doc.id_menu}
+        onClick={handleClick}
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          alignItems: "center",
+          justifyContent: { xs: "center", md: "flex-start" },
+          px: { xs: 1, md: 2 },
+          py: { xs: 0.5, md: 1 },
+          width: "100%",
+        }}
+      >
+        {/* Icono */}
+        <Box sx={{ minWidth: "24px", display: "flex", justifyContent: "center" }}>
+          <Icons idMenu={doc.id_menu} />
+        </Box>
+
+        {/* Texto solo en md+ */}
+        <Tooltip title={doc.nombre_menu} placement="right">
+          <ListItemText
+            primary={doc.nombre_menu}
             sx={{
-              display: { xs: "flex", md: "contents" },
-              alignItems: { xs: "center" },
-              justifyContent: { xs: "center", md: "unset" },
+              display: { xs: "none", md: "block" },
+              pl: 1,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flexGrow: 1,
             }}
-          >
-            <Icons idMenu={doc.id_menu} />
-            <ListItemText
-              sx={{ paddingLeft: "7px", display: { xs: "none", md: "unset" } }}
-              primary={doc.nombre_menu}
-            />
-            {doc.submenus.length > 0 ? (
-              open ? (
-                <ExpandLess />
-              ) : (
-                <ExpandMore />
-              )
-            ) : (
-              <></>
-            )}
-          </Container>
-        </ListItem>
-      </div>
-      {doc.submenus.length > 0 ? (
-        <Collapse
-          key={doc.submenus.id_sub_menu}
-          in={open}
-          timeout="auto"
-          unmountOnExit
-        >
-          <ListChild doc={doc} />
+          />
+        </Tooltip>
+
+        {/* Expand icon */}
+        {doc.submenus.length > 0 && (
+          <Box sx={{ display: { xs: "none", md: "flex" }, ml: "auto" }}>
+            {open ? <ExpandLess /> : <ExpandMore />}
+          </Box>
+        )}
+      </ListItem>
+
+      {/* Submenús */}
+      {doc.submenus.length > 0 && (
+        <Collapse in={open} timeout="auto" unmountOnExit>
+          <Box sx={{ display: { xs: "none", md: "block" } }}>
+            <ListChild doc={doc} />
+          </Box>
         </Collapse>
-      ) : (
-        <></>
       )}
-      <Divider />
-    </div>
+
+      <Divider sx={{ display: { xs: "none", md: "block" } }} />
+    </Box>
   );
 };

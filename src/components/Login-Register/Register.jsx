@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { enqueueSnackbar } from "notistack";
 import { RegisterUsuario } from "../../services/UserService";
+import logo from "../../assets/kitchen_blog_logo_centered.svg";
 
 export default function Register({ handleCreateNewClick }) {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ export default function Register({ handleCreateNewClick }) {
     if (newPassword !== newConfirmPassword) {
       enqueueSnackbar("Las contraseñas no coinciden", {
         variant: "warning",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       return;
     }
@@ -44,6 +50,11 @@ export default function Register({ handleCreateNewClick }) {
       if (response.status === "ok") {
         enqueueSnackbar(response.message || "Usuario registrado con éxito", {
           variant: "success",
+          autoHideDuration: 2000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
         });
 
         handleCreateNewClick();
@@ -57,26 +68,40 @@ export default function Register({ handleCreateNewClick }) {
         if (response.errors) {
           const errors = {};
           response.errors.forEach((err) => {
-            console.log("mi err",err);
-            
+            console.log("mi err", err);
+
             errors[err.path] = err.msg;
             console.log(errors);
-            
           });
           setFieldErrors(errors);
         } else {
           enqueueSnackbar(response.message || "Error de validación", {
             variant: "warning",
+            autoHideDuration: 2000,
+            anchorOrigin: {
+              vertical: "top",
+              horizontal: "left",
+            },
           });
         }
       } else {
         enqueueSnackbar("Error inesperado en el registro", {
           variant: "error",
+          autoHideDuration: 2000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
         });
       }
     } catch (error) {
       enqueueSnackbar("Error al conectar con el servidor", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       console.error("Error en el registro:", error);
     } finally {
@@ -103,8 +128,17 @@ export default function Register({ handleCreateNewClick }) {
           flexDirection: "column",
         }}
       >
-        <Typography variant="h3" fontWeight="bold" gutterBottom>
-          LOGO
+        <Typography
+          variant="h3"
+          fontWeight="bold"
+          sx={{ height: "300px", width: "700px" }}
+          gutterBottom
+        >
+          <img
+            src={logo}
+            alt="Kitchen Blog Logo"
+            style={{ height: "300px", width: "700px" }}
+          />
         </Typography>
 
         <Typography

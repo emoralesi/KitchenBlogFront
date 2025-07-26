@@ -6,17 +6,18 @@ import "../../styles/container.css";
 
 export default function MainContent() {
   return (
-    <Box sx={{ display: "flex", height: "100vh" }}>
+    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, height: "100vh" }}>
       <Paper
         elevation={3}
         sx={{
-          width: "16.66%",
-          height: "100vh",
-          borderRadius: 0,
+          width: { xs: "100%", md: "20%" },
+          height: { xs: "80px", md: "100vh" },
           position: "fixed",
-          top: 0,
+          bottom: { xs: 0, md: "auto" },
+          top: { xs: "auto", md: 0 },
           left: 0,
           zIndex: 1200,
+          borderRadius: 0,
         }}
       >
         <SideMenu />
@@ -24,8 +25,9 @@ export default function MainContent() {
 
       <Box
         sx={{
-          marginLeft: "16.66%",
-          width: "83.34%",
+          marginLeft: { xs: 0, md: "20%" },
+          marginBottom: { xs: "80px", md: 0 },
+          width: { xs: "100%", md: "80%" },
           display: "flex",
           flexDirection: "column",
           height: "100vh",

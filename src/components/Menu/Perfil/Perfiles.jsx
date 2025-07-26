@@ -57,6 +57,11 @@ export const Perfiles = () => {
     if (!file) {
       enqueueSnackbar("Debe seleccionar una imagen primero", {
         variant: "warning",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       return;
     }
@@ -72,7 +77,14 @@ export const Perfiles = () => {
       event.target.value = null;
       enqueueSnackbar(
         "Solo se admiten un archivo de imagen (jpg, png, webp, etc...).",
-        { variant: "warning" }
+        {
+          variant: "warning",
+          autoHideDuration: 2000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
+        }
       );
       return;
     }
@@ -83,13 +95,25 @@ export const Perfiles = () => {
     if (file.size > maxSizeInBytes) {
       enqueueSnackbar("La imagen no debe superar los 10 MB.", {
         variant: "warning",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       event.target.value = null;
       return;
     }
 
     setImage(file);
-    enqueueSnackbar("Imagen actualizada", { variant: "success" });
+    enqueueSnackbar("Imagen actualizada", {
+      variant: "success",
+      autoHideDuration: 2000,
+      anchorOrigin: {
+        vertical: "top",
+        horizontal: "left",
+      },
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -98,6 +122,11 @@ export const Perfiles = () => {
     if (!image) {
       enqueueSnackbar("Debe seleccionar una imagen primero", {
         variant: "warning",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       return;
     }

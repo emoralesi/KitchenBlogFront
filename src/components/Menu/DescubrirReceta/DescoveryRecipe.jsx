@@ -272,7 +272,14 @@ export const DescoveryRecipe = () => {
       categoria == "" &&
       ingredientes?.length == 0
     ) {
-      enqueueSnackbar("No tiene filtros seleccionados", { variant: "warning" });
+      enqueueSnackbar("No tiene filtros seleccionados", {
+        variant: "warning",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
+      });
       return;
     }
 

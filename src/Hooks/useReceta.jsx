@@ -25,16 +25,31 @@ export const useReceta = () => {
       if (result.status == "ok") {
         enqueueSnackbar("Receta Registrado correctaente", {
           variant: "success",
+          autoHideDuration: 2000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
         });
       } else {
         enqueueSnackbar("Hubo un error al guardar la receta", {
           variant: "error",
+          autoHideDuration: 2000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
         });
       }
       return result;
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       return false;
       console.log(error);
@@ -49,6 +64,11 @@ export const useReceta = () => {
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       return false;
       console.log(error);
@@ -62,10 +82,20 @@ export const useReceta = () => {
       if (result.status === "ok") {
         enqueueSnackbar("Receta actualizada correctaente", {
           variant: "success",
+          autoHideDuration: 2000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
         });
       } else {
         enqueueSnackbar("No fue posible actualizar la receta", {
           variant: "error",
+          autoHideDuration: 2000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
         });
       }
 
@@ -73,6 +103,11 @@ export const useReceta = () => {
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       return false;
       console.log(error);
@@ -83,11 +118,23 @@ export const useReceta = () => {
   const saveUpdateReactionReceta = async ({ data }) => {
     try {
       await saveReactionReceta({ data: data });
-      enqueueSnackbar("Like Registrado correctaente", { variant: "success" });
+      enqueueSnackbar("Like Registrado correctaente", {
+        variant: "success",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
+      });
       return true;
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       console.log(error);
       return false;
@@ -123,6 +170,11 @@ export const useReceta = () => {
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       console.log(error);
     } finally {
@@ -157,6 +209,11 @@ export const useReceta = () => {
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       console.log(error);
     } finally {
@@ -171,6 +228,11 @@ export const useReceta = () => {
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       console.log(error);
     } finally {
@@ -183,6 +245,11 @@ export const useReceta = () => {
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",
+        autoHideDuration: 2000,
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "left",
+        },
       });
       console.log(error);
     } finally {
