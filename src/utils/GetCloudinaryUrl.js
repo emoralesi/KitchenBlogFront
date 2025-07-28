@@ -1,4 +1,12 @@
 export const getCloudinaryUrl = (publicId, options = {}) => {
+  if (!publicId) {
+    return publicId;
+  }
+
+  if (publicId.startsWith("blob:")) {
+    return publicId;
+  }
+
   const {
     width = 500,
     height,
@@ -10,7 +18,7 @@ export const getCloudinaryUrl = (publicId, options = {}) => {
   let base = `https://res.cloudinary.com/dzvlhgbvq/image/upload`;
   let transform = `w_${width},q_${quality},f_${format},c_${crop}`;
 
-  if (height) transform += `,h_${height}`;  
+  if (height) transform += `,h_${height}`;
 
   return `${base}/${transform}/${publicId}.webp`;
 };
