@@ -159,7 +159,7 @@ export const RecetaForm = ({
       ...grupoIngrediente,
       {
         nombreGrupo: "",
-        items: [{ id: 1, valor: "", idIngrediente: "", idMedida: "" }],
+        items: [{ id: 1, valor: "", idIngrediente: "", idMedida: "", idPresentacion: "", alternativas: [] }],
       },
     ]);
   };
