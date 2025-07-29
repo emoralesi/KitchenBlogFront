@@ -200,6 +200,8 @@ export const Favourites = ({
             .map((card, index) => {
               const isNew = index >= previousLength;
               const animationIndex = isNew ? index - previousLength : 0;
+              
+
               return (
                 <Zoom
                   key={card._id}
@@ -548,7 +550,7 @@ export const Favourites = ({
                                 height: 50,
                                 fontSize: 40,
                               }}
-                              src={card.user[0].profileImageUrl}
+                              src={getCloudinaryUrl(card.user[0].profileImageUrl)}
                             >
                               {card.user[0].username
                                 ?.substring(0, 1)

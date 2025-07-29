@@ -545,7 +545,7 @@ export const FavouritesOther = ({
                                 marginRight: "10px",
                                 fontSize: 40,
                               }}
-                              src={card.user[0].profileImageUrl}
+                              src={getCloudinaryUrl(card.user[0].profileImageUrl)}
                             >
                               {card.user[0].username
                                 ?.substring(0, 1)
