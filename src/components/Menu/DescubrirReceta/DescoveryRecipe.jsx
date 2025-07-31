@@ -1122,7 +1122,7 @@ export const DescoveryRecipe = () => {
                               }}
                               src={getCloudinaryUrl(
                                 card.user[0].profileImageUrl,
-                                { with: 50, height: 50 }
+                                { width: 400, height: 400 }
                               )}
                             >
                               {card.user[0].username

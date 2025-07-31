@@ -143,7 +143,15 @@ export const UpdateRecetaForm = ({
       ...grupoIngrediente,
       {
         nombreGrupo: "",
-        items: [{ valor: 0, idIngrediente: "", idMedida: "", idPresentacion: "", alternativas: [] }],
+        items: [
+          {
+            valor: 0,
+            idIngrediente: "",
+            idMedida: "",
+            idPresentacion: "",
+            alternativas: [],
+          },
+        ],
       },
     ]);
   };
@@ -183,7 +191,6 @@ export const UpdateRecetaForm = ({
 
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-
 
     if (selectedFiles.length > 3) {
       alert("Puedes subir un máximo de 3 imágenes");
@@ -303,7 +310,6 @@ export const UpdateRecetaForm = ({
       return;
     }
 
-
     if (imagesRecipe.length > 5) {
       alert("Puedes subir un máximo de 5 imágenes");
       return;
@@ -317,7 +323,6 @@ export const UpdateRecetaForm = ({
         ingredientesValidos = false;
         break;
       }
-
 
       for (const item of grupo.items) {
         if (!(item.valor !== "") || !item.idIngrediente || !item.idMedida) {
@@ -549,7 +554,7 @@ export const UpdateRecetaForm = ({
                       >
                         <div style={{ position: "relative", height: "220px" }}>
                           <img
-                            src={getCloudinaryUrl(image, { with: 400 })}
+                            src={getCloudinaryUrl(image, { width: 400 })}
                             alt={`Image ${index}`}
                             loading="lazy"
                             style={{
@@ -992,25 +997,28 @@ export const UpdateRecetaForm = ({
                         </Box>
                       ))}
 
-                      {grupoIngrediente.length > 1 && (
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between', width:'100%'}}>
                         <Button
-                          onClick={() =>
-                            handleDeleteGrupoIngrediente(groupIndex)
-                          }
-                          variant="outlined"
-                          color="error"
+                          onClick={() => handleAddItem(groupIndex)}
+                          variant="contained"
                           sx={{ mt: 2 }}
                         >
-                          Eliminar Grupo
+                          Agregar Ingrediente
                         </Button>
-                      )}
-                      <Button
-                        onClick={() => handleAddItem(groupIndex)}
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                      >
-                        Agregar Ingrediente
-                      </Button>
+
+                        {grupoIngrediente.length > 1 && (
+                          <Button
+                            onClick={() =>
+                              handleDeleteGrupoIngrediente(groupIndex)
+                            }
+                            variant="outlined"
+                            color="error"
+                            sx={{ mt: 2 }}
+                          >
+                            Eliminar Grupo
+                          </Button>
+                        )}
+                      </div>
                     </Box>
                   ))}
                   <Button

@@ -159,7 +159,16 @@ export const RecetaForm = ({
       ...grupoIngrediente,
       {
         nombreGrupo: "",
-        items: [{ id: 1, valor: "", idIngrediente: "", idMedida: "", idPresentacion: "", alternativas: [] }],
+        items: [
+          {
+            id: 1,
+            valor: "",
+            idIngrediente: "",
+            idMedida: "",
+            idPresentacion: "",
+            alternativas: [],
+          },
+        ],
       },
     ]);
   };
@@ -874,7 +883,9 @@ export const RecetaForm = ({
                                 <Autocomplete
                                   fullWidth
                                   options={ingredientesAll || []}
-                                  getOptionLabel={(option) => option?.nombreIngrediente || ''}
+                                  getOptionLabel={(option) =>
+                                    option?.nombreIngrediente || ""
+                                  }
                                   value={
                                     ingredientesAll?.find(
                                       (ing) => ing._id === item.idIngrediente
@@ -969,20 +980,22 @@ export const RecetaForm = ({
                                     <Autocomplete
                                       fullWidth
                                       options={ingredientesAll || []}
-                                      getOptionLabel={(option) => option?.nombreIngrediente || ''}
+                                      getOptionLabel={(option) =>
+                                        option?.nombreIngrediente || ""
+                                      }
                                       value={
-                                      ingredientesAll?.find(
-                                        (ing) => ing._id === alt.idIngrediente
-                                      ) || null
-                                    }
-                                       onChange={(e, newValue) => {
-                                      const newGroups = [...grupoIngrediente];
-                                      newGroups[groupIndex].items[
-                                        itemIndex
-                                      ].alternativas[altIndex].idIngrediente =
-                                        newValue?._id || "";
-                                      setGrupoIngrediente(newGroups);
-                                    }}
+                                        ingredientesAll?.find(
+                                          (ing) => ing._id === alt.idIngrediente
+                                        ) || null
+                                      }
+                                      onChange={(e, newValue) => {
+                                        const newGroups = [...grupoIngrediente];
+                                        newGroups[groupIndex].items[
+                                          itemIndex
+                                        ].alternativas[altIndex].idIngrediente =
+                                          newValue?._id || "";
+                                        setGrupoIngrediente(newGroups);
+                                      }}
                                       renderInput={(params) => (
                                         <TextField
                                           {...params}
@@ -1036,25 +1049,35 @@ export const RecetaForm = ({
                         </Box>
                       ))}
 
-                      {grupoIngrediente.length > 1 && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          width: "100%",
+                        }}
+                      >
                         <Button
-                          onClick={() =>
-                            handleDeleteGrupoIngrediente(groupIndex)
-                          }
-                          variant="outlined"
-                          color="error"
+                          onClick={() => handleAddItem(groupIndex)}
+                          variant="contained"
                           sx={{ mt: 2 }}
                         >
-                          Eliminar Grupo
+                          Agregar Ingrediente
                         </Button>
-                      )}
-                      <Button
-                        onClick={() => handleAddItem(groupIndex)}
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                      >
-                        Agregar Ingrediente
-                      </Button>
+
+                        {grupoIngrediente.length > 1 && (
+                          <Button
+                            onClick={() =>
+                              handleDeleteGrupoIngrediente(groupIndex)
+                            }
+                            variant="outlined"
+                            color="error"
+                            sx={{ mt: 2 }}
+                          >
+                            Eliminar Grupo
+                          </Button>
+                        )}
+                      </div>
                     </Box>
                   ))}
                   <Button
