@@ -16,7 +16,7 @@ import SessionGuard from "./components/SessionGuard/SessionGuard";
 import { ShoppingList2 } from "./components/Menu/ShoppingList/ShoppingList2";
 import { ImageContent } from "./components/Menu/Others/EmailContent";
 import { DescoveryRecipe } from "./components/Menu/DescubrirReceta/DescoveryRecipe";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 function App() {
   const ProtectedRoute = ({ element: Element, ...rest }) => {
@@ -82,6 +82,7 @@ function App() {
           />
         </Routes>
       </SnackbarProvider>
+      <Analytics />
     </Router>
   );
 }
