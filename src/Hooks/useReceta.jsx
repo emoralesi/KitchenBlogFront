@@ -21,27 +21,28 @@ export const useReceta = () => {
 
   const guardarReceta = async ({ data }) => {
     try {
-      const result = await saveReceta({ receta: data });
-      if (result.status == "ok") {
-        enqueueSnackbar("Receta Registrado correctaente", {
-          variant: "success",
-          autoHideDuration: 2000,
-          anchorOrigin: {
-            vertical: "top",
-            horizontal: "left",
-          },
-        });
-      } else {
-        enqueueSnackbar("Hubo un error al guardar la receta", {
-          variant: "error",
-          autoHideDuration: 2000,
-          anchorOrigin: {
-            vertical: "top",
-            horizontal: "left",
-          },
-        });
-      }
-      return result;
+      console.log(data)
+      // const result = await saveReceta({ receta: data });
+      // if (result.status == "ok") {
+      //   enqueueSnackbar("Receta Registrado correctaente", {
+      //     variant: "success",
+      //     autoHideDuration: 2000,
+      //     anchorOrigin: {
+      //       vertical: "top",
+      //       horizontal: "left",
+      //     },
+      //   });
+      // } else {
+      //   enqueueSnackbar("Hubo un error al guardar la receta", {
+      //     variant: "error",
+      //     autoHideDuration: 2000,
+      //     anchorOrigin: {
+      //       vertical: "top",
+      //       horizontal: "left",
+      //     },
+      //   });
+      // }
+      // return result;
     } catch (error) {
       enqueueSnackbar("A ocurrido un error, favor intente mas tarde", {
         variant: "error",

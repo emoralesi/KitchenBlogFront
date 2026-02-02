@@ -13,6 +13,7 @@ import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
 import {
   Box,
   Button,
@@ -36,13 +37,14 @@ import { useReceta } from "../../../Hooks/useReceta";
 import { useUsuario } from "../../../Hooks/useUsuario";
 import { dateConvert } from "../../../utils/dateConvert";
 import { TypeNotification } from "../../../utils/enumTypeNoti";
+import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 import IconSvg from "../../../utils/IconSvg";
 import { SkeletonWave } from "../../../utils/Skeleton";
 import { getStorageUser } from "../../../utils/StorageUser";
 import { DetailsReceta } from "../Others/DitailsReceta";
 import { RecetaForm } from "../Perfil/RecetaForm";
 import { UpdateRecetaForm } from "../Perfil/UpdateRecetaForm";
-import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
+import { DialogIARecipe } from "../Others/DialogAIRecipe";
 
 export const PerfilOwner = ({
   setCantidadFavoritos,
@@ -75,6 +77,7 @@ export const PerfilOwner = ({
   const [openConfirmation, setOpenConfirmation] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [openForm, setOpenForm] = useState(false);
+  const [openIA, setOpenIA] = useState(false);
   const [openUpdateForm, setOpenUpdateForm] = useState(false);
   const [openReceta, setOpenReceta] = useState(false);
   const [idReceta, setIdReceta] = useState(null);
@@ -192,6 +195,18 @@ export const PerfilOwner = ({
       ) : (
         <></>
       )}
+      {/* 🤖 BOTÓN IA */}
+      <Fab
+        color="primary"
+        sx={{
+          position: "fixed",
+          bottom: { xs: "170px", md: "90px" },
+          right: 25,
+        }}
+        onClick={() => setOpenIA(true)}
+      >
+        <SmartToyIcon />
+      </Fab>
       <Fab
         color="success"
         aria-label="add"
@@ -352,10 +367,10 @@ export const PerfilOwner = ({
                                 (item) =>
                                   item.idReceta === card._id
                                     ? {
-                                        ...item,
-                                        usuarios_id_favourite:
-                                          updatedUsuariosIdFavourite,
-                                      }
+                                      ...item,
+                                      usuarios_id_favourite:
+                                        updatedUsuariosIdFavourite,
+                                    }
                                     : item
                               );
 
@@ -427,10 +442,10 @@ export const PerfilOwner = ({
                                 (item) =>
                                   item.idReceta === card?._id
                                     ? {
-                                        ...item,
-                                        usuarios_id_reaction:
-                                          updatedUsuariosIdReaction,
-                                      }
+                                      ...item,
+                                      usuarios_id_reaction:
+                                        updatedUsuariosIdReaction,
+                                    }
                                     : item
                               );
 
@@ -713,7 +728,7 @@ export const PerfilOwner = ({
                                         page,
                                         limit,
                                       },
-                                    }).then((res) => {});
+                                    }).then((res) => { });
                                     handleCloseConfirmation();
                                     if (idFavourites.includes(card._id)) {
                                       setCantidadFavoritos(
@@ -846,21 +861,19 @@ export const PerfilOwner = ({
 
                                 const alternativas = item.alternativas?.length
                                   ? item.alternativas
-                                      .map(
-                                        (alt) => ` / ${alt.nombreIngrediente}`
-                                      )
-                                      .join("")
+                                    .map(
+                                      (alt) => ` / ${alt.nombreIngrediente}`
+                                    )
+                                    .join("")
                                   : "";
 
                                 return (
                                   <Typography key={idx} variant="body2">
-                                    {`${item.valor} ${
-                                      item.medida.nombreMedida === "Cantidad"
-                                        ? ""
-                                        : item.medida.nombreMedida
-                                    } ${
-                                      item.ingrediente.nombreIngrediente
-                                    }${textoPresentacion}${alternativas}`}
+                                    {`${item.valor} ${item.medida.nombreMedida === "Cantidad"
+                                      ? ""
+                                      : item.medida.nombreMedida
+                                      } ${item.ingrediente.nombreIngrediente
+                                      }${textoPresentacion}${alternativas}`}
                                   </Typography>
                                 );
                               })}
@@ -910,6 +923,18 @@ export const PerfilOwner = ({
         />
       ) : (
         <></>
+      )}
+      {/* 🤖 DIALOG IA */}
+      {openIA && (
+        <DialogIARecipe
+          open={openIA}
+          onClose={() => setOpenIA(false)}
+          onUseRecipe={(recetaIA) => {
+            setRecipeFromIA(recetaIA);
+            setOpenIA(false);
+            setOpenForm(true);
+          }}
+        />
       )}
       {openReceta ? (
         <Modal
