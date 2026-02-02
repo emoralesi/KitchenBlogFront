@@ -3,7 +3,7 @@ import ExpandableText from "../../../utils/LongText";
 import { getCloudinaryUrl } from "../../../utils/GetCloudinaryUrl";
 
 export const RecipeFirstPartAI = ({ detailsReceta }) => {
-  detailsReceta.images = ["ChatGPT_Image_26_ene_2026_13_09_25_bi6hlb"]
+  detailsReceta.images = ["IA_Images/ChatGPT_Image_26_ene_2026_13_09_25_bi6hlb"]
   return (
     <Grid container spacing={4} sx={{ width: "100%" }}>
       {/* ======================
